@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/sub_bg_color"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_45sdp"
+        android:background="@color/bg_color">
+
+        <ImageView
+            android:id="@+id/closeImg"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:padding="@dimen/_13sdp"
+            android:src="@drawable/close_img" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:layout_weight="1"
+            android:fontFamily="@font/inter_semi_bold"
+            android:includeFontPadding="false"
+            android:text="@string/str_41"
+            android:textColor="@color/header_text_color"
+            android:textSize="@dimen/_15ssp" />
+
+        <TextView
+            android:id="@+id/doneTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:background="@drawable/background_02"
+            android:fontFamily="@font/inter_semi_bold"
+            android:foreground="@drawable/bg_ripple_round"
+            android:includeFontPadding="false"
+            android:paddingHorizontal="@dimen/_10sdp"
+            android:paddingVertical="@dimen/_5sdp"
+            android:paddingLeft="@dimen/_10sdp"
+            android:paddingTop="@dimen/_5sdp"
+            android:paddingRight="@dimen/_10sdp"
+            android:paddingBottom="@dimen/_5sdp"
+            android:text="@string/str_42"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_10ssp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_150sdp"
+        android:layout_margin="@dimen/_15sdp"
+        android:background="@drawable/background_13">
+
+        <EditText
+            android:id="@+id/changeFontEt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:fontFamily="@font/inter_semi_bold"
+            android:gravity="start"
+            android:hint="Please Enter Text"
+            android:includeFontPadding="false"
+            android:padding="@dimen/_12sdp"
+            android:text="@string/str_43"
+            android:textColor="@color/header_text_color"
+            android:textColorHint="#bab8b8"
+            android:textSize="@dimen/_14sdp" />
+    </LinearLayout>
+</LinearLayout>

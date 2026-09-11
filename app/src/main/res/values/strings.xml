@@ -1,0 +1,541 @@
+<resources>
+
+    <string name="app_name">ZyFoo AI</string>
+
+    <!--    No Need to change. Changeable from admin-->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+
+
+    <!--    SplashScreen-->
+    <string name="error_message__no_internet">No internet connection.</string>
+
+    <!--IntroScreen-->
+
+
+    <string name="card_number">Card Number</string>
+    <string name="mm_yy">MM/yy</string>
+    <string name="card_holders_name">Name</string>
+    <string name="cvv">CVV</string>
+    <string name="proceed">Proceed with Card</string>
+    <string name="example_name">Test Name</string>
+    <string name="example_email">android-sdk-sample-app@instamojo.com</string>
+    <string name="example_phone">9876543210</string>
+    <string name="example_amount">10</string>
+    <string name="test_description">Test description</string>
+    <string name="pay">Pay</string>
+    <string name="loader_message">Please wait&#8230;</string>
+
+    <!-- Login & Sign Up   -->
+    <string name="login_login">Login</string>
+    <string name="please_login">Please Login</string>
+    <string name="login_loading">Loading...</string>
+    <string name="login_email">Email</string>
+    <string name="login_name">Name</string>
+    <string name="login_phone_number">Phone Number</string>
+    <string name="hint_name">Enter Name</string>
+    <string name="hint_email">Enter Email</string>
+    <string name="hint_phone_number">Enter Phone Number</string>
+    <string name="hint_designation">Enter Your Designation</string>
+    <string name="hint_address">Enter Your Address</string>
+    <string name="login__fail">SignIn Failed</string>
+    <string name="login__fail_account">Cannot SignIn your account</string>
+    <string name="login__auth_email">This email is logged in with email and password. Please try to login with email and password.</string>
+    <string name="login__auth_google">This email is logged in with Google. Please try to login with Google.</string>
+    <string name="app__cancel">Cancel</string>
+    <string name="success">SUCCESS</string>
+    <string name="error">ERROR</string>
+    <string name="login_first_login">Please Login Your \n Account</string>
+
+    <!--    HomeScreen-->
+
+    <string name="menu_category">Categories</string>
+    <string name="menu_custom">Custom</string>
+    <string name="my_business">My Business</string>
+    <string name="menu_business">Profile</string>
+    <string name="my_creation">My Creation</string>
+    <string name="Animated_video">Animated Video</string>
+    <string name="menu_profile">My Profile</string>
+    <string name="menu_profile2"> </string>
+    <string name="menu_contact">Contact Us</string>
+    <string name="menu_setting">Settings</string>
+    <string name="menu_logout">Logout</string>
+    <string name="menu_rate">Rate us on Google play</string>
+    <string name="menu_share">Share App</string>
+    <string name="menu_privacy_policy">Privacy Policy</string>
+
+    <string name="menu_exit">Exit</string>
+
+    <string name="latest_festivals">Latest Festivals</string>
+    <string name="upcoming_festivals">Upcoming  Festivals</string>
+    <string name="trending">Trending</string>
+    <string name="business_category">Business Category</string>
+    <string name="view_all">View All</string>
+    <string name="custom_categories">Custom Categories</string>
+
+    <string name="select_languages">Select Languages</string>
+    <string name="save">Save</string>
+
+    <string name="message__cancel_close">Cancel</string>
+    <string name="message__want_to_logout">Do you really want to logout?</string>
+    <string name="message__logout">Logout</string>
+
+    <string name="message_contact">Successfully Send Contact \n Shortly We will contact you.</string>
+    <string name="fail_message_contact">Response is Fail! \n Try again</string>
+
+    <string name="force_update_true">Update is available</string>
+    <string name="force_update__button_update"> Update </string>
+
+    <string name="do_you_want_to_exit">Do you want to exit?</string>
+    <string name="yes">Yes</string>
+
+    <string name="festival_image_create">will Be shown a day before the festival </string>
+    <string name="no_festival_image">Festival Images</string>
+
+    <!-- Verify Email -->
+
+    <!--Business-->
+
+    <string name="edit">Save</string>
+    <string name="delete">Delete</string>
+    <string name="add_business">+Add</string>
+    <string name="business_name">Business Name</string>
+    <string name="business_email">Business Email</string>
+    <string name="business_phone_number">Business Phone Number</string>
+    <string name="business_website">Business Website</string>
+    <string name="business_address">Business Address</string>
+    <string name="hint_business_name">Enter Business Name</string>
+    <string name="hint_business_email">Enter Business Email</string>
+    <string name="hint_business_number">Enter Business Number</string>
+    <string name="hint_business_website">Enter Business Website</string>
+    <string name="hint_business_address">Enter Business Address</string>
+    <string name="add_business_titles">Add Business</string>
+    <string name="edit_business_titles">Edit Business</string>
+    <string name="invalid_email">Enter Valid Email</string>
+    <string name="please_add_business_titles">Please Add Your Business \n for Create Post</string>
+    <string name="your_business_limit">Your Business Limit is Full \n Upgrade Your Plan</string>
+    <string name="your_plan_expired">Your Plan is Expired</string>
+
+
+    <!--Editor Screen-->
+    <string name="name">Name</string>
+    <string name="logo">Logo</string>
+    <string name="address">Address</string>
+    <string name="phone">Phone</string>
+    <string name="email">Email</string>
+    <string name="website">Website</string>
+    <string name="add_text">Add Text</string>
+    <string name="add_image">Add Image</string>
+    <string name="text_color">Text Color</string>
+    <string name="font">Font</string>
+    <string name="text_size">Text Size</string>
+    <string name="create">Create</string>
+    <string name="frame">Frames</string>
+    <string name="edit_text">Edit Text</string>
+    <string name="select">Select</string>
+    <string name="select_image">Select Image</string>
+    <string name="select_image_msg">Select an Image from Gallery or from Camera to Make Post</string>
+    <string name="camera">Camera</string>
+    <string name="Gallery">Gallery</string>
+    <string name="cancel">Cancel</string>
+    <string name="err_save_image">Error while saving image</string>
+    <string name="don_t_create">Can\'t create directory to save image</string>
+    <string name="image_saved">Image Save Successfully</string>
+    <string name="video_saved">Video Save Successfully</string>
+    <string name="share_via">Share Via</string>
+    <string name="sure_delete">Are you sure you want to delete?</string>
+    <string name="image_deleted">Image Deleted</string>
+    <string name="video_deleted">Video Deleted</string>
+    <string name="error_delete">Error Deleting Image</string>
+    <string name="video">Video</string>
+    <string name="image">Image</string>
+
+    <string name="share_txt">Hey guys. I am using ZyFoo AI App.Download Now \n\nhttps://play.google.com/store/apps/details?id=</string>
+
+    <string name="share_card">Hello! Here\'s my Digital Business Card. You can click on the link to open it. \n </string>
+
+
+    <!--Subscribe-->
+    <string name="subscribe">Subscribe</string>
+    <string name="premium">Premium Post</string>
+    <string name="please_subscribe">This is a Premium Post \n Please subscribe</string>
+    <string name="please_subscribe_videp">This is a Premium Video \n Please subscribe</string>
+    <string name="please_subscribe_frame">This is a Premium Frame \n Please subscribe</string>
+    <string name="payments">Payments</string>
+    <string name="card_upi_net_banking">Pay with Cards / UPI / Net Banking</string>
+    <string name="plan_selected">Plan Selected</string>
+    <string name="have_a_promo_code">Have a Promo Code?</string>
+    <string name="enter_promo_code">Enter Promo Code</string>
+    <string name="apply">Apply</string>
+    <string name="total_payable">Total Payable</string>
+    <string name="applied_code">Applied Code</string>
+    <string name="discount_on">Discount On</string>
+    <string name="account_details">Account Details</string>
+    <string name="card_paytm">Pay with Paytm</string>
+    <string name="card_upi">Pay with Cards / UPI</string>
+    <string name="card_stripe">Pay with Cards (International)</string>
+    <string name="bank_transfer">Offline Payment</string>
+    <string name="loading_payment_info">Payment Info..</string>
+    <string name="tansaction_succeed">Your Transaction was Successfully \n Complete. Enjoy Premium Access!</string>
+
+
+    <!--Settings-->
+    <string name="notification">Notification</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="refund_policy">Refund &amp; Cancellation Policy</string>
+    <string name="terms_and_service">Terms &amp; Service</string>
+    <string name="version">Version</string>
+    <string name="theme">Theme</string>
+    <string name="system_default">System Default</string>
+    <string name="pryvacy_settings">Privacy Settings</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="ok">Ok</string>
+    <string name="no">No</string>
+    <string name="please_enter_valid_mobile">Please Enter Valid Mobile</string>
+
+    <string name="massage">Massage</string>
+    <string name="enter_details">Enter Details</string>
+    <string name="manage_profile">Manage Profile</string>
+
+    <!--Profile-->
+    <string name="upgrade">Upgrade</string>
+    <string name="edit_profile">Edit Profile</string>
+
+    <!--About-->
+    <string name="login_continue_withd">Enter your mobile number to login \ncreate your account.</string>
+    <string name="no_videos_found">No Videos Found</string>
+    <string name="business_categories">Business Categories</string>
+    <string name="logout">Logout</string>
+    <string name="add_business_details">Add Business Details</string>
+    <string name="discard_text">Do you want to discard the changes ?</string>
+    <string name="something_wrong">Something Wrong</string>
+    <string-array name="theme_array">
+        <item>@string/system_default</item>
+        <item>@string/dark</item>
+        <item>@string/light</item>
+    </string-array>
+
+    <string name="currency">₹</string>
+
+
+    <string name="alert">Unsaved work.</string>
+
+    <string name="auto">Auto</string>
+
+    <string name="create_dir_err">Cant create directory to save image.</string>
+    <string name="cut_inside">Cut Inside</string>
+    <string name="cut_outside">Cut Outside</string>
+    <string name="cut_photo">Select Photo</string>
+    <string name="drag_bw">Drag POINTER to restore image.</string>
+    <string name="drag_color">Drag POINTER to earse.</string>
+    <string name="erase">Manual</string>
+    <string name="exit_cut_page">Do you want to exit without saving?</string>
+
+    <string name="import_error">Error while getting image.</string>
+    <string name="import_img_warning">Please import image!!!</string>
+    <string name="importing_image">Importing image...</string>
+
+    <string name="lasso">Extract</string>
+    <string name="memoryerror">Oops! something went wrong. Seems like you dont have enough space to save this picture. Please check your device internal memory and delete some data and then try again.</string>
+    <string name="msg_auto_btn">Click AUTO button to perform auto erase</string>
+    <string name="msg_bw_btn">Click RESTORE button to restore image</string>
+    <string name="msg_draw_lasso">Draw a closed path.</string>
+    <string name="msg_lasso_btn">Click EXTRACT button</string>
+    <string name="msg_manual_btn">Click MANUAL button to manually erase</string>
+    <string name="msg_up_arrow">Click UP arrow to get options</string>
+    <string name="msg_zoom_btn">Click ZOOM button to drag and zoom image.</string>
+
+    <string name="no_layers">No Layers !!</string>
+    <string name="offset">Offset</string>
+    <string name="picUpImg">select images</string>
+    <string name="plzwait">Please wait..</string>
+    <string name="radius">Size</string>
+    <string name="ratio">Select Ratio</string>
+    <string name="redoing">Redoing</string>
+    <string name="restore">Restore</string>
+    <string name="save_err">Error while saving</string>
+    <string name="select_picture">Select picture using</string>
+    <string name="size">Size</string>
+    <string name="template_error">no template found</string>
+    <string name="threshold">Threshold</string>
+    <string name="txt_Outline">Outline</string>
+    <string name="txt_backgrounds">Background</string>
+    <string name="txt_colorOpacty">Colors and Opacity</string>
+    <string name="txt_conti">continue</string>
+    <string name="txt_controls">Controls</string>
+    <string name="txt_curve">Curve</string>
+    <string name="txt_fonts">Fonts</string>
+    <string name="txt_shadow">Shadow</string>
+    <string name="txt_spacing">Space</string>
+
+    <string name="undoing">Undoing</string>
+    <string name="zoom">Zoom</string>
+
+
+    <string name="search_hint">Search Posters</string>
+
+
+    <string name="sticker_directory">.Thumbnail Design Stickers/category1</string>
+    <string name="invitaition_directory">.Invitation Stickers/category1</string>
+    <string name="poster_folder">ae/poster</string>
+    <string name="poster_frame">ae/frame</string>
+
+    <string name="normal">Normal</string>
+    <string name="oval">oval</string>
+    <string name="diamond">Diamond</string>
+    <string name="squore">Squore</string>
+    <string name="remove_bg">Remove Bg</string>
+    <string name="use_original">Use Original</string>
+    <string name="use_this">Use This</string>
+    <string name="manual">Manual</string>
+    <string name="add_bussiness">Add Business</string>
+
+
+    <string name="facebook">Size For FB</string>
+    <string name="fadi">Ad Image</string>
+    <string name="fagcp">Group Cover Photo</string>
+    <string name="fai">App Image</string>
+    <string name="fapi">Profile Image</string>
+    <string name="fc">Cover</string>
+    <string name="fp">Post</string>
+    <string name="gc">Cover</string>
+    <string name="gcp">Cover Photo</string>
+    <string name="gpp">Profile Photo</string>
+    <string name="i">Infographic</string>
+    <string name="ia">Average</string>
+    <string name="im">Medium</string>
+    <string name="imo">Mode</string>
+    <string name="info">Infographic</string>
+    <string name="insta">Size For Insta</string>
+    <string name="ratio_selection">Choose Orientation</string>
+    <string name="watt">Wattpad Covers</string>
+    <string name="wattapad">Size For Wattpad Covers</string>
+    <string name="youtube">Size For Youtube</string>
+    <string name="youtubecover">Cover</string>
+    <string name="youtubethumbnail">Thumbnail</string>
+    <string name="ytd">Tablet Display</string>
+
+    <string name="ip">Post</string>
+    <string name="l">Letter-72dpi</string>
+    <string name="l2">Letter-200dpi</string>
+    <string name="l3">Letter-300dpi</string>
+    <string name="lb">Banner</string>
+    <string name="lc">Cover</string>
+    <string name="letter">Letter</string>
+    <string name="link">Size For LinkedIn</string>
+    <string name="linkedinp">Profile</string>
+    <string name="logo_fa">Logo</string>
+    <string name="logo_go">Logo</string>
+    <string name="logo_li">Logo</string>
+    <string name="logo_tw">Logo</string>
+    <string name="logosize">Logo size</string>
+    <string name="tcover">Cover</string>
+    <string name="tgraphics">Graphic</string>
+    <string name="thcover">Cover</string>
+    <string name="ti">Image</string>
+    <string name="tp">Post</string>
+    <string name="tpi">Profile Image</string>
+    <string name="tumbler">Size For Tumblr</string>
+    <string name="tvi">Video Image</string>
+    <string name="twitch">Size For Twitch</string>
+    <string name="twitter">Size For Twitter</string>
+
+    <string name="p">Presentation</string>
+    <string name="paper">Paper</string>
+    <string name="pbd">Board Display</string>
+    <string name="pinterst">Pinterest</string>
+    <string name="present">Presentations</string>
+    <string name="prinproi">Profile Image</string>
+    <string name="printp">Pin</string>
+    <string name="ap">A4–72dpi</string>
+    <string name="ap2">A4–200dpi</string>
+    <string name="ap3">A4–300dpi</string>
+
+    <string name="dw">Wallpaper</string>
+    <string name="dwl">Wallpaper Landscape</string>
+    <string name="dwp">Wallpaper Portrait</string>
+    <string name="txt_desk">Desktop</string>
+    <string name="txt_device">Device</string>
+    <string name="txt_google">cover</string>
+    <string name="select_minimum_3_images">Please select minimum 3 Images</string>
+    <string name="select_frame">Select Frame</string>
+    <string name="please_select_bussiness">Please select business</string>
+
+    <string name="continue_with_whatsapp">Continue with whatsapp</string>
+    <string name="enter_mobile_number_for_otp">Enter Mobile Number for OTP</string>
+    <string name="enter_wp_number">Enter Whatsapp Number for OTP</string>
+    <string name="enter_currect_otp">Enter correct otp</string>
+    <string name="otp_send_hint">We send OTP to verify your number </string>
+    <string name="resend_otp"></string>
+    <string name="submit">Submit</string>
+    <string name="wrong_otp">Otp not match</string>
+    <string name="please_enter_currect_number">Please enter correct number</string>
+    <string name="get_otp">Get OTP</string>
+    <string name="enter_otp">OTP</string>
+    <string name="hint_password">Enter Password</string>
+    <string name="hint_confirm_password">Enter Confirm Password</string>
+    <string name="login_dot_n_have_account">Don\'t Have Account?</string>
+    <string name="login_already_account">Already have Account?</string>
+    <string name="login_continue_with">or Continue with</string>
+
+    <string name="login_forgot_password">Forgot Password?</string>
+    <string name="forgot_password">Forgot Password</string>
+    <string name="login_sign_up">Sign Up</string>
+    <string name="login_password">Password*</string>
+    <string name="login_conform_password">Conform Password*</string>
+    <string name="no_item_found">No Data Found</string>
+    <string name="no_personal_frame_found">No Personal Frame Found</string>
+    <string name="get_your_frame">Get your frame</string>
+    <string name="video_animations">Animation</string>
+    <string name="video_filter">Video Filter</string>
+    <string name="label_filter">filter</string>
+    <string name="border_size">border size</string>
+    <string name="label_animation">Animation</string>
+
+    <string name="otp_send_success">OTP Sent Successfully</string>
+    <string name="animated_videos">Animated Videos</string>
+    <string name="instagram_url">Instagram Url</string>
+    <string name="facebook_url">Facebook Url</string>
+    <string name="twitter_url">Twitter Url</string>
+    <string name="try_again_message">Click On try Again</string>
+    <string name="try_again">Try Again</string>
+    <string name="user_error">User error</string>
+    <string name="add_more_business">Add More Business</string>
+    <string name="premium_user">You\'re A Premium User</string>
+    <string name="premium_user_message">You have already purchased a subscription. This will override your previous purchase.</string>
+    <string name="continue_ok">Continue</string>
+    <string name="otp_verify">OTP Verification</string>
+    <string name="login_signup">Login / Signup to continue</string>
+
+    <string name="confirm_to_add_card">Confirm to add Digital Card to Business ?</string>
+    <string name="add_card">Add Digital Card</string>
+    <string name="setting_default">Setting default</string>
+    <string name="note_swipe">Swipe to change frames</string>
+    <string name="subscription">subscription</string>
+    <string name="something_went_wrong">Something went wrong!</string>
+    <string name="preview">Preview</string>
+    <string name="enter_instagram_url">Enter Instagram Url</string>
+    <string name="enter_facebook_url">Enter Facebook Url</string>
+    <string name="enter_twitter_url">Enter Twitter Url</string>
+    <string name="youtube_url">Youtube Url</string>
+    <string name="enter_youtube_url">Enter Youtube Url</string>
+    <string name="select_business_category">Choose Your Business Category</string>
+    <string name="select_business">Select Business</string>
+    <string name="data_not_found">Data not found !</string>
+    <string name="txt_otp_verification">Please enter your phone number to get \n OTP verification.</string>
+    <string name="enter_number">Enter Phone Number</string>
+    <string name="code_is_sent_to">Code is sent to</string>
+    <string name="did_t_receive_otp">Did’t receive OTP?</string>
+    <string name="term_of_services">Term of Services</string>
+    <string name="continue_with_google">Sign in with Google</string>
+    <string name="continue_with_phone_number">Continue With phone Number</string>
+    <string name="your_business">Your Business</string>
+    <string name="hint_profile">Please Select Profile</string>
+    <string name="services">Services</string>
+    <string name="swipe_to_change_frames"> Swipe to change frames </string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enter_mobile_number">Enter Mobile Number</string>
+    <string name="login_title">Login/Signup</string>
+    <string name="sumbit_tag">सेव करें</string>
+    <string name="english">ENGLISH</string>
+    <string name="marthi">मराठी</string>
+    <string name="hindi">हिंदी</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="tems_condiation">Term &amp; Conditions</string>
+    <string name="privacy_police">Privacy Policy</string>
+    <string name="rate_us">Rate Us on Googleplay</string>
+    <string name="notifications">Notification</string>
+    <string name="app_share">Share App</string>
+    <string name="otp_submit">Continue</string>
+    <string name="delete_account">Delete My Account</string>
+    <string name="designation">Designation</string>
+    <string name="number">Number</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="save_business_details">Save Business Details</string>
+    <string name="save_personal_details">Save Personal Details</string>
+    <string name="create_more">Create More</string>
+    <string name="share_button">Share</string>
+    <string name="download">Download</string>
+    <string name="about_you">About You</string>
+    <string name="your_name">Your Name</string>
+
+
+    <string name="rzp_key_id">rzp_live_G8XcWSNNYtENTp</string>
+    <string name="_123_456_7890">(123) 456–7890</string>
+    <string name="username_123456">username_123456</string>
+    <string name="watch_ad_to_download_amp_use">(Watch Ad to Download &amp; Use)</string>
+
+    <string name="about_business">About Business</string>
+    <string name="str_2">None</string>
+    <string name="str_3">Shadow</string>
+    <string name="str_4">Opacity</string>
+    <string name="str_5">Text Size</string>
+    <string name="str_6">No Any Background</string>
+    <string name="str_7">Failed to get data</string>
+    <string name="str_8">My Backgrounds</string>
+    <string name="str_9">All Backgrounds</string>
+    <string name="str_10">Background</string>
+    <string name="str_11">Share</string>
+    <string name="str_12">Edit</string>
+    <string name="str_13">Create</string>
+    <string name="str_14">Preferred Language</string>
+    <string name="str_15">About Us</string>
+    <string name="str_16">Privacy Policy</string>
+    <string name="str_17">Terms &amp; Condition</string>
+    <string name="str_18">Refund and Cancellation</string>
+    <string name="str_19">NEXT</string>
+    <string name="str_26">Business Category</string>
+    <string name="str_27">Your Business Category</string>
+    <string name="str_28">Preferred Language</string>
+    <string name="str_29">Choose your Language:</string>
+    <string name="str_30">You can change language any\ntime from settings</string>
+    <string name="str_31">Switching to Business</string>
+    <string name="post_with_name_amp_photo">Post With Name &amp; Photo</string>
+    <string name="str_34">Create Post</string>
+    <string name="str_35">Upload your thoughts from\nyour phone gallery</string>
+    <string name="str_36">To write on, choose a background</string>
+    <string name="str_37">Search Background</string>
+    <string name="str_38">Add</string>
+    <string name="str_39">No Background Please Add</string>
+    <string name="str_40">No Data Found</string>
+    <string name="str_41">Add Text</string>
+    <string name="str_42">DONE</string>
+    <string name="str_43">Double tap to edit !</string>
+    <string name="str_44">Edit Photo</string>
+    <string name="str_45">Select Social Media</string>
+    <string name="str_46">Social Media</string>
+    <string name="str_47">Instagram</string>
+    <string name="str_48">Instagram Id</string>
+    <string name="str_49">Download</string>
+    <string name="str_50">WhatsApp</string>
+    <string name="str_51">YouTube</string>
+    <string name="str_52">Facebook</string>
+    <string name="str_53">X (Twitter)</string>
+    <string name="str_54">Email</string>
+    <string name="str_55">Website</string>
+
+
+    <string name="ucrop_label_original">Original</string>
+    <string name="ucrop_label_edit_photo">Edit Photo</string>
+
+    <string name="ucrop_menu_crop">Crop</string>
+
+    <string name="ucrop_error_input_data_is_absent" translatable="false">Both input and output Uri must be specified</string>
+    <string name="ucrop_mutate_exception_hint" translatable="false">Therefore, override color resource (ucrop_color_toolbar_widget) in your app to make it work on pre-L devices</string>
+    <string name="ucrop_rotate">Rotate</string>
+    <string name="ucrop_scale">Scale</string>
+    <string name="ucrop_crop">Crop</string>
+    <string name="or">Or</string>
+    <string name="personal">Personal</string>
+    <string name="business">Business</string>
+    <string name="header_subscription">Get Exclusive Access with ZyFoo AI Premium</string>
+    <string name="subscription_1">Ads Free Exprience</string>
+    <string name="subscription_2">No Watermarks</string>
+    <string name="subscription_3">Access Paid Post</string>
+    <string name="subscription_4">Get Extra Frames</string>
+    <string name="choose_a_perfect_plan">Choose a perfect plan</string>
+    <string name="benefits">Benefits</string>
+    <string name="purchase_plan">Purchase plan</string>
+
+</resources>

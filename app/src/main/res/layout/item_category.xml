@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="categoryData"
+            type="com.growwthapps.dailypost.v2.model.CategoryItem" />
+    </data>
+    <LinearLayout
+        android:gravity="center"
+        android:id="@+id/ll_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginLeft="@dimen/_5sdp"
+        android:background="@drawable/select_cat">
+
+        <ImageView
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:id="@+id/img"
+            android:padding="3dp"
+            android:src="@drawable/ep_business_name_img"
+            android:background="@drawable/circle_drawable"
+            android:backgroundTint="@color/white"
+            android:layout_marginStart="8dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"/>
+
+        <TextView
+            android:id="@+id/cat_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:text="Cat Name"
+            android:textSize="@dimen/_10sdp"
+            android:layout_gravity="center"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingRight="@dimen/_5sdp"
+            android:paddingVertical="@dimen/_2sdp"
+            android:fontFamily="@font/inter_semi_bold" />
+
+    </LinearLayout>
+
+</layout>

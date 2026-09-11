@@ -1,0 +1,27 @@
+buildscript {
+
+    ext.kotlin_version = '1.8.10'
+
+    dependencies {
+        // Add your required classpaths
+        classpath 'com.google.gms:google-services:4.3.15'
+//        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:0.14.0'
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.5.3"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // Upgrade AGP to 8.1.1 (or use 8.0.2 or higher)
+        classpath 'com.android.tools.build:gradle:8.11.2'
+
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
+    }
+}
+plugins {
+    // Update AGP to 8.x.x here as well
+    id 'com.android.application' version '8.11.2' apply false
+    id 'com.android.library' version '8.11.2' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

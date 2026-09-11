@@ -1,0 +1,210 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+}
+
+apply plugin: 'kotlin-android'
+
+android {
+
+    compileSdk 36
+    namespace 'com.growwthapps.dailypost.v2'
+
+    defaultConfig {
+        applicationId "com.pt.zyfooai"
+        minSdk 24
+        targetSdk 36
+        versionCode 11
+        versionName "1.0.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+    }
+
+    buildFeatures {
+        dataBinding true
+        buildConfig true
+    }
+
+    packagingOptions {
+        pickFirst '**/core-for-system-modules.jar'
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildTypes {
+
+        debug {
+            shrinkResources false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+        }
+        release {
+            debuggable false
+            shrinkResources false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+
+        }
+    }
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lintOptions {
+
+        checkReleaseBuilds false
+
+    }
+
+    buildTypes.each {
+        it.buildConfigField 'String', 'APP_URL', APP_URL
+    }
+
+}
+
+dependencies {
+
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "cz.msebera.android:httpclient:4.5.8"
+    implementation "androidx.navigation:navigation-fragment-ktx:2.6.0"
+    implementation "androidx.navigation:navigation-ui-ktx:2.6.0"
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.6.0'
+    implementation "androidx.recyclerview:recyclerview:1.3.2"
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.activity:activity:1.8.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
+    implementation 'com.intuit.ssp:ssp-android:1.1.0'
+
+    //Kotlin
+    implementation 'androidx.work:work-runtime-ktx:2.8.1'
+    implementation "androidx.core:core-ktx:1.10.1"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    //Room Database 2.5.0
+    implementation "androidx.room:room-runtime:2.5.0"
+    annotationProcessor "androidx.room:room-compiler:2.5.0"
+
+    //DataBinding
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
+
+    //Lottie Animation
+    implementation 'com.airbnb.android:lottie:6.0.0'
+
+    //Google Login  auth otp
+    implementation 'com.google.android.gms:play-services-ads:23.6.0'
+    implementation 'com.google.android.gms:play-services-auth:21.0.0'
+    implementation 'com.google.android.gms:play-services-auth-api-phone:18.0.2'
+    implementation 'com.google.android.gms:play-services-safetynet:18.1.0'
+
+    // Firebase
+    implementation "com.google.firebase:firebase-core:21.1.1"
+    implementation "com.google.firebase:firebase-messaging:23.1.2"
+    implementation 'com.google.firebase:firebase-auth:21.2.0'
+    implementation 'com.google.firebase:firebase-analytics:21.2.1'
+    implementation 'com.google.firebase:firebase-config:21.3.0'
+    implementation 'com.google.firebase:firebase-crashlytics:18.2.9'
+//
+//    implementation 'com.github.altafmansuri-vs:Ffmpeg-library:1.0.1'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    implementation 'androidx.browser:browser:1.5.0'
+    implementation 'com.karumi:dexter:6.2.3'
+
+    // Retrofit
+    // In your app-level build.gradle file
+    implementation "com.squareup.okhttp3:okhttp:4.11.0" // Latest OkHttp
+    implementation "com.squareup.okhttp3:logging-interceptor:4.11.0" // Logging interceptor
+    implementation "com.squareup.retrofit2:retrofit:2.9.0" // Retrofit
+    implementation "com.squareup.retrofit2:converter-gson:2.9.0" // Gson converter for Retrofit
+
+    implementation 'com.squareup:otto:1.3.8'
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
+    //noinspection GradleDependency
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+
+   // implementation 'com.google.android.exoplayer:exoplayer:2.10.5'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.9.0'
+    implementation 'com.github.yalantis:ucrop:2.2.8'
+
+    implementation 'com.github.bumptech.glide:glide:4.16.0' // Ensure latest version
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
+    implementation 'com.github.bumptech.glide:recyclerview-integration:4.15.1'
+
+    implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:1.0.0'
+//    implementation 'com.huawei.hms:ml-computer-vision-segmentation:3.5.0.303'
+//    implementation 'com.huawei.hms:ml-computer-vision-image-segmentation-body-model:3.5.0.303'
+
+    implementation 'com.razorpay:checkout:1.6.26'
+
+    // Play Integrity API - Add this for the new API
+    implementation 'com.google.android.play:integrity:1.3.0'
+
+    // reCAPTCHA Enterprise
+    implementation 'com.google.android.recaptcha:recaptcha:18.5.1'
+
+    // Google Play Core
+    implementation 'com.google.android.play:review:2.0.1'
+
+    implementation files('libs/gpuimage-library-1.3.0.jar')
+
+ //   implementation files('libs/compressor-1.0.4.aar')
+    implementation files('libs/colorpicker-1.1.0.aar')
+    implementation files('libs/ImageToVideoAndroid-v0.1.0.aar')
+    implementation files('libs/loaderspack-1.2.3.aar')
+    implementation files('libs/prdownloader-0.6.0.aar')
+    implementation files('libs/BlurView-version-2.0.3.aar')
+    implementation files('libs/pinview-1.4.4.aar')
+    implementation files('libs/fadingtextview-2.5.aar')
+    implementation files('libs/pageindicatorview-1.0.2.aar')
+    implementation files('libs/NiceSwitch-1.0.aar')
+    implementation files('libs/flexible-switch-1.0.aar')
+    implementation files('libs/egloo-0.6.1.aar')
+    implementation files('libs/scrollingpagerindicator-1.2.5.aar')
+    implementation files('libs/seekbar-compat-0.3.0.aar')
+    implementation files('libs/android-networking-1.0.2.aar')
+    implementation files('libs/RoundedBottomSheet-1.0.1.aar')
+    implementation files('libs/roundedimageview-2.3.0.aar')
+    implementation files('libs/circularimageview-4.3.1.aar')
+    implementation files('libs/ambilwarna-2.0.1.aar')
+
+    implementation files('libs/seekbar-compat-0.3.0.aar')
+    implementation files('libs/exoplayer-2.10.5.aar')
+    implementation files('libs/exoplayer-ui-2.10.5.aar')
+    implementation files('libs/exoplayer-core-2.10.5.aar')
+    implementation files('libs/exoplayer-dash-2.10.5.aar')
+//    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+    implementation 'com.indapps:ffmpeg:1.0.1'
+
+//    implementation 'com.github.altafmansuri-vs:Ffmpeg-library:1.1.9'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+
+//lib/arm64-v8a/libmlkit-segmentation.so

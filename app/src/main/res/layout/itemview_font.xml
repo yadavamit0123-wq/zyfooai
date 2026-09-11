@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="@dimen/_50sdp"
+        android:layout_marginVertical="@dimen/_5sdp"
+        android:layout_marginLeft="@dimen/_8sdp"
+        android:background="@drawable/rounded_bg"
+        android:backgroundTint="@color/gray"
+        app:cardCornerRadius="@dimen/_8sdp">
+
+        <RelativeLayout
+            android:id="@+id/layItem"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:gravity="center">
+
+            <com.growwthapps.dailypost.v2.ClickableWebView
+                android:id="@+id/grid_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:scrollbars="none"
+                android:text="Aa"
+                android:paddingBottom="5dp"
+                android:textColor="@color/textColor"
+                android:textSize="20.0sp" />
+
+            <ImageView
+                android:id="@+id/txtDownloadFont"
+                android:layout_width="@dimen/_50sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:layout_alignParentRight="true"
+                android:padding="@dimen/_6sdp"
+                android:src="@drawable/ic_download"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/progress"
+                android:layout_width="@dimen/_25sdp"
+                android:layout_height="@dimen/_25sdp"
+                android:layout_centerInParent="true"
+                android:indeterminateTint="@color/app_color" />
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+</layout>

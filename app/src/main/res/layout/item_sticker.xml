@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/white"
+        android:layout_margin="4dp"
+        android:background="@drawable/rounded_bg"
+        android:gravity="center"
+        android:elevation="@dimen/_2ssp"
+        android:orientation="vertical">
+
+        <ImageView
+            tools:src="@tools:sample/avatars"
+            android:adjustViewBounds="true"
+            android:id="@+id/imgSticker"
+            android:layout_width="match_parent"
+            imageURL=""
+            android:padding="@dimen/_6sdp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
+    </LinearLayout>
+</layout>

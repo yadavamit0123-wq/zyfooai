@@ -1,0 +1,74 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="android:fitsSystemWindows">true</item>
+
+        <item name="colorPrimary">@color/color_hint</item>
+        <item name="colorPrimaryVariant">@color/primary_color</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/primary_dark_color</item>
+        <item name="colorSecondaryVariant">@color/primary_dark_color</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/black</item>
+        <!-- Customize your theme here. -->
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <!--        <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialog</item>-->
+
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
+    </style>
+
+
+    <!-- Toolbar Event -->
+
+
+    <style name="CustomRadioTheme" parent="Widget.MaterialComponents.CompoundButton.RadioButton">
+        <item name="buttonTint">@color/primary_color</item>
+    </style>
+
+    <style name="switcher" parent="Widget.AppCompat.CompoundButton.Switch">
+        <item name="android:thumbTint">@color/primary_color</item>
+        <item name="android:trackTint" tools:ignore="NewApi">@color/primary_color</item>
+    </style>
+
+    <style name="MyAlertDialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <style name="checkbox" parent="Widget.AppCompat.CompoundButton.CheckBox">
+        <item name="tint">@color/primary_color</item>
+    </style>
+
+    <style name="AppBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+    </style>
+
+    <style name="AppModalStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/tab_login</item>
+    </style>
+
+
+    <style name="Theme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/color_hint</item>
+        <item name="colorPrimaryVariant">@color/color_hint</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/primary_dark_color</item>
+        <item name="colorSecondaryVariant">@color/primary_dark_color</item>
+        <item name="colorOnSecondary">@color/black</item>
+    </style>
+    
+    <style name="DialogAnimation2">
+        <item name="android:windowEnterAnimation">@anim/slide_in_bottom</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_bottom</item>
+    </style>
+</resources>

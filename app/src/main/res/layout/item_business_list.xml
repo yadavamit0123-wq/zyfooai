@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="category"
+            type="com.growwthapps.dailypost.v2.model.CategoryItem" />
+    </data>
+
+    <LinearLayout
+        android:layout_marginTop="2dp"
+        android:background="#F8F8F8"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.cardview.widget.CardView
+            android:layout_marginLeft="@dimen/_12sdp"
+            android:layout_marginVertical="@dimen/_8sdp"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            app:cardCornerRadius="@dimen/_15sdp">
+
+            <ImageView
+                app:imageURL="@{category.image}"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/background_09"/>
+
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_weight="1"
+            android:layout_marginLeft="@dimen/_15sdp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{category.name}"
+            android:textColor="@color/textColor"
+            android:textSize="@dimen/_15sdp" />
+
+        <TextView
+            android:layout_marginRight="@dimen/_12sdp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/btn_grediant"
+            android:text="Select"
+            android:textColor="@color/white"
+            android:paddingHorizontal="@dimen/_15sdp"
+            android:paddingVertical="@dimen/_5sdp"/>
+
+    </LinearLayout>
+</layout>

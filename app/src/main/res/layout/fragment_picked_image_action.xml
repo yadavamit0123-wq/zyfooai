@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:padding="@dimen/_8sdp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/dialog_color"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/close_btn"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:padding="@dimen/_10sdp"
+            android:src="@drawable/cancel"
+            app:tint="@color/black30" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:textColor="@color/black30"
+            android:textSize="17dp"
+            android:textStyle="bold" />
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:layout_marginVertical="@dimen/_5sdp"
+        android:orientation="horizontal"
+        android:layout_width="@dimen/_250sdp"
+        android:layout_height="@dimen/_250sdp">
+
+        <RelativeLayout
+            android:id="@+id/previewImageLay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/normalPreviewImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/logo" />
+
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/ovalPreviewImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/logo"
+                app:shapeDrawable="@drawable/a_frame_shape_oval"
+               />
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/diamondPreviewImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/logo"
+                app:shapeDrawable="@drawable/ic_diamond_shap"
+              />
+
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/squarePreviewImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/logo"
+                app:shapeDrawable="@drawable/ic_frame_shape_square" />
+
+        </RelativeLayout>
+        <com.airbnb.lottie.LottieAnimationView
+            android:visibility="gone"
+            android:id="@+id/animation_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/previewImageLay"
+            android:layout_alignBottom="@id/previewImageLay"
+            android:scaleType="fitXY"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/scan" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_marginVertical="@dimen/_10sdp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/normal_img"
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:src="@drawable/editor_bg"
+                android:scaleType="centerCrop"/>
+            <TextView
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:text="@string/normal"
+                android:textSize="@dimen/_13sdp"
+                android:textColor="@color/black30"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginLeft="@dimen/_20sdp"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/oval_img"
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:src="@drawable/editor_bg"
+                android:scaleType="centerCrop"
+                app:shapeDrawable="@drawable/a_frame_shape_oval"/>
+            <TextView
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:text="@string/oval"
+                android:textSize="@dimen/_13sdp"
+                android:textColor="@color/black30"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginLeft="@dimen/_20sdp"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/diamond_img"
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:src="@drawable/editor_bg"
+                android:scaleType="centerCrop"
+                app:shapeDrawable="@drawable/ic_diamond_shap"/>
+            <TextView
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:text="@string/diamond"
+                android:textSize="@dimen/_13sdp"
+                android:textColor="@color/black30"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginLeft="@dimen/_20sdp"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <com.growwthapps.dailypost.v2.utils.ShapesImage
+                android:id="@+id/square_img"
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:src="@drawable/editor_bg"
+                android:scaleType="centerCrop"
+                app:shapeDrawable="@drawable/ic_frame_shape_square"/>
+            <TextView
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:text="@string/squore"
+                android:textSize="@dimen/_13sdp"
+                android:textColor="@color/black30"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_marginTop="@dimen/_8sdp"
+        android:paddingHorizontal="@dimen/_8sdp"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/remove_bg"
+            android:layout_marginRight="@dimen/_5sdp"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/remove_bg"
+            android:textSize="@dimen/_12sdp"
+            android:textColor="@color/al_white"
+            android:background="@drawable/btn_grediant"
+            android:backgroundTint="#FF8E0B"
+            android:paddingVertical="10dp"
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/use_original"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/use_original"
+            android:textSize="@dimen/_12sdp"
+            android:textColor="@color/al_white"
+            android:background="@drawable/btn_grediant"
+            android:backgroundTint="#3F51B5"
+            android:paddingVertical="10dp"
+            android:gravity="center"/>
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/use_this"
+            android:layout_marginLeft="@dimen/_5sdp"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/use_this"
+            android:textSize="@dimen/_12sdp"
+            android:textColor="@color/al_white"
+            android:background="@drawable/btn_grediant"
+            android:backgroundTint="#FF1397"
+            android:paddingVertical="10dp"
+            android:gravity="center"/>
+
+    </LinearLayout>
+</LinearLayout>

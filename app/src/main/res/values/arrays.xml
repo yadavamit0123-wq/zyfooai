@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <array name="fonts">
+        <item>default</item>
+        <item>1.ttf</item>
+        <item>2.otf</item>
+        <item>3.ttf</item>
+        <item>4.ttf</item>
+        <item>5.otf</item>
+        <item>6.TTF</item>
+        <item>7.otf</item>
+        <item>8.otf</item>
+        <item>9.TTF</item>
+        <item>10.TTF</item>
+        <item>11.ttf</item>
+        <item>12.ttf</item>
+        <item>13.ttf</item>
+        <item>14.ttf</item>
+        <item>15.TTF</item>
+        <item>19.TTF</item>
+        <item>20.otf</item>
+        <item>23.otf</item>
+    </array>
+
+    <string-array name="fonts_array">
+        <item>default</item>
+        <item>AldotheApache.ttf</item>
+        <item>American Captain.otf</item>
+        <item>American Captain.ttf</item>
+        <item>GROBOLD.ttf</item>
+        <item>KOMIKAX_.ttf</item>
+        <item>LemonMilk.otf</item>
+        <item>libertylegion.ttf</item>
+        <item>libertylegion3d.ttf</item>
+        <item>ObelixProB-cyr.ttf</item>
+        <item>ObelixPro-cyr.ttf</item>
+        <item>PEPSI_pl.ttf</item>
+        <item>QUARTZO PERSONAL USE ONLY.ttf</item>
+        <item>SciFi Movies.ttf</item>
+        <item>Shake Your Plums.otf</item>
+        <item>Subspace Bold Italic.otf</item>
+        <item>Subspace Bold.otf</item>
+        <item>Subspace Italic.otf</item>
+        <item>Subspace.otf</item>
+        <item>The Light Brigade.otf</item>
+        <item>theboldfont.ttf</item>
+        <item>White Flame.ttf</item>
+        <item>Aleo-Light.otf</item>
+        <item>ALICE-REGULAR.TTF</item>
+        <item>Aleo-Regular.otf</item>
+        <item>ALLER.TTF</item>
+        <item>ALLER_LT.TTF</item>
+        <item>ALLERDISPLAY.TTF</item>
+        <item>aparaj.ttf</item>
+        <item>aparajb_0.ttf</item>
+        <item>GREATVIBES-REGULAR.TTF</item>
+        <item>BAUHS93.TTF</item>
+        <item>BEBAS.TTF</item>
+        <item>BEBAS___.ttf</item>
+        <item>BebasKai-Regular.otf</item>
+        <item>BebasNeue Bold.ttf</item>
+        <item>BebasNeue Book.ttf</item>
+        <item>BebasNeue Light.ttf</item>
+        <item>BebasNeue Regular.ttf</item>
+        <item>BIRA_PERSONAL_USE_ONLY.TTF</item>
+        <item>BLAIRMDITC TT MEDIUM.TTF</item>
+        <item>BrushScriptStd_0.otf</item>
+        <item>Butler_Medium.otf</item>
+        <item>Channel.ttf</item>
+        <item>Chasing Hearts - OTF.otf</item>
+        <item>Chunkfive.otf</item>
+        <item>Cookie-Regular.ttf</item>
+        <item>COOLVETICA RG.TTF</item>
+        <item>edo.ttf</item>
+        <item>elmessiri-bold.otf</item>
+        <item>ENGLEBERT-REGULAR.TTF</item>
+        <item>EXO-BOLD.TTF</item>
+        <item>EXO-MEDIUM.TTF</item>
+        <item>FredokaOne-Regular.ttf</item>
+        <item>FunnyKid.ttf</item>
+        <item>GOOD TIMES RG.TTF</item>
+        <item>Harabara Mais Black.otf</item>
+        <item>Harabara Mais Bold.otf</item>
+        <item>Harabara Mais Light.otf</item>
+        <item>Harabara Mais.otf</item>
+        <item>HARABARA.TTF</item>
+        <item>Lato-Black.ttf</item>
+        <item>Lato-Bold.ttf</item>
+        <item>Lato-BoldItalic.ttf</item>
+        <item>Lato-Light.ttf</item>
+        <item>Lato-Regular.ttf</item>
+        <item>LemonMilk.otf</item>
+        <item>LemonMilkbold.otf</item>
+        <item>Merriweather-BoldItalic.ttf</item>
+        <item>MISTRAL.TTF</item>
+        <item>Montserrat-Black.ttf</item>
+        <item>Montserrat-Bold.ttf</item>
+        <item>Montserrat-ExtraBold.ttf</item>
+        <item>Montserrat-Light.ttf</item>
+        <item>Montserrat-Medium.ttf</item>
+        <item>Montserrat-Regular.ttf</item>
+        <item>Montserrat-SemiBold.ttf</item>
+        <item>MONTSERRATSUBRAYADA-BOLD.TTF</item>
+        <item>MONTSERRATSUBRAYADA-REGULAR.TTF</item>
+        <item>NEUROPOL.ttf</item>
+        <item>Nexa Bold.otf</item>
+        <item>Nexa Light.otf</item>
+        <item>NexaRustSans-Black.otf</item>
+        <item>NexaRustScriptL-0.otf</item>
+        <item>OSWALD-BOLD.TTF</item>
+        <item>Oswald-Bold_0.ttf</item>
+        <item>Oswald-DemiBold.ttf</item>
+        <item>Oswald-Light_0.ttf</item>
+        <item>Oswald-Medium.ttf</item>
+        <item>OSWALD-REGULAR.TTF</item>
+        <item>Oswald-Regular_0.ttf</item>
+        <item>Oswald-SemiBold.ttf</item>
+        <item>PatuaOne-Regular.ttf</item>
+        <item>Raleway-Bold.ttf</item>
+        <item>Raleway-ExtraBold.ttf</item>
+        <item>Raleway-ExtraLight.ttf</item>
+        <item>Raleway-Medium.ttf</item>
+        <item>Raleway-Regular.ttf</item>
+        <item>Raleway-SemiBold.ttf</item>
+        <item>RifficFree-Bold.ttf</item>
+        <item>Roboto-Black.ttf</item>
+        <item>Roboto-Bold.ttf</item>
+        <item>Roboto-Condensed.ttf</item>
+        <item>Roboto-Light.ttf</item>
+        <item>Roboto-Medium.ttf</item>
+        <item>Roboto-Regular.ttf</item>
+        <item>ROUND BOLD.TTF</item>
+        <item>SansitaOne.ttf</item>
+        <item>segoesc_0.ttf</item>
+        <item>Sofia-Regular.otf</item>
+        <item>spyagencyv3.ttf</item>
+        <item>steelfish rg.ttf</item>
+        <item>times_0.ttf</item>
+        <item>timesbd_0.ttf</item>
+    </string-array>
+    <string-array name="fonts_hindi">
+        <item>Hind-SemiBold.ttf</item>
+        <item>Kalam-Bold.ttf</item>
+        <item>Khand-SemiBold.ttf</item>
+        <item>Laila-SemiBold.ttf</item>
+        <item>Teko-SemiBold.ttf</item>
+    </string-array>
+
+    <array name="pesonalCateArray">
+        <item>�� सुविचार</item>
+        <item>�� Motivation</item>
+        <item>�� Good morning</item>
+        <item>�� भगवान</item>
+        <item>�� Today Festival</item>
+        <item>�� Islamic Quotes</item>
+        <item>❤ इश्क मोहब्बत</item>
+    </array>
+
+
+
+</resources>

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "343532360294",
+    "firebase_url": "https://zyfooai-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "zyfooai",
+    "storage_bucket": "zyfooai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343532360294:android:1b5006d8360805cde713a7",
+        "android_client_info": {
+          "package_name": "com.pt.zyfooai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "343532360294-rgi98be367s2t127eidi1g2g41rp430r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pt.zyfooai",
+            "certificate_hash": "4dfd8bcd3d2d0957d024eb3eb0e6f1c94e28381b"
+          }
+        },
+        {
+          "client_id": "343532360294-norci7k052k41qv1v5qf6l7ev47lvt17.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUjTUz5KkrnKuXsPsjMpvcCvvnER9SQNM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "343532360294-norci7k052k41qv1v5qf6l7ev47lvt17.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "343532360294-um6l0rda5bgcka7phvkqmi4i3obgjbse.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pt.zyfooai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

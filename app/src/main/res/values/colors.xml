@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#2D2929</color>
+    <color name="texthintcolorr">#D8D4D4</color>
+    <color name="red100">#E55131</color>
+    <color name="see_more">#5044EF</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="tabtextcolor_normal">#000000</color>
+    <color name="tabtextcolor_selected">#FF9800</color>
+    <color name="transparent">#00ffffff</color>
+    <color name="header_text_color">#001e2f</color>
+    <color name="sub_bg_color">#f7f7f7</color>
+    <color name="end_color">#FF0099</color>
+    <color name="start_color">#FF8200</color>
+
+    <color name="primary_color">#efefef</color>
+    <color name="transprent_black">#30000000</color>
+    <color name="primary_dark_color">#444444</color>
+    <color name="edit_bg_color">#E5E5FC</color>
+    <color name="color_icon">#2E2E2E</color>
+    <color name="color_hint">#959595</color>
+    <color name="ucrop_color_toolbar1">#54525F</color>
+
+    <color name="black30">#757474</color>
+    <color name="gray502">#AFB4BC</color>
+    <color name="sub_text_color">#1a3544</color>
+    <color name="item_bottum">#D3121212</color>
+    <color name="white30">#DADADA</color>
+    <color name="card_bg">#F5F8FF</color>
+    <color name="text_color">#000000</color>
+    <color name="tabColor">#F0F0F5</color>
+    <color name="tabColor2">#F0F0F5</color>
+    <color name="iconColor">#FF9800</color>
+    <color name="transprent">#00000000</color>
+    <color name="colorQuotes">#3B75FF</color>
+    <color name="iconBg">#24545FF3</color>
+    <color name="app_color">#03b0f4</color>
+
+
+    <color name="selectBg">#24545FF3</color>
+    <color name="text_ratio">#ff40444a</color>
+    <color name="toolbarColor">#FF9800</color>
+
+    <color name="titlecolor">#000F2C</color>
+    <color name="g3">#FF8200</color>
+    <color name="color_bar">#ff2f2d3a</color>
+    <color name="color_cat">#F0F0F5</color>
+
+    <color name="colorPrimary">#2DA7FF</color>
+    <color name="colorPrimaryDark">#008ADC</color>
+
+    <color name="colorAccent">#54525F</color>
+
+    <color name="active_color">#FF9800</color>
+    <color name="language_btn_color">#DADADA</color>
+    <color name="dialog_btn_color">#DADADA</color>
+    <color name="alpha_active_color">#FFFFFF</color>
+    <color name="blue_color">#3C48EF</color>
+    <color name="tab_colors">#F0F0F5</color>
+    <color name="tab_btn_color">#FFFFFF</color>
+    <color name="dialog_color">#FFFFFF</color>
+    <color name="colors_bottom">#F4F2F2</color>
+    <color name="color_add_btn">#FF5722</color>
+
+    <color name="transparent_color">#00000000</color>
+    <color name="black_transparent">#34000000</color>
+
+    <color name="bg_screen">#F3EFFE</color>
+    <color name="bg_color">#ffffff</color>
+    <color name="BG_screen">#efefef</color>
+    <color name="View_color">#59AFB1B5</color>
+
+    <color name="gray">#EDEDED</color>
+    <color name="gray_4">#80BCB9B9</color>
+    <color name="gray_2">#66343346</color>
+    <color name="gray_3">#80000000</color>
+    <color name="dark_gray">#959595</color>
+    <color name="dark_gray50">#D0ABA8A8</color>
+
+    <color name="toolbar_unslecttext">#B5B5D0</color>
+    <color name="txt_gray">#686868</color>
+
+    <color name="al_white">#FFFFFFFF</color>
+    <color name="save_color">#FFFFFFFF</color>
+    <color name="texts_color">#231E2B</color>
+    <color name="light_blue">#D6E3FF</color>
+
+    <color name="al_gray">#E0E0E0</color>
+
+    <color name="selected_tag_text_color">#FF0000</color>
+    <color name="default_tag_text_color">#FFFFFF</color>
+
+    <color name="acc_gray">#707070</color>
+    <color name="tr_gray">#9AE0E0E0</color>
+    <!--grey-->
+    <color name="grey_200">#eeeeee</color>
+    <color name="grey_400">#BDBDBD</color>
+    <color name="black_1000">#000000</color>
+
+    <!-- red -->
+    <color name="red_50">#FFEBEE</color>
+    <color name="red_500">#F44336</color>
+    <color name="red_900">#B71C1C</color>
+    <color name="red_A700">#D50000</color>
+
+
+    <!--    Day Mode-->
+    <color name="backgroundColor">#FFFFFF</color>
+    <color name="cardBackgroundColor">#FFFFFF</color>
+    <color name="textColor">#000000</color>
+    <color name="hintColor">#757575</color>
+    <color name="subscription_bg">#262530</color>
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FF9800</color>
+    <color name="error">#B30C00</color>
+    <color name="editor_controller_bg">#F4F4F4</color>
+    <color name="iconNav">#171411</color>
+    <color name="black600">#1A1E13</color>
+    <color name="white15">#26FFFFFF</color>
+    <!-- pink -->
+    <color name="pink_500">#E91E63</color>
+
+    <!-- deep purples -->
+
+    <!-- indigo -->
+
+    <!--blue-->
+    <color name="blue_400">#FF9800</color>
+
+    <!-- light blue-->
+
+    <!-- cyan -->
+
+    <!-- teal -->
+
+    <!-- green -->
+    <color name="green_600">#43a047</color>
+    <color name="green_A700">#00C853</color>
+
+    <!--Palette-->
+    <color name="ucrop_color_black">#000</color>
+    <color name="ucrop_color_blaze_orange">#FF6300</color>
+    <color name="ucrop_color_ebony_clay">#20242F</color>
+    <color name="ucrop_color_heather">#B3BECE</color>
+    <color name="ucrop_color_white">#FFF</color>
+
+    <!--uCrop Activity-->
+    <color name="ucrop_color_toolbar">@color/ucrop_color_white</color>
+    <color name="ucrop_color_statusbar">#f5f5f5</color>
+    <color name="ucrop_color_toolbar_widget">@color/ucrop_color_black</color>
+    <color name="ucrop_color_widget">@color/ucrop_color_black</color>
+    <color name="ucrop_color_widget_active">@color/ucrop_color_white</color>
+    <color name="ucrop_color_widget_rotate_mid_line">@color/ucrop_color_blaze_orange</color>
+    <color name="ucrop_color_widget_rotate_angle">@color/ucrop_color_ebony_clay</color>
+    <color name="ucrop_color_active_aspect_ratio">@color/ucrop_color_blaze_orange</color>
+    <color name="ucrop_color_inactive_aspect_ratio">@color/ucrop_color_ebony_clay</color>
+    <color name="ucrop_color_widget_background">@color/ucrop_color_ebony_clay</color>
+    <color name="ucrop_color_widget_text">@color/ucrop_color_blaze_orange</color>
+    <color name="ucrop_color_progress_wheel_line">@color/ucrop_color_ebony_clay</color>
+    <color name="ucrop_color_crop_background">@color/ucrop_color_black</color>
+
+    <!--Crop View-->
+    <color name="ucrop_color_default_crop_grid">#80ffffff</color>
+    <color name="ucrop_color_default_crop_frame">#ffffff</color>
+    <color name="ucrop_color_default_dimmed">#8c000000</color>
+    <color name="ucrop_color_default_logo">#4f212121</color>
+    <!--blue grey-->
+    <color name="blue_grey_200">#B0BBC5</color>
+    <color name="profile_border">#80FFFFFF</color>
+    <color name="color1">#FBCEB1</color>
+    <color name="color2">#FFBF00</color>
+    <color name="color3">#9966CC</color>
+    <color name="color4">#000000</color>
+    <color name="color5">#7FFFD4</color>
+    <color name="color6">#FF9800</color>
+    <color name="color7">#89CFF0</color>
+    <color name="color8">#F5F5DC</color>
+    <color name="color9">#E52B50</color>
+    <color name="color10">#FF5722</color>
+    <color name="color11">#0095B6</color>
+    <color name="color12">#8A2BE2</color>
+    <color name="color13">#DE5D83</color>
+    <color name="color14">#CD7F32</color>
+    <color name="color15">#964B00</color>
+    <color name="color16">#800020</color>
+    <color name="color17">#702963</color>
+    <color name="color18">#960018</color>
+    <color name="color19">#DE3163</color>
+    <color name="color20">#007BA7</color>
+    <color name="color21">#F7E7CE</color>
+    <color name="color22">#7FFF00</color>
+    <color name="color23">#7B3F00</color>
+    <color name="color24">#FF5722</color>
+    <color name="color25">#6F4E37</color>
+    <color name="color26">#B87333</color>
+    <color name="color27">#F88379</color>
+    <color name="color28">#DC143C</color>
+    <color name="color29">#008000</color>
+    <color name="color30">#00FFFF</color>
+    <color name="color31">#EDC9Af</color>
+    <color name="color32">#7DF9FF</color>
+    <color name="color33">#50C878</color>
+    <color name="color34">#00FF3F</color>
+    <color name="color35">#FFD700</color>
+    <color name="color36">#808080</color>
+    <color name="color37">#3FFF00</color>
+    <color name="color38">#4B0082</color>
+    <color name="color39">#29AB87</color>
+    <color name="color40">#29AB87</color>
+
+    <integer-array name="colorlist">
+        <item>@color/color1</item>
+        <item>@color/color2</item>
+        <item>@color/color3</item>
+        <item>@color/color4</item>
+        <item>@color/color5</item>
+        <item>@color/color6</item>
+        <item>@color/color7</item>
+        <item>@color/color8</item>
+        <item>@color/color9</item>
+        <item>@color/color10</item>
+        <item>@color/color11</item>
+        <item>@color/color12</item>
+        <item>@color/color13</item>
+        <item>@color/color14</item>
+        <item>@color/color15</item>
+        <item>@color/color16</item>
+        <item>@color/color17</item>
+        <item>@color/color18</item>
+        <item>@color/color19</item>
+        <item>@color/color20</item>
+        <item>@color/color21</item>
+        <item>@color/color22</item>
+        <item>@color/color23</item>
+        <item>@color/color24</item>
+        <item>@color/color25</item>
+        <item>@color/color26</item>
+        <item>@color/color27</item>
+        <item>@color/color28</item>
+        <item>@color/color29</item>
+        <item>@color/color30</item>
+        <item>@color/color31</item>
+        <item>@color/color32</item>
+        <item>@color/color33</item>
+        <item>@color/color34</item>
+        <item>@color/color35</item>
+        <item>@color/color36</item>
+        <item>@color/color37</item>
+        <item>@color/color38</item>
+        <item>@color/color39</item>
+        <item>@color/color40</item>
+    </integer-array>
+
+    <color name="select_new">#ff0eacff</color>
+    <color name="hintTextColor">#55000000</color>
+    <color name="yellow">#ffffb400</color>
+    <color name="topColor">#FF8E0B</color>
+    <color name="titlecolorbtn">#ff9ba8bb</color>
+    <color name="colorLogo">#fff22b24</color>
+    <color name="grey_20">#cccccc</color>
+    <color name="grey_5">#f2f2f2</color>
+    <color name="color_text_onseek">#ff9ba8bb</color>
+    <color name="black_50">#000000</color>
+    <color name="crop_selected_color">#3C6FFF</color>
+    <color name="lay_bg">#fff4f7fa</color>
+    <color name="artworkbg">#ffced2da</color>
+    <color name="textcolor">#323A48</color>
+    <color name="background70">#77000000</color>
+    <color name="text_gray">#C8CED7</color>
+    <color name="icon_hint_color">#B3B3B3</color>
+    <color name="ucrop_color_inactive_controls_color">@color/ucrop_color_heather</color>
+    <color name="ucrop_color_active_controls_color">#3C6FFF</color>
+    <color name="languages_color">#6358EE</color>
+    <color name="nonselect_languages_color">#BCC8E4</color>
+    <color name="icon_color">#211F28</color>
+    <color name="custom_tab_bg">#ECDCE6</color>
+    <color name="tab_unselect_text_color">#BBA5B3</color>
+    <color name="skay_blue">#0085FF</color>
+    <color name="mate_color">#FF0099</color>
+    <color name="light_sky">#0094FF</color>
+    <color name="brown_color">#955306</color>
+    <color name="tab_unselect">#4d626d</color>
+
+</resources>
