@@ -26,12 +26,14 @@ android {
 
     signingConfigs {
         release {
-            def envStorePassword = System.getenv("KEYSTORE_PASSWORD")
-            if (envStorePassword) {
-                storeFile file("${rootDir}/famebanao.jks")
-                storePassword envStorePassword
-                keyAlias System.getenv("KEY_ALIAS")
-                keyPassword System.getenv("KEY_PASSWORD")
+            def keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
+            def keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+
+            if (keystorePassword && keystoreFile) {
+                storeFile file(keystoreFile)
+                storePassword keystorePassword
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
             } else {
                 storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
                 storePassword "android"
