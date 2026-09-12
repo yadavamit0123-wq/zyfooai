@@ -38,9 +38,16 @@ jobs:
       - name: Setup signing keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "${{ github.workspace }}/prt.jks"
+            echo "=== Release keystore SHA fingerprints (add these in Firebase Console) ==="
+            keytool -list -v \
+              -keystore "${{ github.workspace }}/prt.jks" \
+              -alias "$ANDROID_KEY_ALIAS" \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>/dev/null | grep -E "SHA1:|SHA256:" || true
           else
             mkdir -p "$HOME/.android"
             if [ ! -f "$HOME/.android/debug.keystore" ]; then

@@ -50,7 +50,11 @@ public class HomeRespository {
 
             @Override
             public void onFailure(Call<UserItem> call, Throwable t) {
-                Log.d("login__", "onFailure " + t.getMessage());
+                Log.e("login__", "onFailure " + t.getMessage(), t);
+                UserItem errorItem = new UserItem();
+                errorItem.status = 500;
+                errorItem.message = t.getMessage() != null ? t.getMessage() : "Network error. Please try again.";
+                data.setValue(errorItem);
             }
         });
         return data;

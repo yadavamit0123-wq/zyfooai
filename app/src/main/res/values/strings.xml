@@ -1,6 +1,7 @@
 <resources>
 
     <string name="app_name">ZyFoo AI</string>
+    <string name="google_web_client_id" translatable="false">343532360294-norci7k052k41qv1v5qf6l7ev47lvt17.apps.googleusercontent.com</string>
 
     <!--    No Need to change. Changeable from admin-->
     <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
