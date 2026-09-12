@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "343532360294-1qcpmgqvusrnmmk8842mi8ctq3d8tjj0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pt.zyfooai",
+            "certificate_hash": "4d862705396bad444f7fe885f69bc4b7c6eea042"
+          }
+        },
+        {
           "client_id": "343532360294-rgi98be367s2t127eidi1g2g41rp430r.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

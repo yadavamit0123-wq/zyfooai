@@ -48,6 +48,7 @@ import com.pt.zyfooai.model.PostItem;
 import com.pt.zyfooai.model.SubscriptionModel;
 import com.pt.zyfooai.ui.adapters.MainAdapter;
 import com.pt.zyfooai.ui.adapters.SubscriptionAdapter;
+import com.pt.zyfooai.utils.ClickDebouncer;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.MyUtils;
 import com.pt.zyfooai.utils.PaginationListener;
@@ -79,6 +80,7 @@ public class DailyPostActivity extends AppCompatActivity {
     View currentView;
     RelativeLayout rewateBtn;
     ImageView remove, premium;
+    private final ClickDebouncer clickDebouncer = new ClickDebouncer();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,8 +89,6 @@ public class DailyPostActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         context = this;
         topIconBar(this);
-
-        interstitialsAdsManager = new InterstitialsAdsManager(context);
 
         new AdsUtils(context).showBannerAds(context);
 
@@ -113,13 +113,60 @@ public class DailyPostActivity extends AppCompatActivity {
             binding.allVideos.setVisibility(View.VISIBLE);
             binding.noDataLayout.setVisibility(View.GONE);
 
-            new Handler().postDelayed(() -> getData(), 2000);
+            getData();
 
         });
 
-        getData();
-
         setUpRecyclerView();
+        ensureAdapter();
+        getData();
+    }
+
+    private InterstitialsAdsManager getInterstitialsAdsManager() {
+        if (interstitialsAdsManager == null) {
+            interstitialsAdsManager = new InterstitialsAdsManager(context);
+        }
+        return interstitialsAdsManager;
+    }
+
+    private void ensureAdapter() {
+        if (adapter != null) {
+            return;
+        }
+        adapter = new MainAdapter(context, dailyPost, this::handlePostClick);
+        binding.allVideos.setAdapter(adapter);
+    }
+
+    private void handlePostClick(View view, View posterew, PostItem postItem) {
+        currentView = posterew;
+        rewateBtn = currentView.findViewById(R.id.watermarkLayout);
+        remove = currentView.findViewById(R.id.removeWatermark);
+        premium = currentView.findViewById(R.id.iv_premium);
+
+        if (preferenceManager.getBoolean(IS_SUBSCRIBE)) {
+            remove.setVisibility(View.GONE);
+            premium.setVisibility(View.GONE);
+            rewateBtn.setVisibility(View.GONE);
+        }
+
+        if (view.getId() == R.id.watermarkLayout) {
+            setupDialogWatermarkOption();
+        } else if (view.getId() == R.id.downloadBtn) {
+            if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
+                setupDialogPremium(postItem, "download");
+                return;
+            }
+            saveImage(GlideDataBinding.viewToBitmap(currentView), "download");
+        } else if (view.getId() == R.id.shareBtn) {
+            if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
+                setupDialogPremium(postItem, "Share");
+                return;
+            }
+            saveImage(GlideDataBinding.viewToBitmap(currentView), "Share");
+        } else if (view.getId() == R.id.edit_Btn) {
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(context, EditProfileActivity.class).putExtra("imageUrl", postItem.image_url));
+        }
     }
 
     private void setUpRecyclerView() {
@@ -153,39 +200,26 @@ public class DailyPostActivity extends AppCompatActivity {
     }
 
     private void getData() {
-
         binding.noDataLayout.setVisibility(View.GONE);
 
         selectedLanguage = preferenceManager.getString(Constant.USER_LANGUAGE);
         if (selectedLanguage.equals("-1")) {
-
             selectedLanguage = "";
         }
-        Log.d("selectedLanguage", "getData: " + selectedLanguage + " " + selectedCat + " " + pageCount);
+
         dailyPost.clear();
-
-        if (adapter != null) {
-            adapter.clearData();
-            adapter.notifyDataSetChanged();
-        }
-
+        ensureAdapter();
+        adapter.notifyDataSetChanged();
 
         Constant.getHomeViewModel(this).getFestivalPost(pageCount, selectedCat, selectedLanguage).observe(this, postItems -> {
-
             if (postItems != null && postItems.size() > 0) {
-
-
                 int i = 0;
 
                 while (i < postItems.size()) {
-
                     if (!preferenceManager.getBoolean(IS_SUBSCRIBE)) {
-
                         if (i % 6 == 0 && i != 0) {
-
                             dailyPost.add(null);
                         }
-
                     }
                     dailyPost.add(postItems.get(i));
                     i++;
@@ -193,58 +227,16 @@ public class DailyPostActivity extends AppCompatActivity {
 
                 MyUtils.showResponse(dailyPost);
 
-                adapter = new MainAdapter(context, dailyPost, (view, posterew, postItem) -> {
-                    currentView = posterew;
-                    rewateBtn = currentView.findViewById(R.id.watermarkLayout);
-                    remove = currentView.findViewById(R.id.removeWatermark);
-                    premium = currentView.findViewById(R.id.iv_premium);
-
-                    if (preferenceManager.getBoolean(IS_SUBSCRIBE)) {
-                        remove.setVisibility(View.GONE);
-                        premium.setVisibility(View.GONE);
-                        rewateBtn.setVisibility(View.GONE);
-                    }
-
-                    if (view.getId() == R.id.watermarkLayout) {
-                        setupDialogWatermarkOption();
-                    } else if (view.getId() == R.id.downloadBtn) {
-                        if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
-                            setupDialogPremium(postItem, "download");
-                            return;
-                        }
-                        saveImage(GlideDataBinding.viewToBitmap(currentView), "download");
-                    } else if (view.getId() == R.id.shareBtn) {
-                        if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
-                            setupDialogPremium(postItem, "Share");
-                            return;
-                        }
-
-                        saveImage(GlideDataBinding.viewToBitmap(currentView), "Share");
-                    } else if (view.getId() == R.id.edit_Btn) {
-                        if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
-                            setupDialogPremium(postItem, "edit");
-                            return;
-                        }
-
-                        startActivity(new Intent(context, EditProfileActivity.class).putExtra("imageUrl", postItem.image_url));
-                        Log.d("imageUrl", "getData: " + postItem.image_url);
-                    }
-
-                });
-                adapter.setData(dailyPost);
+                ensureAdapter();
+                adapter.replaceData(dailyPost);
                 binding.allVideos.setVisibility(View.VISIBLE);
-                binding.allVideos.setAdapter(adapter);
                 binding.noDataLayout.setVisibility(View.GONE);
                 binding.shimmerViewContainer.setVisibility(View.GONE);
-
             } else {
-
                 binding.shimmerViewContainer.setVisibility(View.GONE);
                 binding.allVideos.setVisibility(View.VISIBLE);
                 binding.noDataLayout.setVisibility(View.VISIBLE);
-
             }
-
         });
     }
 
@@ -293,7 +285,7 @@ public class DailyPostActivity extends AppCompatActivity {
         remove.setVisibility(View.GONE);
         premium.setVisibility(View.GONE);
 
-        interstitialsAdsManager.showInterstitialAd(new InterstitialsAdsManager.onAdClosedListener() {
+        getInterstitialsAdsManager().showInterstitialAd(new InterstitialsAdsManager.onAdClosedListener() {
             @Override
             public void onAdClosed() {
 

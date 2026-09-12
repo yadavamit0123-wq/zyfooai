@@ -4,6 +4,8 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.pt.zyfooai.BuildConfig;
+
 import android.util.Log;
 
 
@@ -26,18 +28,20 @@ public class PreferenceManager {
 
     public void setBoolean(String PREF_NAME, Boolean val) {
         editor.putBoolean(PREF_NAME, val);
-        editor.commit();
+        editor.apply();
     }
 
     public void setString(String PREF_NAME, String VAL) {
-        Log.d("setString__", PREF_NAME+" : "+VAL);
+        if (BuildConfig.DEBUG) {
+            Log.d("setString__", PREF_NAME + " : " + VAL);
+        }
         editor.putString(PREF_NAME, VAL);
-        editor.commit();
+        editor.apply();
     }
 
     public void setInt(String PREF_NAME, int VAL) {
         editor.putInt(PREF_NAME, VAL);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean getBoolean(String PREF_NAME) {
@@ -51,7 +55,7 @@ public class PreferenceManager {
     public void remove(String PREF_NAME) {
         if (pref.contains(PREF_NAME)) {
             editor.remove(PREF_NAME);
-            editor.commit();
+            editor.apply();
         }
     }
 

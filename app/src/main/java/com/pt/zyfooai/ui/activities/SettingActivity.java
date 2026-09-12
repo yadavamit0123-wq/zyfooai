@@ -19,6 +19,7 @@ import com.pt.zyfooai.binding.GlideDataBinding;
 import com.pt.zyfooai.databinding.ActivitySettingBinding;
 import com.pt.zyfooai.ui.Functions;
 import com.pt.zyfooai.ui.fragments.SelectBusinessFragment;
+import com.pt.zyfooai.utils.ClickDebouncer;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
@@ -33,6 +34,7 @@ public class SettingActivity extends AppCompatActivity {
     Activity context;
     private PreferenceManager preferenceManager;
     private FirebaseAuth firebaseAuth;
+    private final ClickDebouncer clickDebouncer = new ClickDebouncer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,14 +82,15 @@ public class SettingActivity extends AppCompatActivity {
         }
 
         binding.upgradeBtn.setOnClickListener(view -> {
-            startActivity(new Intent(context,SubscriptionActivity.class));
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(context, SubscriptionActivity.class));
         });
 
         binding.tvLanguage.setText(preferenceManager.getString(Constant.LANGUAGE_NAME));
 
         binding.llDownload.setOnClickListener(view -> {
-            Intent intent = new Intent(this, DownloadActivity.class);
-            startActivity(intent);
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(this, DownloadActivity.class));
         });
 
         binding.llPolitical.setOnClickListener(view -> {
@@ -133,8 +136,8 @@ public class SettingActivity extends AppCompatActivity {
         });
 
         binding.llEdit.setOnClickListener(view -> {
-            Intent intent = new Intent(this, EditProfileActivity.class);
-            startActivity(intent);
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(this, EditProfileActivity.class));
         });
 
         binding.llPrivacy.setOnClickListener(v -> {

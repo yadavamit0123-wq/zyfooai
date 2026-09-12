@@ -33,6 +33,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
@@ -84,9 +85,17 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     private PreferenceManager preferenceManager;
 
     public void setData(List<PostItem> daily_post) {
-        int size = list.size();
+        int oldSize = list.size();
         this.list = daily_post;
-        notifyItemRangeInserted(size, daily_post.size());
+        int added = daily_post.size() - oldSize;
+        if (added > 0) {
+            notifyItemRangeInserted(oldSize, added);
+        }
+    }
+
+    public void replaceData(List<PostItem> daily_post) {
+        this.list = daily_post;
+        notifyDataSetChanged();
     }
 
     OnClickEvent onClickEvent;
@@ -288,6 +297,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
             Glide.with(holder.binding.imagePost.getContext())
                     .load(list.get(position).image_url)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .dontAnimate()
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(

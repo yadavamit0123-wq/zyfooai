@@ -22,6 +22,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 
+import com.pt.zyfooai.BuildConfig;
 import com.pt.zyfooai.R;
 import com.pt.zyfooai.model.AdsModel;
 import com.google.gson.Gson;
@@ -39,10 +40,9 @@ public class MyUtils {
     public Activity context;
 
     public static void showResponse(Object onject) {
-
-
-        Log.i("MyResponse " + onject.getClass().getSimpleName(), "" + new Gson().toJson(onject));
-
+        if (BuildConfig.DEBUG) {
+            Log.i("MyResponse " + onject.getClass().getSimpleName(), "" + new Gson().toJson(onject));
+        }
     }
 
     public static String getDeviceId(Context context) {

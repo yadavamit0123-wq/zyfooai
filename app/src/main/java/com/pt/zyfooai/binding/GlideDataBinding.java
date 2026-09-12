@@ -10,8 +10,7 @@ import android.widget.ImageView;
 
 import androidx.databinding.BindingAdapter;
 
-import com.airbnb.lottie.LottieCompositionFactory;
-import com.airbnb.lottie.LottieDrawable;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.pt.zyfooai.AppConfig;
 import com.pt.zyfooai.MyApplication;
 import com.pt.zyfooai.R;
@@ -24,25 +23,23 @@ public class GlideDataBinding {
     public static void bindImage(ImageView imageView, String url) {
         Context mContext = imageView.getContext();
 
-        // Create a LottieDrawable for the placeholder
-        LottieDrawable lottieDrawable = new LottieDrawable();
-        LottieCompositionFactory.fromRawRes(mContext, R.raw.timer)
-                .addListener(lottieDrawable::setComposition);
-        lottieDrawable.playAnimation();
-
         if (isValid(imageView, url)) {
             if (AppConfig.PRE_LOAD_IMAGE) {
                 Glide.with(mContext.getApplicationContext())
                         .load(url)
                         .thumbnail(Glide.with(mContext.getApplicationContext()).load(url))
-                        .placeholder(lottieDrawable) // Set Lottie as a placeholder
+                        .placeholder(R.drawable.placeholder)
                         .error(R.drawable.placeholder)
+                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                        .dontAnimate()
                         .into(imageView);
             } else {
                 Glide.with(mContext.getApplicationContext())
                         .load(url)
-                        .placeholder(lottieDrawable) // Set Lottie as a placeholder
+                        .placeholder(R.drawable.placeholder)
                         .error(R.drawable.placeholder)
+                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                        .dontAnimate()
                         .into(imageView);
             }
         }

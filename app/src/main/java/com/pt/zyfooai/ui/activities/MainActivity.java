@@ -88,6 +88,7 @@ import com.pt.zyfooai.ui.adapters.StoryAdapter;
 import com.pt.zyfooai.ui.adapters.SubscriptionAdapter;
 import com.pt.zyfooai.ui.fragments.SelectBusinessFragment;
 import com.pt.zyfooai.ui.fragments.SelectMusicFragment;
+import com.pt.zyfooai.utils.ClickDebouncer;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.MyUtils;
 import com.pt.zyfooai.utils.NetworkConnectivity;
@@ -128,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
     ImageView remove;
     //    ImageView premium;
     public static List<SubscriptionModel> plan_list = new ArrayList<>();
+    private final ClickDebouncer clickDebouncer = new ClickDebouncer();
+    private boolean scrollListenerAdded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,9 +153,6 @@ public class MainActivity extends AppCompatActivity {
             i = 1280;
         }
 
-        if (Build.VERSION.SDK_INT >= 33) {
-            OneSignal.promptForPushNotifications();
-        }
         decorView.setSystemUiVisibility(i);
 
         if (!BuildConfig.DEBUG) {
@@ -165,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         context = this;
         preferenceManager = new PreferenceManager(context);
-        interstitialsAdsManager = new InterstitialsAdsManager(context);
         layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
 
         binding.shimmerViewContainer.setVisibility(VISIBLE);
@@ -203,16 +202,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.circularImageView.setOnClickListener(view -> {
-            Intent intent = new Intent(this, SettingActivity.class);
-            startActivity(intent);
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(this, SettingActivity.class));
         });
 
         binding.createActionButton.setOnClickListener(view -> {
-            Intent intent = new Intent(this, CreatePostActivity.class);
-            startActivity(intent);
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(this, CreatePostActivity.class));
         });
 
         setUpRecyclerView();
+        ensureAdapter();
+
+        binding.getRoot().post(() -> {
+            if (Build.VERSION.SDK_INT >= 33) {
+                OneSignal.promptForPushNotifications();
+            }
+        });
 
         if (preferenceManager.getString("DataType").equals("Business")) {
 //            binding.changeProfileImg.setImageResource(R.drawable.db_personal_img);
@@ -296,10 +302,7 @@ public class MainActivity extends AppCompatActivity {
 //            festival();
             loadCategories();
             categoryItemList.clear();
-
-            new Handler().postDelayed(() -> {
-                getData();
-            }, 2000);
+            getData();
 
         });
 
@@ -331,10 +334,8 @@ public class MainActivity extends AppCompatActivity {
         homeViewModel.updateProfile(preferenceManager.getString(Constant.USER_ID), "", "", "", "", "", "", business).observe(this, userItem -> {
             if (userItem != null && userItem.status == 200) {
                 Functions.saveUserData(context, userItem);
-                new Handler().postDelayed(() -> {
-                    loadCategories();
-                    getData();
-                }, 100);
+                loadCategories();
+                getData();
             } else {
                 Toast.makeText(context, userItem != null ? userItem.message : "Null Data", Toast.LENGTH_SHORT).show();
             }
@@ -414,6 +415,67 @@ public class MainActivity extends AppCompatActivity {
         binding.allVideo.setLayoutManager(layoutManager);
         SnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(binding.allVideo);
+
+        if (!scrollListenerAdded) {
+            binding.allVideo.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        playVisibleVideo(recyclerView);
+                    }
+                }
+            });
+            scrollListenerAdded = true;
+        }
+    }
+
+    private void ensureAdapter() {
+        if (adapter != null) {
+            return;
+        }
+        adapter = new MainAdapter(context, dailyPost, this::handlePostClick);
+        binding.allVideo.setAdapter(adapter);
+    }
+
+    private void handlePostClick(View view, View posterew, PostItem postItem) {
+        currentView = posterew;
+        rewateBtn = currentView.findViewById(R.id.watermarkLayout);
+        remove = currentView.findViewById(R.id.removeWatermark);
+
+        if (preferenceManager.getBoolean(IS_SUBSCRIBE)) {
+            remove.setVisibility(GONE);
+            rewateBtn.setVisibility(GONE);
+        }
+
+        if (view.getId() == R.id.watermarkLayout) {
+            setupDialogWatermarkOption();
+        } else if (view.getId() == R.id.downloadBtn) {
+            remove.setVisibility(GONE);
+            if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
+                setupDialogPremium(postItem, postItem, "download");
+                return;
+            }
+            saveImage(GlideDataBinding.viewToBitmap(currentView), postItem, "download");
+        } else if (view.getId() == R.id.shareBtn) {
+            remove.setVisibility(GONE);
+            if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
+                setupDialogPremium(postItem, postItem, "Share");
+                return;
+            }
+            saveImage(GlideDataBinding.viewToBitmap(currentView), postItem, "Share");
+        } else if (view.getId() == R.id.edit_Btn) {
+            if (clickDebouncer.shouldIgnore()) return;
+            startActivity(new Intent(context, EditProfileActivity.class)
+                    .putExtra("imageUrl", postItem.image_url));
+        } else if (view.getId() == R.id.musicBtn) {
+            musicFrameName = "status_" + postItem.postId + ".mp4";
+            new SelectMusicFragment(new ClickListener<PostItem>() {
+                @Override
+                public void onClick(PostItem data) {
+                    playMusic(data.image_url);
+                }
+            }).show(getSupportFragmentManager(), "");
+        }
     }
 
     @Override
@@ -480,6 +542,8 @@ public class MainActivity extends AppCompatActivity {
                             updateBusinessID("political");
                         } else {
                             pageCount = 1;
+                            binding.shimmerViewContainer.setVisibility(VISIBLE);
+                            binding.main.setVisibility(GONE);
                             getData();
                         }
                     }
@@ -519,10 +583,8 @@ public class MainActivity extends AppCompatActivity {
                     if (adapter != null) {
                         adapter.clearData();
                     }
-                    new Handler().postDelayed(() -> {
-                        loadCategories();
-                        getData();
-                    }, 100);
+                    loadCategories();
+                    getData();
                 } else {
                     Toast.makeText(context, userItem != null ? userItem.message : "Null Data", Toast.LENGTH_SHORT).show();
                 }
@@ -532,7 +594,6 @@ public class MainActivity extends AppCompatActivity {
 
     //load Post by category
     private void getData() {
-
         stopAllVideos(binding.allVideo);
 
         if (!networkConnectivity.isConnected()) {
@@ -548,19 +609,11 @@ public class MainActivity extends AppCompatActivity {
             selectedLanguage = "";
         }
 
-        Log.d("selectedLanguage", "getData: " + selectedLanguage + " " + selectedCat + " " + pageCount);
         dailyPost.clear();
+        ensureAdapter();
+        adapter.notifyDataSetChanged();
 
-        if (adapter != null) {
-            adapter.clearData();
-            adapter.notifyDataSetChanged();
-        }
-        Log.d("IS_SUBSCRIBE", "getData: " + preferenceManager.getBoolean(IS_SUBSCRIBE));
-
-        Log.d("PROFILE_IDS", "BUSINESS: " + preferenceManager.getString(Constant.BUSINESS_ID)+" POLITICAL: "+preferenceManager.getString(Constant.POLITICAL_ID));
-
-        Constant.getHomeViewModel(this).getDailyPosts(pageCount, selectedCat, selectedLanguage, preferenceManager.getString(Constant.BUSINESS_ID),preferenceManager.getString(Constant.POLITICAL_ID)).observe(this, postItems -> {
-
+        Constant.getHomeViewModel(this).getDailyPosts(pageCount, selectedCat, selectedLanguage, preferenceManager.getString(Constant.BUSINESS_ID), preferenceManager.getString(Constant.POLITICAL_ID)).observe(this, postItems -> {
             if (postItems != null && postItems.size() > 0) {
                 int i = 0;
                 while (i < postItems.size()) {
@@ -577,85 +630,12 @@ public class MainActivity extends AppCompatActivity {
 
                 MyUtils.showResponse(dailyPost);
 
-                adapter = new MainAdapter(context, dailyPost, (view, posterew, postItem) -> {
-                    currentView = posterew;
-                    rewateBtn = currentView.findViewById(R.id.watermarkLayout);
-                    remove = currentView.findViewById(R.id.removeWatermark);
-
-//                    premium = currentView.findViewById(R.id.iv_premium);
-
-                    if (preferenceManager.getBoolean(IS_SUBSCRIBE)) {
-                        remove.setVisibility(GONE);
-//                        premium.setVisibility(GONE);
-                        rewateBtn.setVisibility(GONE);
-
-                    }
-
-                    if (view.getId() == R.id.watermarkLayout) {
-                        setupDialogWatermarkOption();
-                    } else if (view.getId() == R.id.downloadBtn) {
-                        remove.setVisibility(GONE);
-                        if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
-
-                            setupDialogPremium(postItem, postItem, "download");
-
-                            return;
-                        }
-//                        premium.setVisibility(GONE);
-                        saveImage(GlideDataBinding.viewToBitmap(currentView), postItem, "download");
-
-                    } else if (view.getId() == R.id.shareBtn) {
-                        remove.setVisibility(GONE);
-//                        setupDialogPremium(postItem, postItem, "Share");
-//                        return;
-                        if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
-
-                            setupDialogPremium(postItem, postItem, "Share");
-                            return;
-                        }
-//                        premium.setVisibility(GONE);
-                        saveImage(GlideDataBinding.viewToBitmap(currentView), postItem, "Share");
-
-                    } else if (view.getId() == R.id.edit_Btn) {
-
-//                        if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
-//
-//                            setupDialogPremium(postItem, "edit");
-//
-//                            return;
-//                        }
-
-                        startActivity(new Intent(context, EditProfileActivity.class)
-                                .putExtra("imageUrl", postItem.image_url));
-
-                        Log.d("imageUrl", "getData: " + postItem.image_url);
-
-                    } else if (view.getId() == R.id.musicBtn) {
-                        musicFrameName = "status_"+postItem.postId + ".mp4";
-                        new SelectMusicFragment(new ClickListener<PostItem>() {
-                            @Override
-                            public void onClick(PostItem data) {
-                                playMusic(data.image_url);
-                            }
-                        }).show(getSupportFragmentManager(),"");
-                    }
-
-                });
-                adapter.setData(dailyPost);
-                binding.allVideo.setAdapter(adapter);
+                ensureAdapter();
+                adapter.replaceData(dailyPost);
                 binding.shimmerViewContainer.setVisibility(GONE);
                 binding.main.setVisibility(VISIBLE);
                 binding.switchProfile.clRoot.setVisibility(GONE);
                 binding.noDataLayout.setVisibility(GONE);
-                binding.allVideo.addOnScrollListener(new RecyclerView.OnScrollListener() {
-
-                    @Override
-                    public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                            playVisibleVideo(recyclerView);
-                        }
-                    }
-                });
 //                RecyclerViewPreloader<String> preloader = new RecyclerViewPreloader<>(Glide.with(this), adapter, new FixedPreloadSizeProvider<>(100, 100), 5);
 //
 //                binding.allVideo.addOnScrollListener(preloader);
@@ -922,9 +902,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private InterstitialsAdsManager getInterstitialsAdsManager() {
+        if (interstitialsAdsManager == null) {
+            interstitialsAdsManager = new InterstitialsAdsManager(context);
+        }
+        return interstitialsAdsManager;
+    }
+
     private void saveImage(Bitmap bitmap, PostItem postItem, String type) {
 
-        interstitialsAdsManager.showInterstitialAd(() -> {
+        getInterstitialsAdsManager().showInterstitialAd(() -> {
 
             if (postItem.is_video) {
 
