@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:id="@+id/businessNameTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
                 android:textColor="@color/white"
                 android:textSize="@dimen/_14ssp" />
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:id="@+id/businessDesTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:id="@+id/businessNumberTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,7 +81,7 @@
                 android:drawableLeft="@drawable/ic_call"
                 android:drawableTint="@color/white"/>
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:layout_marginTop="@dimen/_3sdp"
                 android:id="@+id/businessWebsiteTv"
                 android:layout_width="wrap_content"
@@ -160,7 +160,7 @@
                 android:layout_height="58dp"
                 android:orientation="vertical">
 
-                <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                <com.pt.zyfooai.View.AutoResizeTextView
                     android:id="@+id/userNameTv"
                     android:gravity="end"
                     android:layout_width="match_parent"
@@ -174,7 +174,7 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/_15ssp" />
 
-                <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                <com.pt.zyfooai.View.AutoResizeTextView
                     android:id="@+id/userDesTv"
                     android:gravity="end"
                     android:layout_width="match_parent"
@@ -186,7 +186,7 @@
                     android:textColor="#EDEDED"
                     android:textSize="@dimen/_10ssp" />
 
-                <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                <com.pt.zyfooai.View.AutoResizeTextView
                     android:layout_marginTop="@dimen/_1sdp"
                     android:id="@+id/businessAddressTv"
                     android:gravity="end"
@@ -231,7 +231,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/ep_whatsapp_img" />
 
-                    <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                    <com.pt.zyfooai.View.AutoResizeTextView
                         android:id="@+id/whatsappTv"
                         android:gravity="center"
                         android:layout_width="wrap_content"
@@ -259,7 +259,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/ep_facebook_img" />
 
-                    <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                    <com.pt.zyfooai.View.AutoResizeTextView
                         android:gravity="center"
                         android:id="@+id/facebookTv"
                         android:layout_width="wrap_content"
@@ -268,7 +268,7 @@
                         android:fontFamily="@font/outfit_regular"
                         android:includeFontPadding="false"
                         android:lines="1"
-                        android:text="famebanao"
+                        android:text="ZyFoo AI"
                         android:textColor="@color/white"
                         android:textSize="@dimen/_10ssp" />
                 </LinearLayout>
@@ -288,7 +288,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/ep_instagram_img" />
 
-                    <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                    <com.pt.zyfooai.View.AutoResizeTextView
                         android:id="@+id/instagramTv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -296,7 +296,7 @@
                         android:fontFamily="@font/outfit_regular"
                         android:includeFontPadding="false"
                         android:lines="1"
-                        android:text="famebanao"
+                        android:text="ZyFoo AI"
                         android:textColor="@color/white"
                         android:textSize="@dimen/_10ssp" />
                 </LinearLayout>

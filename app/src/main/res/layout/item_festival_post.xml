@@ -8,7 +8,7 @@
 
         <variable
             name="categoryData"
-            type="com.growwthapps.dailypost.v2.model.PostItem" />
+            type="com.pt.zyfooai.model.PostItem" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

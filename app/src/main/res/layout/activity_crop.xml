@@ -88,7 +88,7 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <com.growwthapps.dailypost.v2.imagecroper.views.TouchImageView
+        <com.pt.zyfooai.imagecroper.views.TouchImageView
             android:id="@+id/ivImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

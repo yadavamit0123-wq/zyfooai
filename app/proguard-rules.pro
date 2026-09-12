@@ -21,10 +21,9 @@
 #-renamesourcefileattribute SourceFile
 
 
--keep class com.growwthapps.dailypost.model**{*;}
--keep class com.growwthapps.dailypost.custom.poster.model**{*;}
+-keep class com.pt.zyfooai.model**{*;}
 
--keep class com.growwthapps.dailypost.v2.api.ApiClient{*;}
+-keep class com.pt.zyfooai.api.ApiClient{*;}
 
 
 -keep class com.huawei** { *; }

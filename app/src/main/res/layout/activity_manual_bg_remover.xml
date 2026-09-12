@@ -89,12 +89,12 @@
             android:layout_weight="8"
             android:background="@drawable/pattern">
 
-            <com.growwthapps.dailypost.v2.imagecroper.views.TouchImageView
+            <com.pt.zyfooai.imagecroper.views.TouchImageView
                 android:id="@+id/drawingImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <com.growwthapps.dailypost.v2.imagecroper.views.BrushView
+            <com.pt.zyfooai.imagecroper.views.BrushView
                 android:id="@+id/brushContainingView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />

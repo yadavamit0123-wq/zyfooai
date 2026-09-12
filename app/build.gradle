@@ -9,7 +9,7 @@ apply plugin: 'kotlin-android'
 android {
 
     compileSdk 36
-    namespace 'com.growwthapps.dailypost.v2'
+    namespace 'com.pt.zyfooai'
 
     defaultConfig {
         applicationId "com.pt.zyfooai"

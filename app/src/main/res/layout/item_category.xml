@@ -6,7 +6,7 @@
     <data>
         <variable
             name="categoryData"
-            type="com.growwthapps.dailypost.v2.model.CategoryItem" />
+            type="com.pt.zyfooai.model.CategoryItem" />
     </data>
     <LinearLayout
         android:gravity="center"

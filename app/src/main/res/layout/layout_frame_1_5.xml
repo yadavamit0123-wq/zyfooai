@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:id="@+id/businessNameTv"
                 android:fontFamily="@font/outfit_regular"
                 android:letterSpacing="0.05"
@@ -47,7 +47,7 @@
                 android:textColor="@color/white"
                 android:textSize="@dimen/_14ssp" />
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:id="@+id/businessDesTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:id="@+id/businessNumberTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,7 +81,7 @@
                 android:drawableLeft="@drawable/ic_call"
                 android:drawableTint="@color/white"/>
 
-            <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+            <com.pt.zyfooai.View.AutoResizeTextView
                 android:layout_marginTop="@dimen/_3sdp"
                 android:id="@+id/businessWebsiteTv"
                 android:layout_width="wrap_content"
@@ -189,7 +189,7 @@
                 android:layout_height="58dp"
                 android:orientation="vertical">
 
-                <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                <com.pt.zyfooai.View.AutoResizeTextView
                     android:id="@+id/userNameTv"
                     android:gravity="center_vertical"
                     android:layout_width="match_parent"
@@ -203,7 +203,7 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/_15ssp" />
 
-                <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                <com.pt.zyfooai.View.AutoResizeTextView
                     android:id="@+id/userDesTv"
                     android:gravity="center_vertical"
                     android:layout_width="match_parent"
@@ -215,7 +215,7 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/_10ssp" />
 
-                <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                <com.pt.zyfooai.View.AutoResizeTextView
                     android:layout_marginTop="@dimen/_1sdp"
                     android:id="@+id/businessAddressTv"
                     android:gravity="center_vertical"
@@ -257,7 +257,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/ep_whatsapp_img" />
 
-                    <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                    <com.pt.zyfooai.View.AutoResizeTextView
                         android:gravity="center"
                         android:layout_marginStart="@dimen/_2sdp"
                         android:id="@+id/whatsappTv"
@@ -289,7 +289,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/ep_facebook_img" />
 
-                    <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                    <com.pt.zyfooai.View.AutoResizeTextView
                         android:gravity="center"
                         android:layout_marginStart="@dimen/_2sdp"
                         android:id="@+id/facebookTv"
@@ -321,7 +321,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/ep_instagram_img" />
 
-                    <com.growwthapps.dailypost.v2.View.AutoResizeTextView
+                    <com.pt.zyfooai.View.AutoResizeTextView
                         android:gravity="center"
                         android:layout_marginStart="@dimen/_2sdp"
                         android:id="@+id/instagramTv"

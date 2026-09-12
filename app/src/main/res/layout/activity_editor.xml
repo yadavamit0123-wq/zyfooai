@@ -556,7 +556,7 @@
                     android:thumb="@drawable/progressbar_thumb"
                     android:visibility="gone" />
 
-                <com.growwthapps.dailypost.v2.ToggleImageButton
+                <com.pt.zyfooai.ToggleImageButton
                     android:id="@+id/fontBoldImg"
                     android:layout_width="@dimen/_25sdp"
                     android:layout_height="@dimen/_25sdp"
@@ -564,7 +564,7 @@
                     app:tib_drawable_off="@drawable/font_bold_unselect_img"
                     app:tib_drawable_on="@drawable/font_bold_unselect_img" />
 
-                <com.growwthapps.dailypost.v2.ToggleImageButton
+                <com.pt.zyfooai.ToggleImageButton
                     android:id="@+id/fontItalicImg"
                     android:layout_width="@dimen/_25sdp"
                     android:layout_height="@dimen/_25sdp"

@@ -50,7 +50,7 @@
             android:id="@+id/previewImageLay"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/normalPreviewImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -58,7 +58,7 @@
                 android:adjustViewBounds="true"
                 android:src="@drawable/logo" />
 
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/ovalPreviewImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -67,7 +67,7 @@
                 android:src="@drawable/logo"
                 app:shapeDrawable="@drawable/a_frame_shape_oval"
                />
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/diamondPreviewImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -77,7 +77,7 @@
                 app:shapeDrawable="@drawable/ic_diamond_shap"
               />
 
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/squarePreviewImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -113,7 +113,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/normal_img"
                 android:layout_width="@dimen/_40sdp"
                 android:layout_height="@dimen/_40sdp"
@@ -135,7 +135,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/oval_img"
                 android:layout_width="@dimen/_40sdp"
                 android:layout_height="@dimen/_40sdp"
@@ -158,7 +158,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/diamond_img"
                 android:layout_width="@dimen/_40sdp"
                 android:layout_height="@dimen/_40sdp"
@@ -181,7 +181,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <com.growwthapps.dailypost.v2.utils.ShapesImage
+            <com.pt.zyfooai.utils.ShapesImage
                 android:id="@+id/square_img"
                 android:layout_width="@dimen/_40sdp"
                 android:layout_height="@dimen/_40sdp"

@@ -100,7 +100,7 @@
 
         <meta-data
             android:name="com.onesignal.NotificationServiceExtension"
-            android:value="com.growwthapps.dailypost.v2.utils.OnesignalNotificationService" />
+            android:value="com.pt.zyfooai.utils.OnesignalNotificationService" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

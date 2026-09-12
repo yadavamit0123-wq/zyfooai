@@ -18,7 +18,7 @@
             android:background="@android:color/transparent"
             android:gravity="center">
 
-            <com.growwthapps.dailypost.v2.ClickableWebView
+            <com.pt.zyfooai.ClickableWebView
                 android:id="@+id/grid_text"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

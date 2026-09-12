@@ -7,7 +7,7 @@
 
         <variable
             name="storyData"
-            type="com.growwthapps.dailypost.v2.model.StoryItem" />
+            type="com.pt.zyfooai.model.StoryItem" />
 
     </data>
 

@@ -60,7 +60,7 @@
                     app:cardElevation="0dp">
 
 
-                    <com.growwthapps.dailypost.v2.View.AutoFitEditText
+                    <com.pt.zyfooai.View.AutoFitEditText
                         android:id="@+id/auto_fit_edit_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
