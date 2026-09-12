@@ -2,6 +2,11 @@ buildscript {
 
     ext.kotlin_version = '1.8.10'
 
+    repositories {
+        google()
+        mavenCentral()
+    }
+
     dependencies {
         // Add your required classpaths
         classpath 'com.google.gms:google-services:4.3.15'

@@ -24,6 +24,23 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            def envStorePassword = System.getenv("KEYSTORE_PASSWORD")
+            if (envStorePassword) {
+                storeFile file("${rootDir}/famebanao.jks")
+                storePassword envStorePassword
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            } else {
+                storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
+    }
+
     buildFeatures {
         dataBinding true
         buildConfig true
@@ -49,9 +66,8 @@ android {
             debuggable false
             shrinkResources false
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-
         }
     }
 
