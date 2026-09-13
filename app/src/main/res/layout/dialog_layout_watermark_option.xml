@@ -118,6 +118,36 @@
 
 
                     <LinearLayout
+                        android:id="@+id/cv_iap"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_35sdp"
+                        android:layout_marginHorizontal="@dimen/_15sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:background="@drawable/gradintround_shape"
+                        android:backgroundTint="@color/blue_color"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/inter_semi_bold"
+                            android:gravity="center"
+                            android:text="@string/buy_watermark_remove"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_12sdp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_semi_bold"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="@dimen/_2sdp"
+                        android:text="Or"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_12sdp" />
+
+                    <LinearLayout
                         android:id="@+id/cv_yes"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/_35sdp"

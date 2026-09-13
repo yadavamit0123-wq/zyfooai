@@ -65,8 +65,12 @@ import com.pt.zyfooai.model.PostItem;
 import com.pt.zyfooai.ui.activities.MainActivity;
 import com.pt.zyfooai.ui.activities.SubscriptionActivity;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.FooterSizeHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
+import com.pt.zyfooai.utils.ReferralHelper;
 import com.pt.zyfooai.utils.SnapHelperOneByOne;
+import com.pt.zyfooai.utils.VideoCacheHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -166,29 +170,66 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         super.onViewRecycled(holder);
         if (holder instanceof ViewHolderVideo) {
             ViewHolderVideo videoHolder = (ViewHolderVideo) holder;
-            releasePlayer(videoHolder);
+            if (currentHolder == videoHolder) {
+                pauseAndDetachPlayer();
+            }
+            videoHolder.videoLayoutBinding.playerview.setPlayer(null);
         }
-
     }
 
     public void releasePlayer(ViewHolderVideo holder) {
-        if (holder == null) return;
-
-        // Only release if holder has the current player attached
-        if (currentPlayer != null && currentHolder == holder) {
-            currentPlayer.setPlayWhenReady(false);
-            currentPlayer.stop();
-            currentPlayer.release();  // Release resources
-            currentPlayer = null;
-
-            // Detach player from the view
-            if (holder.videoLayoutBinding != null) {
-                holder.videoLayoutBinding.playerview.setPlayer(null);
-            }
-
-            currentHolder = null; // Clear current holder reference
-            currentPlayingVideo = ""; // Clear currently playing URL
+        if (holder != null && currentHolder == holder) {
+            pauseAndDetachPlayer();
         }
+    }
+
+    public void pauseAndDetachPlayer() {
+        if (sharedPlayer != null) {
+            sharedPlayer.setPlayWhenReady(false);
+        }
+        if (currentHolder != null && currentHolder.videoLayoutBinding != null) {
+            currentHolder.videoLayoutBinding.playerview.setPlayer(null);
+        }
+    }
+
+    public void stopAndClearPlayer() {
+        pauseAndDetachPlayer();
+        if (sharedPlayer != null) {
+            sharedPlayer.stop();
+        }
+        currentHolder = null;
+        currentPlayingVideo = "";
+        currentPlayer = null;
+    }
+
+    private boolean shouldHideWatermark() {
+        return preferenceManager.getBoolean(IS_SUBSCRIBE)
+                || BillingHelper.isWatermarkPurchased(context)
+                || ReferralHelper.hasReferralReward(context);
+    }
+
+    private void setupFrameRecyclerView(RecyclerView recyclerView, RecyclerView.Adapter<?> frameAdapter) {
+        if (recyclerView.getTag(R.id.frame_recycler_setup) == null) {
+            recyclerView.setTag(R.id.frame_recycler_setup, Boolean.TRUE);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setAdapter(frameAdapter);
+            new SnapHelperOneByOne().attachToRecyclerView(recyclerView);
+        } else {
+            recyclerView.setAdapter(frameAdapter);
+        }
+    }
+
+    private void setupFooterControls(View footer, View contentArea, android.widget.SeekBar seekBar) {
+        FooterSizeHelper.applyFooterScale(footer, preferenceManager);
+        if (seekBar != null && seekBar.getTag() == null) {
+            seekBar.setTag(Boolean.TRUE);
+            FooterSizeHelper.bindFooterSizeSeekBar(seekBar, preferenceManager, () -> {
+                FooterSizeHelper.applyFooterScale(footer, preferenceManager);
+                FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
+            });
+        }
+        FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
     }
 
 
@@ -236,21 +277,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             holder.setIsRecyclable(false);
             holder.videoLayoutBinding.setPosts(list.get(position));
 
-            holder.videoLayoutBinding.watermarkLayout.setVisibility(preferenceManager.getBoolean(Constant.IS_SUBSCRIBE) ? View.GONE : View.VISIBLE);
+            holder.videoLayoutBinding.watermarkLayout.setVisibility(shouldHideWatermark() ? View.GONE : View.VISIBLE);
 
 
             holder.currentPosition = position;
-//            updatePlayer(holder, list.get(position));
+            setupFooterControls(
+                    holder.videoLayoutBinding.swipeFrames,
+                    holder.videoLayoutBinding.relativeLayout4,
+                    holder.videoLayoutBinding.footerSizeSeekBar
+            );
 
-
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
             CustomPagerVideoAdapter customPagerAdapter = new CustomPagerVideoAdapter(list.get(position).image_url);
-            holder.videoLayoutBinding.recyclerview.setLayoutManager(linearLayoutManager);
-            holder.videoLayoutBinding.recyclerview.setAdapter(customPagerAdapter);
-
+            setupFrameRecyclerView(holder.videoLayoutBinding.recyclerview, customPagerAdapter);
             holder.videoLayoutBinding.indicator.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
-            SnapHelperOneByOne snapHelperOneByOne = new SnapHelperOneByOne();
-            snapHelperOneByOne.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
 
             int random = new Random().nextInt(2) + 1;
             holder.videoLayoutBinding.recyclerview.scrollToPosition(random);
@@ -289,10 +328,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.binding.imagePost.setLayoutParams(layoutParams);
             }
 
+            setupFooterControls(
+                    holder.binding.swipeFrames,
+                    holder.binding.relativeLayout4,
+                    holder.binding.footerSizeSeekBar
+            );
+
             holder.binding.mainLayOut.post(() -> {
                 layoutWidth = holder.binding.mainLayOut.getWidth();
                 layoutHeight = holder.binding.mainLayOut.getHeight();
-
             });
 
             Glide.with(holder.binding.imagePost.getContext())
@@ -330,20 +374,14 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 //            GlideDataBinding.bindImage(holder.binding.imagePost, list.get(position).image_url);
 
 
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
             CustomPagerAdapter customPagerAdapter = new CustomPagerAdapter(list.get(position).image_url);
-            holder.binding.recyclerview.setLayoutManager(linearLayoutManager);
-            holder.binding.recyclerview.setAdapter(customPagerAdapter);
-
-
+            setupFrameRecyclerView(holder.binding.recyclerview, customPagerAdapter);
             holder.binding.indicator.attachToRecyclerView(holder.binding.recyclerview);
-            SnapHelperOneByOne snapHelperOneByOne = new SnapHelperOneByOne();
-            snapHelperOneByOne.attachToRecyclerView(holder.binding.recyclerview);
 
             int random = new Random().nextInt(3) + 1;
             holder.binding.recyclerview.scrollToPosition(random);
 
-            holder.binding.watermarkLayout.setVisibility(preferenceManager.getBoolean(Constant.IS_SUBSCRIBE) ? View.GONE : View.VISIBLE);
+            holder.binding.watermarkLayout.setVisibility(shouldHideWatermark() ? View.GONE : View.VISIBLE);
 
             View.OnClickListener onClickListener = view -> {
                 LinearLayoutManager layoutManager = (LinearLayoutManager) holder.binding.recyclerview.getLayoutManager();
@@ -372,60 +410,51 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         }
     }
     private ExoPlayer currentPlayer;
+    private ExoPlayer sharedPlayer;
     public ViewHolderVideo currentHolder;
-    private String currentPlayingVideo = "";
+    public String currentPlayingVideo = "";
 
     public void updatePlayer(ViewHolderVideo holder, PostItem item) {
+        if (item == null || item.image_url == null || item.image_url.isEmpty()) {
+            return;
+        }
         String newUrl = item.image_url;
-        Log.d("farukh------------->", "updatePlayer: " + newUrl);
 
-        if (currentPlayer != null && currentHolder != holder) {
-            currentPlayer.setPlayWhenReady(false);
-            currentPlayer.stop();
-//            currentPlayer.clearMediaItems();
+        if (currentHolder != null && currentHolder != holder) {
             currentHolder.videoLayoutBinding.playerview.setPlayer(null);
         }
-        if (holder.exoplayer == null) {
-            Log.d("farukh------------->1", "updatePlayer: " + newUrl);
-                Log.d("farukh------------->2", "updatePlayer: " + newUrl);
-                int appNameStringRes = R.string.app_name;
-                String userAgent = Util.getUserAgent(context, context.getString(appNameStringRes));
-                DefaultDataSourceFactory defdataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
-                Uri uriOfContentUrl = Uri.parse(newUrl);
-                MediaSource mediaSource = new ProgressiveMediaSource.Factory(defdataSourceFactory).createMediaSource(uriOfContentUrl);
-                // creating a media source
-                TrackSelector trackSelectorDef = new DefaultTrackSelector();
-                holder.exoplayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef);
-                holder.exoplayer.prepare(mediaSource);
-                holder.videoLayoutBinding.playerview.setUseController(true);
-                holder.videoLayoutBinding.playerview.showController();
-                holder.exoplayer.setPlayWhenReady(true);
-                holder.videoLayoutBinding.playerview.setPlayer(holder.exoplayer);
-                // attach surface to the view
-                holder.videoLayoutBinding.playerview.setShowBuffering(SHOW_BUFFERING_WHEN_PLAYING);
-                holder.exoplayer.setRepeatMode(Player.REPEAT_MODE_ALL);
-                holder.exoplayer.addListener(new Player.EventListener() {
-                    @Override
-                    public void onLoadingChanged(boolean isLoading) {
-                        Player.EventListener.super.onLoadingChanged(isLoading);
-                    }
 
-                    @Override
-                    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                        Player.EventListener.super.onPlayerStateChanged(playWhenReady, playbackState);
-                        switch (playbackState) {
-                            case ExoPlayer.STATE_READY:
-                                holder.videoLayoutBinding.loader.setVisibility(View.GONE);
-                                break;
-                        }
+        if (sharedPlayer == null) {
+            TrackSelector trackSelectorDef = new DefaultTrackSelector();
+            sharedPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef);
+            sharedPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
+            sharedPlayer.addListener(new Player.EventListener() {
+                @Override
+                public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+                    if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
+                        currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
                     }
-                });
-
-        } else {
-            Log.d("farukh------------->", "updatePlayer: testttt");
+                }
+            });
         }
 
-        currentPlayer = holder.exoplayer;
+        holder.videoLayoutBinding.loader.setVisibility(View.VISIBLE);
+        holder.videoLayoutBinding.playerview.setUseController(false);
+        holder.videoLayoutBinding.playerview.setShowBuffering(SHOW_BUFFERING_WHEN_PLAYING);
+
+        if (!newUrl.equals(currentPlayingVideo)) {
+            currentPlayingVideo = newUrl;
+            MediaSource mediaSource = new ProgressiveMediaSource.Factory(
+                    VideoCacheHelper.buildCacheDataSourceFactory(context))
+                    .createMediaSource(Uri.parse(newUrl));
+            sharedPlayer.stop();
+            sharedPlayer.prepare(mediaSource);
+        }
+
+        holder.videoLayoutBinding.playerview.setPlayer(sharedPlayer);
+        sharedPlayer.setPlayWhenReady(true);
+        holder.exoplayer = sharedPlayer;
+        currentPlayer = sharedPlayer;
         currentHolder = holder;
 //        String newUrl = Functions.getItemBaseUrl(item.item_url);
 //        Log.d("farukh------>", "updatePlayer: "+newUrl);
@@ -450,14 +479,26 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
 
     public void onPauseVideo() {
-        if (currentPlayer != null) {
+        if (sharedPlayer != null) {
+            sharedPlayer.setPlayWhenReady(false);
+        } else if (currentPlayer != null) {
             currentPlayer.setPlayWhenReady(false);
         }
     }
 
     public void onResumeVideo() {
-        if (currentPlayer != null && currentHolder != null) {
+        if (sharedPlayer != null && currentHolder != null) {
+            sharedPlayer.setPlayWhenReady(true);
+        } else if (currentPlayer != null && currentHolder != null) {
             currentPlayer.setPlayWhenReady(true);
+        }
+    }
+
+    public void releaseSharedPlayer() {
+        pauseAndDetachPlayer();
+        if (sharedPlayer != null) {
+            sharedPlayer.release();
+            sharedPlayer = null;
         }
     }
 
@@ -487,31 +528,31 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                     (double) layoutWidth - finalWidth;
 
             horizontalSpace = (int) Math.round(margin / 2.0);
-
-            holder.binding.recyclerview.addItemDecoration(new RecyclerView.ItemDecoration() {
-                @Override
-                public void getItemOffsets(Rect outRect, View view,
-                                           RecyclerView parent, RecyclerView.State state) {
-                    outRect.left = horizontalSpace;
-                    outRect.right = horizontalSpace;
-                }
-            });
         } else {
             horizontalSpace = 0;
-
         }
         if (imageHeight < layoutHeight) {
             bottomSpace = layoutHeight - imageHeight;
-            holder.binding.recyclerview.addItemDecoration(new RecyclerView.ItemDecoration() {
-                @Override
-                public void getItemOffsets(Rect outRect, View view,
-                                           RecyclerView parent, RecyclerView.State state) {
-                    outRect.bottom = bottomSpace;
-                }
-            });
         } else {
             bottomSpace = 0;
         }
+        applyFrameSpacingDecoration(holder);
+    }
+
+    private void applyFrameSpacingDecoration(ViewHolder holder) {
+        if (holder.binding.recyclerview.getTag(R.id.frame_spacing_applied) == Boolean.TRUE) {
+            return;
+        }
+        holder.binding.recyclerview.setTag(R.id.frame_spacing_applied, Boolean.TRUE);
+        holder.binding.recyclerview.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(Rect outRect, View view,
+                                       RecyclerView parent, RecyclerView.State state) {
+                outRect.left = horizontalSpace;
+                outRect.right = horizontalSpace;
+                outRect.bottom = bottomSpace;
+            }
+        });
     }
 
     @Override

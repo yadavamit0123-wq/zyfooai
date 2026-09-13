@@ -15,6 +15,7 @@ import com.pt.zyfooai.ui.adapters.LanguageAdapter;
 import com.pt.zyfooai.databinding.ActivityLanguageBinding;
 import com.pt.zyfooai.model.LanguageItem;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.LocaleHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
 
 import java.util.ArrayList;
@@ -56,6 +57,10 @@ public class LanguageActivity extends AppCompatActivity {
                             preferenceManager.setBoolean(Constant.LOAD_DATA, true);
                             preferenceManager.setString(Constant.USER_LANGUAGE, String.valueOf(languageModel.id));
                             preferenceManager.setString(Constant.LANGUAGE_NAME, languageModel.title);
+                            LocaleHelper.setLocale(
+                                    LanguageActivity.this,
+                                    LocaleHelper.localeCodeFromLanguageTitle(languageModel.title)
+                            );
 
                             Intent intent = new Intent(LanguageActivity.this, MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

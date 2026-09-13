@@ -7,7 +7,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
+        android:background="@color/bg_color"
         tools:context=".ui.activities.MainActivity">
 
 
@@ -208,11 +208,24 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
+                        <TextView
+                            android:id="@+id/offlineBanner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/warning"
+                            android:gravity="center"
+                            android:padding="@dimen/_6sdp"
+                            android:text="@string/offline_mode_banner"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_10ssp"
+                            android:visibility="gone" />
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/allVideo"
+                            android:layout_below="@id/offlineBanner"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="#F3EFFE"
+                            android:background="@color/feed_background"
                             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                             tools:listitem="@layout/item_main_layout" />
 
@@ -224,7 +237,7 @@
 
             <com.airbnb.lottie.LottieAnimationView
                 android:visibility="gone"
-                android:background="#57000000"
+                android:background="@color/hand_overlay_scrim"
                 android:layout_centerInParent="true"
                 android:id="@+id/handAnimation"
                 android:layout_width="match_parent"
@@ -295,8 +308,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_5sdp"
-                android:text="No Internet Connection"
-                android:textColor="@color/textColor"
+                android:text="@string/error_message__no_internet"
+                android:textColor="@color/no_internet_title"
                 android:textSize="13dp"
                 android:textStyle="bold" />
 

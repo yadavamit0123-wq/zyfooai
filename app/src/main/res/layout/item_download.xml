@@ -32,6 +32,17 @@
                 android:adjustViewBounds="true"
                 android:src="@drawable/demo_image" />
 
+            <TextView
+                android:id="@+id/tvDownloadMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="#99000000"
+                android:fontFamily="@font/inter_regular"
+                android:padding="@dimen/_6sdp"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_9sdp" />
+
             <ImageView
                 android:id="@+id/delete"
                 android:layout_width="@dimen/_18sdp"

@@ -542,7 +542,7 @@
                     android:layout_weight="1"
                     android:fontFamily="@font/inter_regular"
                     android:text="Text Size"
-                    android:textColor="#4d626d"
+                    android:textColor="@color/editor_label_text"
                     android:textSize="@dimen/_11ssp" />
 
                 <SeekBar
@@ -602,7 +602,7 @@
                 android:layout_height="@dimen/_45sdp"
                 android:layout_marginStart="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_4sdp"
-                android:background="#f0f0f0"
+                android:background="@color/editor_panel_bg"
                 android:gravity="center">
 
                 <ImageView
@@ -617,7 +617,7 @@
                 android:layout_height="@dimen/_45sdp"
                 android:layout_marginStart="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_4sdp"
-                android:background="#f0f0f0"
+                android:background="@color/editor_panel_bg"
                 android:gravity="center">
 
                 <ImageView
@@ -632,7 +632,7 @@
                 android:layout_height="@dimen/_45sdp"
                 android:layout_marginStart="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_4sdp"
-                android:background="#f0f0f0"
+                android:background="@color/editor_panel_bg"
                 android:gravity="center">
 
                 <ImageView
@@ -659,7 +659,7 @@
                 android:layout_marginTop="@dimen/_10sdp"
                 android:fontFamily="@font/inter_semi_bold"
                 android:text="Shadow"
-                android:textColor="#4d626d"
+                android:textColor="@color/editor_label_text"
                 android:textSize="@dimen/_11ssp" />
 
             <LinearLayout
@@ -719,7 +719,7 @@
                 android:layout_marginTop="@dimen/_10sdp"
                 android:fontFamily="@font/inter_semi_bold"
                 android:text="Opacity"
-                android:textColor="#4d626d"
+                android:textColor="@color/editor_label_text"
                 android:textSize="@dimen/_11ssp" />
 
             <LinearLayout
@@ -780,7 +780,7 @@
                 android:layout_marginTop="@dimen/_10sdp"
                 android:fontFamily="@font/inter_semi_bold"
                 android:text="Opacity"
-                android:textColor="#4d626d"
+                android:textColor="@color/editor_label_text"
                 android:textSize="@dimen/_11ssp" />
 
             <LinearLayout

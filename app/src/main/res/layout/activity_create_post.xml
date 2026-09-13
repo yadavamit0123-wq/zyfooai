@@ -83,7 +83,7 @@
                             android:fontFamily="@font/inter_regular"
                             android:gravity="center"
                             android:text="@string/str_35"
-                            android:textColor="#8d8b97"
+                            android:textColor="@color/create_post_muted_text"
                             android:textSize="@dimen/_12sdp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -109,7 +109,7 @@
                 android:paddingBottom="@dimen/_8sdp"
                 android:singleLine="true"
                 android:text="@string/str_36"
-                android:textColor="#213b4a"
+                android:textColor="@color/settings_title_text"
                 android:textSize="@dimen/_13ssp" />
 
             <LinearLayout
@@ -147,7 +147,7 @@
                         android:includeFontPadding="false"
                         android:inputType="text"
                         android:singleLine="true"
-                        android:textColor="#a3a3a3"
+                        android:textColor="@color/create_post_secondary_text"
                         android:textColorHint="#a3a3a3"
                         android:textCursorDrawable="@drawable/custom_cursor"
                         android:textSize="@dimen/_13ssp" />
@@ -235,7 +235,7 @@
                         android:includeFontPadding="false"
                         android:singleLine="true"
                         android:text="No data found !"
-                        android:textColor="#213b4a"
+                        android:textColor="@color/settings_title_text"
                         android:textSize="@dimen/_12ssp" />
 
                 </LinearLayout>

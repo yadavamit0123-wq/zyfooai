@@ -46,6 +46,8 @@ public class OnesignalNotificationService implements OneSignal.OSRemoteNotificat
     int NOTIFICATION_ID = 1;
     String title, message, type, externalLink;
     String bigpicture = null;
+    String deepLinkPostId = null;
+    String deepLinkCategoryId = null;
     PreferenceManager preferenceManager;
 
     @Override
@@ -67,6 +69,12 @@ public class OnesignalNotificationService implements OneSignal.OSRemoteNotificat
 
                 if (object.has("big_picture")) {
                     bigpicture = object.getString("big_picture");
+                }
+                if (object.has("post_id")) {
+                    deepLinkPostId = object.getString("post_id");
+                }
+                if (object.has("category_id")) {
+                    deepLinkCategoryId = object.getString("category_id");
                 }
 
             } catch (Exception e) {
@@ -90,7 +98,14 @@ public class OnesignalNotificationService implements OneSignal.OSRemoteNotificat
 
         createNotificationChannel(context);
         Intent intent = new Intent(context, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.putExtra(Constant.INTENT_IS_FROM_NOTIFICATION, true);
+        if (deepLinkPostId != null) {
+            intent.putExtra(Constant.INTENT_POST_ID, deepLinkPostId);
+        }
+        if (deepLinkCategoryId != null) {
+            intent.putExtra(Constant.INTENT_CATEGORY_ID, deepLinkCategoryId);
+        }
 
         int backgroundColor = getRandomDarkColor();
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);

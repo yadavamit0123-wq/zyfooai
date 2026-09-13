@@ -539,4 +539,21 @@
     <string name="benefits">Benefits</string>
     <string name="purchase_plan">Purchase plan</string>
 
+    <string name="support_chat_title">Support Chat</string>
+    <string name="support_chat_hint">Type your message…</string>
+    <string name="support_chat_welcome">Hi! How can we help you today?</string>
+    <string name="support_chat_reply">Thanks! Our team will respond shortly.</string>
+    <string name="support_chat_sent">Message sent</string>
+    <string name="send">Send</string>
+    <string name="offline_mode_banner">Offline mode — showing cached posts</string>
+    <string name="referral_title">Invite Friends</string>
+    <string name="referral_share">Share referral code</string>
+    <string name="settings">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="biometric_lock">Biometric Lock</string>
+    <string name="buy_watermark_remove">Buy watermark removal (one-time)</string>
+    <string name="tier_basic">Basic</string>
+    <string name="tier_pro">Pro</string>
+    <string name="tier_business">Business</string>
+
 </resources>

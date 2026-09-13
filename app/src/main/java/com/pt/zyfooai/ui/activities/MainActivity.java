@@ -56,6 +56,7 @@ import androidx.recyclerview.widget.SnapHelper;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.DownloadListener;
+import com.androidnetworking.interfaces.DownloadProgressListener;
 import com.arthenica.mobileffmpeg.ExecuteCallback;
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.bumptech.glide.Glide;
@@ -86,13 +87,20 @@ import com.pt.zyfooai.ui.adapters.CategorysAdapter;
 import com.pt.zyfooai.ui.adapters.MainAdapter;
 import com.pt.zyfooai.ui.adapters.StoryAdapter;
 import com.pt.zyfooai.ui.adapters.SubscriptionAdapter;
+import com.pt.zyfooai.ui.dialog.DownloadProgressDialog;
 import com.pt.zyfooai.ui.fragments.SelectBusinessFragment;
 import com.pt.zyfooai.ui.fragments.SelectMusicFragment;
+import com.pt.zyfooai.utils.AnalyticsHelper;
+import com.pt.zyfooai.utils.AppUpdateHelper;
+import com.pt.zyfooai.utils.BillingHelper;
 import com.pt.zyfooai.utils.ClickDebouncer;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.CreatorAnalyticsHelper;
 import com.pt.zyfooai.utils.MyUtils;
 import com.pt.zyfooai.utils.NetworkConnectivity;
+import com.pt.zyfooai.utils.OfflinePostsCache;
 import com.pt.zyfooai.utils.PreferenceManager;
+import com.pt.zyfooai.utils.RemoteConfigHelper;
 import com.pt.zyfooai.utils.Util;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
 import com.makeramen.roundedimageview.RoundedImageView;
@@ -131,6 +139,14 @@ public class MainActivity extends AppCompatActivity {
     public static List<SubscriptionModel> plan_list = new ArrayList<>();
     private final ClickDebouncer clickDebouncer = new ClickDebouncer();
     private boolean scrollListenerAdded = false;
+    private boolean preloaderAdded = false;
+    private boolean dataObserversRegistered = false;
+    private DownloadProgressDialog downloadProgressDialog;
+    private HomeViewModel homeViewModel;
+    private String pendingDeepLinkPostId;
+    private boolean showingOfflineCache;
+    private BillingHelper billingHelper;
+    private PostItem lastActionPostItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,10 +184,13 @@ public class MainActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
 
         binding.shimmerViewContainer.setVisibility(VISIBLE);
-//        festival();
+        AnalyticsHelper.logScreen(context, "home");
+        billingHelper = new BillingHelper(this);
+        handleDeepLinkIntent(getIntent());
+        registerDataObservers();
         loadCategories();
-
         getData();
+        binding.getRoot().post(() -> AppUpdateHelper.checkForUpdate(this));
 
         binding.editProfileTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -288,7 +307,8 @@ public class MainActivity extends AppCompatActivity {
             pageCount = 1;
             loading = false;
             selectedCat = "-1";
-            binding.swipeRefresh.setRefreshing(false);
+            showingOfflineCache = false;
+            binding.offlineBanner.setVisibility(GONE);
             binding.shimmerViewContainer.setVisibility(VISIBLE);
             binding.main.setVisibility(GONE);
             dailyPost.clear();
@@ -296,14 +316,9 @@ public class MainActivity extends AppCompatActivity {
             if (adapter != null) {
                 adapter.clearData();
             }
-//            if (festivalAdapter != null) {
-//                festivalAdapter.clearData();
-//            }
-//            festival();
             loadCategories();
             categoryItemList.clear();
             getData();
-
         });
 
 
@@ -366,9 +381,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLinkIntent(intent);
+        if (pendingDeepLinkPostId != null && adapter != null && !dailyPost.isEmpty()) {
+            scrollToDeepLinkPost();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        AppUpdateHelper.handleActivityResult(this, requestCode, resultCode);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         isVisible = true;
+        AppUpdateHelper.checkForUpdate(this);
         if (preferenceManager.getString("DataType").equals("Business")) {
             if (preferenceManager.getString(Constant.BUSINESS_IMAGE) != null && !preferenceManager.getString(Constant.BUSINESS_IMAGE).isEmpty()) {
                 GlideDataBinding.bindImage(binding.circularImageView, preferenceManager.getString(Constant.BUSINESS_IMAGE));
@@ -382,6 +414,7 @@ public class MainActivity extends AppCompatActivity {
             adapter.onResumeVideo();
         }
         playMusic();
+        binding.allVideo.post(() -> playVisibleVideo(binding.allVideo));
     }
 
     private void showHandAnimation() {
@@ -389,16 +422,26 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (musicPlayer != null && musicPlayer.isPlaying()){
+        if (musicPlayer != null && musicPlayer.isPlaying()) {
             return;
         }
 
-        LinearLayoutManager layoutManager = (LinearLayoutManager) binding.allVideo.getLayoutManager();
-        int firstVisiblePosition = layoutManager.findFirstVisibleItemPosition();
-        Log.d("farukh------>firstVisiblePosition", "showHandAnimation: "+firstVisiblePosition);
-        Log.d("farukh------>firstVisiblePosition", "showHandAnimation: "+dailyPost.get(firstVisiblePosition));
+        LinearLayoutManager lm = (LinearLayoutManager) binding.allVideo.getLayoutManager();
+        if (lm == null) {
+            return;
+        }
+        int firstVisiblePosition = lm.findFirstCompletelyVisibleItemPosition();
+        if (firstVisiblePosition == RecyclerView.NO_POSITION) {
+            firstVisiblePosition = lm.findFirstVisibleItemPosition();
+        }
+        if (firstVisiblePosition == RecyclerView.NO_POSITION
+                || firstVisiblePosition < 0
+                || firstVisiblePosition >= dailyPost.size()) {
+            return;
+        }
 
-        if (dailyPost.get(firstVisiblePosition) == null || !dailyPost.get(firstVisiblePosition).is_video) {
+        PostItem item = dailyPost.get(firstVisiblePosition);
+        if (item == null || !item.is_video) {
             binding.handAnimation.setVisibility(VISIBLE);
             binding.handAnimation.playAnimation();
         }
@@ -420,12 +463,43 @@ public class MainActivity extends AppCompatActivity {
             binding.allVideo.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE
+                            || newState == RecyclerView.SCROLL_STATE_SETTLING) {
                         playVisibleVideo(recyclerView);
+                    }
+                }
+
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    if (idleRunnable != null) {
+                        resetIdleTimer();
+                    }
+                    if (dy <= 0 || loading || layoutManager == null) {
+                        return;
+                    }
+                    int visibleCount = layoutManager.getChildCount();
+                    int totalCount = layoutManager.getItemCount();
+                    int lastVisible = layoutManager.findLastVisibleItemPosition();
+                    if (visibleCount + lastVisible >= totalCount - 2) {
+                        loading = true;
+                        pageCount++;
+                        loadDataMore();
                     }
                 }
             });
             scrollListenerAdded = true;
+        }
+
+        if (!preloaderAdded && adapter != null) {
+            RecyclerViewPreloader<String> preloader = new RecyclerViewPreloader<>(
+                    Glide.with(this),
+                    adapter,
+                    new FixedPreloadSizeProvider<>(512, 512),
+                    8
+            );
+            binding.allVideo.addOnScrollListener(preloader);
+            preloaderAdded = true;
         }
     }
 
@@ -438,6 +512,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handlePostClick(View view, View posterew, PostItem postItem) {
+        lastActionPostItem = postItem;
         currentView = posterew;
         rewateBtn = currentView.findViewById(R.id.watermarkLayout);
         remove = currentView.findViewById(R.id.removeWatermark);
@@ -483,6 +558,181 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         idleHandler.removeCallbacks(idleRunnable);
         stopMusic(true);
+        if (adapter != null) {
+            adapter.releaseSharedPlayer();
+        }
+        if (downloadProgressDialog != null) {
+            downloadProgressDialog.markDestroyed();
+        }
+        if (billingHelper != null) {
+            billingHelper.destroy();
+        }
+    }
+
+    private void handleDeepLinkIntent(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        if (intent.getBooleanExtra(Constant.INTENT_IS_FROM_NOTIFICATION, false)) {
+            pendingDeepLinkPostId = intent.getStringExtra(Constant.INTENT_POST_ID);
+            String categoryId = intent.getStringExtra(Constant.INTENT_CATEGORY_ID);
+            if (categoryId != null && !categoryId.isEmpty()) {
+                selectedCat = categoryId;
+            }
+        }
+    }
+
+    private void scrollToDeepLinkPost() {
+        if (pendingDeepLinkPostId == null || adapter == null) {
+            return;
+        }
+        for (int i = 0; i < dailyPost.size(); i++) {
+            PostItem item = dailyPost.get(i);
+            if (item != null && pendingDeepLinkPostId.equals(item.postId)) {
+                final int target = i;
+                binding.allVideo.post(() -> {
+                    binding.allVideo.scrollToPosition(target);
+                    playVisibleVideo(binding.allVideo);
+                });
+                pendingDeepLinkPostId = null;
+                return;
+            }
+        }
+    }
+
+    private void registerDataObservers() {
+        if (dataObserversRegistered) {
+            return;
+        }
+        dataObserversRegistered = true;
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+
+        homeViewModel.observeCategories().observe(this, categoryItems -> {
+            if (categoryItems == null) {
+                return;
+            }
+            categoryItemList.clear();
+            categoryItemList.add(new CategoryItem("-1", "All", R.drawable.logo, false));
+            categoryItemList.addAll(categoryItems);
+
+            int businessIndex = Math.min(7, categoryItemList.size());
+            categoryItemList.add(businessIndex, new CategoryItem("-3", "My Business", R.drawable.ep_business_name_img, true));
+
+            int politicalIndex = Math.min(businessIndex + 1, categoryItemList.size());
+            categoryItemList.add(politicalIndex, new CategoryItem("-4", "Political", R.drawable.flag_regular, true));
+
+            binding.rvCategory.setAdapter(new CategorysAdapter(context, categoryItemList, new AdapterClickListener() {
+                @Override
+                public void onItemClick(View view, int pos, Object object) {
+                    selectedCat = categoryItemList.get(pos).getId();
+                    AnalyticsHelper.logCategorySelect(context, selectedCat, categoryItemList.get(pos).getName());
+                    CreatorAnalyticsHelper.trackCategoryView(context, selectedCat, categoryItemList.get(pos).getName());
+                    if (adapter != null) {
+                        adapter.stopAndClearPlayer();
+                    }
+                    if ("My Business".equals(categoryItemList.get(pos).getName())
+                            && preferenceManager.getString(Constant.BUSINESS_ID).equals("0")) {
+                        updateBusinessID("business");
+                    } else if ("Political".equals(categoryItemList.get(pos).getName())
+                            && preferenceManager.getString(Constant.POLITICAL_ID).equals("0")) {
+                        updateBusinessID("political");
+                    } else {
+                        pageCount = 1;
+                        loading = false;
+                        binding.shimmerViewContainer.setVisibility(VISIBLE);
+                        binding.main.setVisibility(GONE);
+                        getData();
+                    }
+                }
+            }));
+        });
+
+        homeViewModel.observeDailyPosts().observe(this, postItems -> {
+            loading = false;
+            if (pageCount == 1) {
+                handleFirstPagePosts(postItems);
+            } else {
+                handleMorePosts(postItems);
+            }
+        });
+    }
+
+    private List<PostItem> buildFeedWithAds(List<PostItem> postItems) {
+        List<PostItem> feed = new ArrayList<>();
+        if (postItems == null) {
+            return feed;
+        }
+        int adInterval = RemoteConfigHelper.getNativeAdInterval(context);
+        if (pageCount > 1) {
+            adInterval = Math.max(3, adInterval / 2);
+        }
+        for (int i = 0; i < postItems.size(); i++) {
+            if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && i % adInterval == 0 && i != 0) {
+                feed.add(null);
+            }
+            feed.add(postItems.get(i));
+        }
+        return feed;
+    }
+
+    private void handleFirstPagePosts(List<PostItem> postItems) {
+        if (postItems != null && !postItems.isEmpty()) {
+            dailyPost.clear();
+            dailyPost.addAll(buildFeedWithAds(postItems));
+            OfflinePostsCache.save(context, postItems);
+
+            ensureAdapter();
+            adapter.replaceData(dailyPost);
+            binding.shimmerViewContainer.setVisibility(GONE);
+            binding.main.setVisibility(VISIBLE);
+            binding.switchProfile.clRoot.setVisibility(GONE);
+            binding.noDataLayout.setVisibility(GONE);
+            binding.noInternetLayout.setVisibility(GONE);
+            binding.swipeRefresh.setRefreshing(false);
+            binding.allVideo.post(() -> {
+                playVisibleVideo(binding.allVideo);
+                scrollToDeepLinkPost();
+            });
+            if (!preloaderAdded) {
+                setUpRecyclerView();
+            }
+            idleRunnable = () -> showHandAnimation();
+        } else {
+            binding.shimmerViewContainer.setVisibility(GONE);
+            binding.main.setVisibility(VISIBLE);
+            binding.switchProfile.clRoot.setVisibility(GONE);
+            binding.noDataLayout.setVisibility(VISIBLE);
+            binding.swipeRefresh.setRefreshing(false);
+        }
+    }
+
+    private void handleMorePosts(List<PostItem> postItems) {
+        if (postItems == null || postItems.isEmpty()) {
+            return;
+        }
+        List<PostItem> moreItems = buildFeedWithAds(postItems);
+        dailyPost.addAll(moreItems);
+        if (adapter != null) {
+            adapter.setData(dailyPost);
+        }
+    }
+
+    private void showCachedPosts(List<PostItem> cachedPosts) {
+        pageCount = 1;
+        showingOfflineCache = true;
+        dailyPost.clear();
+        dailyPost.addAll(buildFeedWithAds(cachedPosts));
+        ensureAdapter();
+        adapter.replaceData(dailyPost);
+        binding.noInternetLayout.setVisibility(GONE);
+        binding.offlineBanner.setVisibility(VISIBLE);
+        binding.shimmerViewContainer.setVisibility(GONE);
+        binding.main.setVisibility(VISIBLE);
+        binding.noDataLayout.setVisibility(GONE);
+        binding.swipeRefresh.setRefreshing(false);
+        if (!preloaderAdded) {
+            setUpRecyclerView();
+        }
     }
 
     //load festival
@@ -512,44 +762,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //load categories
     private void loadCategories() {
-
-
-        Constant.getHomeViewModel(this).getCategories("featured").observe(this, categoryItems -> {
-
-            if (categoryItems != null) {
-                categoryItemList.add(new CategoryItem("-1", "All", R.drawable.logo, false));
-
-                categoryItemList.addAll(categoryItems);
-
-//                categoryItemList.add(3, new CategoryItem("-2", "Today Special", R.drawable.logo, false));
-
-                categoryItemList.add(7, new CategoryItem("-3", "My Business", R.drawable.ep_business_name_img, true));
-
-                categoryItemList.add(8, new CategoryItem("-4", "Political", R.drawable.flag_regular, true));
-
-                binding.rvCategory.setAdapter(new CategorysAdapter(context, categoryItemList, new AdapterClickListener() {
-                    @Override
-                    public void onItemClick(View view, int pos, Object object) {
-                        selectedCat = categoryItemList.get(pos).getId();
-                        if(adapter!=null){
-                            adapter.releasePlayer(adapter.currentHolder);
-                        }
-                        if (categoryItemList.get(pos).getName() == "My Business" && preferenceManager.getString(Constant.BUSINESS_ID).equals("0")) {
-                            updateBusinessID("business");
-                        } else if (categoryItemList.get(pos).getName() == "Political" && preferenceManager.getString(Constant.POLITICAL_ID).equals("0")) {
-                            updateBusinessID("political");
-                        } else {
-                            pageCount = 1;
-                            binding.shimmerViewContainer.setVisibility(VISIBLE);
-                            binding.main.setVisibility(GONE);
-                            getData();
-                        }
-                    }
-                }));
-            }
-        });
+        if (homeViewModel == null) {
+            homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        }
+        homeViewModel.loadCategories("featured");
     }
 
     String businessID = "", politicalId = "";
@@ -592,150 +809,109 @@ public class MainActivity extends AppCompatActivity {
         })).commit();
     }
 
-    //load Post by category
     private void getData() {
         stopAllVideos(binding.allVideo);
 
-        if (!networkConnectivity.isConnected()) {
-            binding.noInternetLayout.setVisibility(VISIBLE);
-            binding.shimmerViewContainer.setVisibility(GONE);
-            binding.main.setVisibility(GONE);
-            return;
-        }
-
-        binding.noDataLayout.setVisibility(GONE);
         selectedLanguage = preferenceManager.getString(Constant.USER_LANGUAGE);
         if (selectedLanguage.equals("-1")) {
             selectedLanguage = "";
         }
 
-        dailyPost.clear();
-        ensureAdapter();
-        adapter.notifyDataSetChanged();
-
-        Constant.getHomeViewModel(this).getDailyPosts(pageCount, selectedCat, selectedLanguage, preferenceManager.getString(Constant.BUSINESS_ID), preferenceManager.getString(Constant.POLITICAL_ID)).observe(this, postItems -> {
-            if (postItems != null && postItems.size() > 0) {
-                int i = 0;
-                while (i < postItems.size()) {
-                    if (!preferenceManager.getBoolean(IS_SUBSCRIBE)) {
-
-                        if (i % 6 == 0 && i != 0) {
-
-                            dailyPost.add(null);
-                        }
-                    }
-                    dailyPost.add(postItems.get(i));
-                    i++;
-                }
-
-                MyUtils.showResponse(dailyPost);
-
-                ensureAdapter();
-                adapter.replaceData(dailyPost);
-                binding.shimmerViewContainer.setVisibility(GONE);
-                binding.main.setVisibility(VISIBLE);
-                binding.switchProfile.clRoot.setVisibility(GONE);
-                binding.noDataLayout.setVisibility(GONE);
-//                RecyclerViewPreloader<String> preloader = new RecyclerViewPreloader<>(Glide.with(this), adapter, new FixedPreloadSizeProvider<>(100, 100), 5);
-//
-//                binding.allVideo.addOnScrollListener(preloader);
-
-
-//                try {
-//                    RecyclerView.ViewHolder holder = binding.allVideo.findViewHolderForAdapterPosition(0);
-//                    if (holder instanceof MainAdapter.ViewHolder && holder.getItemViewType() == VIEW_TYPE_VIDEO) {
-//                        MainAdapter.ViewHolder videoHolder = (MainAdapter.ViewHolder) holder;
-//                        videoHolder.videoLayoutBinding.playerview.getPlayer().setPlayWhenReady(true);
-//                    }
-//                } catch (Exception e) {
-//                    throw new RuntimeException(e);
-//                }
-
-
-//                binding.allVideo.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//                    private final RecyclerViewPreloader<String> preloader =
-//                            new RecyclerViewPreloader<>(Glide.with(context), adapter, new FixedPreloadSizeProvider<>(100, 100), 5);
-//
-//                    @Override
-//                    public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-//                        super.onScrollStateChanged(recyclerView, newState);
-//                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-//                            playVisibleVideos(recyclerView);
-//                        } else {
-//                            stopMusic(true);
-//                            stopAllVideos(recyclerView);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                        super.onScrolled(recyclerView, dx, dy);
-//
-//                        preloader.onScrolled(recyclerView, dx, dy);
-//
-//                        // Call resetIdleTimer
-//                        resetIdleTimer();
-//
-//                        //Pagination
-//                        int childCount = layoutManager.getChildCount();
-//                        int itemCount = layoutManager.getItemCount();
-//                        int findFirstVisibleItemPosition = 0;
-//
-//                        LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
-//                        findFirstVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition();
-//
-//                        if (!loading && (childCount + findFirstVisibleItemPosition) >= itemCount) {
-//
-//                            loading = true;
-//                            pageCount = pageCount + 1;
-//                            //   binding.progreee.setVisibility(View.VISIBLE);
-//                            new Handler().postDelayed(() -> loadDataMore(), 100);
-//
-//                        }
-//
-//                    }
-//                });
-
-                idleRunnable = () -> showHandAnimation();
+        if (!networkConnectivity.isConnected()) {
+            List<PostItem> cachedPosts = OfflinePostsCache.load(context);
+            if (!cachedPosts.isEmpty()) {
+                showCachedPosts(cachedPosts);
             } else {
-
+                binding.noInternetLayout.setVisibility(VISIBLE);
                 binding.shimmerViewContainer.setVisibility(GONE);
-                binding.main.setVisibility(VISIBLE);
-                binding.switchProfile.clRoot.setVisibility(GONE);
-                binding.noDataLayout.setVisibility(VISIBLE);
-
+                binding.main.setVisibility(GONE);
             }
+            return;
+        }
 
-        });
+        binding.noDataLayout.setVisibility(GONE);
+        binding.noInternetLayout.setVisibility(GONE);
+
+        if (pageCount == 1) {
+            dailyPost.clear();
+            ensureAdapter();
+            adapter.notifyDataSetChanged();
+            binding.shimmerViewContainer.setVisibility(VISIBLE);
+            binding.main.setVisibility(GONE);
+        }
+
+        if (homeViewModel == null) {
+            homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        }
+        homeViewModel.loadDailyPosts(
+                pageCount,
+                selectedCat,
+                selectedLanguage,
+                preferenceManager.getString(Constant.BUSINESS_ID),
+                preferenceManager.getString(Constant.POLITICAL_ID)
+        );
     }
 
 
     private void playVisibleVideo(RecyclerView recyclerView) {
+        if (adapter == null || dailyPost.isEmpty()) {
+            return;
+        }
 
         LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
-        int pos = lm.findFirstCompletelyVisibleItemPosition();
-
-        if (pos == RecyclerView.NO_POSITION) return;
-
-        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(pos);
-
-        if (vh instanceof MainAdapter.ViewHolderVideo) {
-
-            MainAdapter.ViewHolderVideo holder = (MainAdapter.ViewHolderVideo) vh;
-
-            if (adapter.currentHolder == holder) return;
-
-            // Stop previous
-            if (adapter.currentHolder != null && adapter.currentHolder.exoplayer != null) {
-                adapter.currentHolder.exoplayer.setPlayWhenReady(false);
-                adapter.currentHolder.exoplayer.stop();
-                adapter.currentHolder.videoLayoutBinding.playerview.setPlayer(null);
-            }
-
-            // Start new
-            adapter.currentHolder = holder;
-            adapter.updatePlayer(holder, dailyPost.get(pos));
+        if (lm == null) {
+            return;
         }
+
+        int targetPos = findMostVisibleVideoPosition(lm, recyclerView);
+        if (targetPos == RecyclerView.NO_POSITION) {
+            return;
+        }
+
+        PostItem targetItem = dailyPost.get(targetPos);
+        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(targetPos);
+        if (vh instanceof MainAdapter.ViewHolderVideo) {
+            MainAdapter.ViewHolderVideo holder = (MainAdapter.ViewHolderVideo) vh;
+            if (adapter.currentHolder == holder
+                    && targetItem.image_url != null
+                    && targetItem.image_url.equals(adapter.currentPlayingVideo)) {
+                adapter.onResumeVideo();
+                return;
+            }
+            adapter.updatePlayer(holder, targetItem);
+        }
+    }
+
+    private int findMostVisibleVideoPosition(LinearLayoutManager lm, RecyclerView recyclerView) {
+        int first = lm.findFirstVisibleItemPosition();
+        int last = lm.findLastVisibleItemPosition();
+        if (first == RecyclerView.NO_POSITION) {
+            return RecyclerView.NO_POSITION;
+        }
+
+        int targetPos = RecyclerView.NO_POSITION;
+        int bestVisibleArea = 0;
+        for (int i = first; i <= last; i++) {
+            if (i < 0 || i >= dailyPost.size()) {
+                continue;
+            }
+            PostItem item = dailyPost.get(i);
+            if (item == null || !item.is_video) {
+                continue;
+            }
+            View child = lm.findViewByPosition(i);
+            if (child == null) {
+                continue;
+            }
+            int visibleTop = Math.max(child.getTop(), 0);
+            int visibleBottom = Math.min(child.getBottom(), recyclerView.getHeight());
+            int visibleArea = Math.max(0, visibleBottom - visibleTop);
+            if (visibleArea > bestVisibleArea) {
+                bestVisibleArea = visibleArea;
+                targetPos = i;
+            }
+        }
+        return targetPos;
     }
 
 
@@ -769,11 +945,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopMusic(boolean destroy) {
-        if (musicPlayer != null){
+        if (musicPlayer != null) {
             musicPlayer.setPlayWhenReady(false);
-            if (destroy){
+            if (destroy) {
                 musicPath = "";
                 musicPlayer.release();
+                musicPlayer = null;
             }
         }
     }
@@ -825,58 +1002,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopAllVideos(RecyclerView recyclerView) {
-        for (int i = 0; i < recyclerView.getChildCount(); i++) {
-            RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
-            if (holder instanceof MainAdapter.ViewHolder && holder.getItemViewType() == VIEW_TYPE_VIDEO) {
-                MainAdapter.ViewHolder videoHolder = (MainAdapter.ViewHolder) holder;
-                videoHolder.videoLayoutBinding.playerview.getPlayer().setPlayWhenReady(false);
-//                videoHolder.videoLayoutBinding.videoView.stopPlayback();
-            }
+        if (adapter != null) {
+            adapter.pauseAndDetachPlayer();
         }
     }
 
+    private DownloadProgressDialog getDownloadProgressDialog() {
+        if (downloadProgressDialog == null) {
+            downloadProgressDialog = new DownloadProgressDialog(context);
+        }
+        return downloadProgressDialog;
+    }
+
     private void loadDataMore() {
-
-        Constant.getHomeViewModel(this).getDailyPosts(pageCount, selectedCat, selectedLanguage, preferenceManager.getString(Constant.BUSINESS_ID), preferenceManager.getString(Constant.POLITICAL_ID)).observe(this, postItems -> {
-
-            if (postItems != null) {
-
-                int i = 0;
-
-                while (i < postItems.size()) {
-
-                    if (!preferenceManager.getBoolean(IS_SUBSCRIBE)) {
-
-                        if (i % 3 == 0 && i != 0) {
-
-                            dailyPost.add(null);
-                        }
-
-
-                    }
-                    dailyPost.add(postItems.get(i));
-                    i++;
-                }
-                if (adapter != null) {
-                    adapter.setData(dailyPost);
-                }
-
-
-                loading = false;
-
-            }
-
-
-        });
+        if (!networkConnectivity.isConnected()) {
+            loading = false;
+            return;
+        }
+        if (homeViewModel == null) {
+            homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        }
+        homeViewModel.loadDailyPosts(
+                pageCount,
+                selectedCat,
+                selectedLanguage,
+                preferenceManager.getString(Constant.BUSINESS_ID),
+                preferenceManager.getString(Constant.POLITICAL_ID)
+        );
     }
 
 
     ProgressDialog progressDialog;
     private void downloadMp3(String framePath, String musicUrl, String type) {
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("Downloading Music File...");
-        progressDialog.show();
+        getDownloadProgressDialog().show("Downloading");
+        getDownloadProgressDialog().updateProgress(5, "Preparing music download...");
 
         String fileName = musicUrl.substring(musicUrl.lastIndexOf('/') + 1);
         ;
@@ -887,17 +1046,31 @@ public class MainActivity extends AppCompatActivity {
 
         File finalCacheFile = new File(cacheDir, fileName);
         if (!finalCacheFile.exists()) {
-            AndroidNetworking.download(musicUrl, cacheDir.getPath(), fileName).build().startDownload(new DownloadListener() {
-                public void onDownloadComplete() {
-                    applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type);
-                }
+            AndroidNetworking.download(musicUrl, cacheDir.getPath(), fileName)
+                    .build()
+                    .setDownloadProgressListener(new DownloadProgressListener() {
+                        @Override
+                        public void onProgress(long bytesDownloaded, long totalBytes) {
+                            if (totalBytes > 0) {
+                                int percent = (int) ((bytesDownloaded * 60) / totalBytes);
+                                runOnUiThread(() -> getDownloadProgressDialog()
+                                        .updateProgress(percent, "Downloading music..."));
+                            }
+                        }
+                    })
+                    .startDownload(new DownloadListener() {
+                        public void onDownloadComplete() {
+                            getDownloadProgressDialog().updateProgress(65, "Applying music...");
+                            applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type);
+                        }
 
-                public void onError(ANError aNError) {
-                    progressDialog.dismiss();
-                    Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                        public void onError(ANError aNError) {
+                            getDownloadProgressDialog().dismiss();
+                            Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         } else {
+            getDownloadProgressDialog().updateProgress(65, "Applying music...");
             applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type);
         }
     }
@@ -910,12 +1083,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveImage(Bitmap bitmap, PostItem postItem, String type) {
+        if (bitmap == null) {
+            Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         getInterstitialsAdsManager().showInterstitialAd(() -> {
+            if ("Share".equals(type)) {
+                CreatorAnalyticsHelper.trackShare(context, postItem.postId, selectedCat);
+            } else {
+                AnalyticsHelper.logDownload(context, postItem.is_video ? "video" : "image");
+                CreatorAnalyticsHelper.trackDownload(context, postItem.postId, selectedCat);
+            }
+            stopMusic(true);
+            stopAllVideos(binding.allVideo);
+            if (adapter != null) {
+                adapter.onPauseVideo();
+            }
 
             if (postItem.is_video) {
-
-                stopAllVideos(binding.allVideo);
 
                 File directory = new File(getAppFolder(context) + "/ZyfooAi");
                 String imagefilename = System.currentTimeMillis() + ".png";
@@ -1022,6 +1208,9 @@ public class MainActivity extends AppCompatActivity {
                             downloadMp3(filePath, musicPath, type);
                         }else {
                             if (type.equals("download")) {
+                                getDownloadProgressDialog().show("Saving Image");
+                                getDownloadProgressDialog().updateProgress(100, "Image saved successfully");
+                                getDownloadProgressDialog().dismiss();
                                 Util.showToast(context, getString(R.string.image_saved));
                                 Intent intent = new Intent(context, ShareImageActivity.class);
                                 intent.putExtra("uri", filePath);
@@ -1048,6 +1237,15 @@ public class MainActivity extends AppCompatActivity {
         notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Video Processing",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            notificationManager.createNotificationChannel(channel);
+        }
+
         builder =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_download)
@@ -1059,11 +1257,13 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.notify(101, builder.build());
     }
 
-    private void  updateNotification(String text){
+    private void updateNotification(String text) {
+        if (builder == null || notificationManager == null) {
+            return;
+        }
         builder.setContentText(text);
         notificationManager.notify(101, builder.build());
-
-    };
+    }
     String musicFrameName = System.currentTimeMillis() + ".mp4";
     private void applyMp3OnFrame(String framePath, String musicPath, String type) {
 
@@ -1110,11 +1310,11 @@ public class MainActivity extends AppCompatActivity {
                     };
 
 
-                    progressDialog.setMessage("Applying Music..");
+                    getDownloadProgressDialog().showIndeterminate("Creating video with music...");
                     FFmpeg.executeAsync(cmd, new ExecuteCallback() {
                         @Override
                         public void apply(long executionId, int returnCode) {
-                            progressDialog.dismiss();
+                            getDownloadProgressDialog().dismiss();
                             if (returnCode == 1) {
                                 FFmpeg.cancel(executionId);
                                 Toast.makeText(MainActivity.this, "Try Again Later", Toast.LENGTH_SHORT).show();
@@ -1148,9 +1348,7 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                 } else {
-
-                    progressDialog.dismiss();
-
+                    getDownloadProgressDialog().dismiss();
                     if (type.equals("download")) {
                         Util.showToast(context, getString(R.string.video_saved));
                         Intent intent = new Intent(context, ShareImageActivity.class);
@@ -1169,38 +1367,48 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void downloadVideo(String framePath, String videoUrl, String type) {
-//        createNotificationChannel();
-//        progressDialog = new ProgressDialog(this);
-//        progressDialog.setCancelable(false);
-//        progressDialog.setMessage("Downloading Video File...");
-//        progressDialog.show();
         createNotificationChannel();
+        getDownloadProgressDialog().show("Downloading Video");
+        getDownloadProgressDialog().updateProgress(2, "Starting video download...");
         String fileName = videoUrl.substring(videoUrl.lastIndexOf('/') + 1);
-        ;
-        File cacheDir = context.getExternalCacheDir(); // External cache directory
+        File cacheDir = context.getExternalCacheDir();
         if (cacheDir == null) {
-            cacheDir = context.getCacheDir(); // Fallback to internal cache directory if external is not available
+            cacheDir = context.getCacheDir();
         }
 
         File finalCacheFile = new File(cacheDir, fileName);
         if (!finalCacheFile.exists()) {
-            AndroidNetworking.download(videoUrl, cacheDir.getPath(), fileName).build().startDownload(new DownloadListener() {
-                public void onDownloadComplete() {
-                    applyFrameOnVideo(finalCacheFile.getAbsolutePath(),framePath,type);
-                }
+            AndroidNetworking.download(videoUrl, cacheDir.getPath(), fileName)
+                    .build()
+                    .setDownloadProgressListener(new DownloadProgressListener() {
+                        @Override
+                        public void onProgress(long bytesDownloaded, long totalBytes) {
+                            if (totalBytes > 0) {
+                                int percent = (int) ((bytesDownloaded * 70) / totalBytes);
+                                runOnUiThread(() -> getDownloadProgressDialog()
+                                        .updateProgress(Math.max(percent, 3), "Downloading video..."));
+                            }
+                        }
+                    })
+                    .startDownload(new DownloadListener() {
+                        public void onDownloadComplete() {
+                            getDownloadProgressDialog().updateProgress(72, "Processing video...");
+                            applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type);
+                        }
 
-                public void onError(ANError aNError) {
-                    progressDialog.dismiss();
-                    Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                        public void onError(ANError aNError) {
+                            getDownloadProgressDialog().dismiss();
+                            Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         } else {
-            applyFrameOnVideo(finalCacheFile.getAbsolutePath(),framePath, type);
+            getDownloadProgressDialog().updateProgress(72, "Processing video...");
+            applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type);
         }
     }
 
     private void applyFrameOnVideo(String videoath, String framePath, String type) {
-//        progressDialog.setMessage("Making video...");
+        getDownloadProgressDialog().showIndeterminate("Processing video with frame...");
         updateNotification("Making video...");
         runOnUiThread(new Runnable() {
             @Override
@@ -1212,15 +1420,35 @@ public class MainActivity extends AppCompatActivity {
 
                 MediaMetadataRetriever retriever = new MediaMetadataRetriever();
                 retriever.setDataSource(videoath);
-                int width = Integer.valueOf(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-                int height = Integer.valueOf(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+                String widthMeta = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+                String heightMeta = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
                 try {
                     retriever.release();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
+                if (widthMeta == null || heightMeta == null) {
+                    getDownloadProgressDialog().dismiss();
+                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                int width = Integer.parseInt(widthMeta);
+                int height = Integer.parseInt(heightMeta);
+                if (width <= 0 || height <= 0) {
+                    getDownloadProgressDialog().dismiss();
+                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Bitmap b = BitmapFactory.decodeFile(framePath);
+                if (b == null) {
+                    getDownloadProgressDialog().dismiss();
+                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Bitmap out = Bitmap.createScaledBitmap(b, width, height, false);
 
                 File cacheDir = context.getExternalCacheDir(); // External cache directory
@@ -1250,7 +1478,7 @@ public class MainActivity extends AppCompatActivity {
                         "-y", outputDir}, new ExecuteCallback() {
                     @Override
                     public void apply(long executionId, int returnCode) {
-//                        progressDialog.dismiss();
+                        getDownloadProgressDialog().dismiss();
                         if (returnCode == 1) {
                             FFmpeg.cancel(executionId);
                             Toast.makeText(context, "Try Again", Toast.LENGTH_SHORT).show();
@@ -1259,19 +1487,14 @@ public class MainActivity extends AppCompatActivity {
                             FFmpeg.cancel(executionId);
                             MediaScannerConnection.scanFile(context, new String[]{outputDir},
                                     (String[]) null, (str, uri) -> {
-                                        StringBuilder sb = new StringBuilder();
-                                        sb.append("-> uri=");
-                                        sb.append(uri);
-                                        sb.append("-> FILE=");
-                                        sb.append(outputDir);
-                                        Uri muri = Uri.parse(outputDir);
                                     });
 
                             if (type.equals("download")) {
+                                Toast.makeText(context, getString(R.string.video_saved), Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(context, ShareImageActivity.class);
                                 intent.putExtra("uri", outputDir);
                                 startActivity(intent);
-                                updateNotification("Download Complate....");
+                                updateNotification("Download complete");
                             } else {
                                 shareFileImageUri(getImageContentUri(new File(outputDir)), type);
                             }
@@ -1364,6 +1587,17 @@ public class MainActivity extends AppCompatActivity {
         ProgressBar progressBar = dialogWatermarkOption.findViewById(R.id.pb_loading);
         close.setOnClickListener(view -> dialogWatermarkOption.dismiss());
         subscription.setOnClickListener(view -> startActivity(new Intent(context, SubscriptionActivity.class)));
+
+        LinearLayout iapPurchase = dialogWatermarkOption.findViewById(R.id.cv_iap);
+        if (BillingHelper.isWatermarkPurchased(context)) {
+            iapPurchase.setVisibility(GONE);
+        } else {
+            iapPurchase.setOnClickListener(view -> billingHelper.purchaseWatermarkRemove(() -> {
+                rewateBtn.setVisibility(GONE);
+                Toast.makeText(context, "Watermark removed permanently", Toast.LENGTH_SHORT).show();
+                dialogWatermarkOption.dismiss();
+            }));
+        }
 
         LinearLayout withouWatermark = dialogWatermarkOption.findViewById(R.id.cv_yes);
 

@@ -107,5 +107,62 @@
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 
+-keep class com.pt.zyfooai.data.** { *; }
+-keep class com.android.billingclient.** { *; }
+-keep class com.google.android.play.core.** { *; }
+
+# Crashlytics / readable stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# Data binding & ViewBinding
+-keep class com.pt.zyfooai.databinding.** { *; }
+-keep class * extends androidx.databinding.ViewDataBinding { *; }
+
+# ExoPlayer 2.x
+-keep class com.google.android.exoplayer2.** { *; }
+-dontwarn com.google.android.exoplayer2.**
+
+# Glide
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep class com.bumptech.glide.** { *; }
+-keep class com.pt.zyfooai.binding.** { *; }
+
+# Razorpay
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keep class com.razorpay.** { *; }
+-dontwarn com.razorpay.**
+
+# OneSignal
+-keep class com.onesignal.** { *; }
+-dontwarn com.onesignal.**
+
+# Room
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-dontwarn androidx.room.paging.**
+
+# Kotlin metadata
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
+-dontwarn kotlin.**
+
+# Android Networking
+-keep class com.androidnetworking.** { *; }
+
+# Serializable / Parcelable models used in intents
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
 #-keep class com.arthenica.mobileffmpeg.** { *; }
 #-keep class com.arthenica.ffmpegkit.** { *; }

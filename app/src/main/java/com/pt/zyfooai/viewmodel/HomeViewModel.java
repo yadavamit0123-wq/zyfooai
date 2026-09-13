@@ -1,6 +1,7 @@
 package com.pt.zyfooai.viewmodel;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 
@@ -21,9 +22,27 @@ import java.util.List;
 public class HomeViewModel extends ViewModel {
 
     private HomeRespository respository;
+    private final MutableLiveData<List<PostItem>> dailyPostsLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<CategoryItem>> categoriesLiveData = new MutableLiveData<>();
 
     public HomeViewModel() {
         respository = new HomeRespository();
+    }
+
+    public LiveData<List<PostItem>> observeDailyPosts() {
+        return dailyPostsLiveData;
+    }
+
+    public void loadDailyPosts(int page, String catid, String language, String business_id, String political_id) {
+        respository.loadDailyPosts(page, catid, language, business_id, political_id, dailyPostsLiveData);
+    }
+
+    public LiveData<List<CategoryItem>> observeCategories() {
+        return categoriesLiveData;
+    }
+
+    public void loadCategories(String type) {
+        respository.loadCategories(type, categoriesLiveData);
     }
 
     public LiveData<UserItem> login(String loginType, String displayName, String email, String photoUrl, String phoneNumber) {

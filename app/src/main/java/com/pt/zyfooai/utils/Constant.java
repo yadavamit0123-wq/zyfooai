@@ -83,12 +83,20 @@ public class Constant {
     public static final String REWARD_AD_ENABLED = "reward_ad_enabled";
     public static final String REWARD_AD = "reward_ad";
 
+    public static final String FAST2SMS_KEY = "fast2sms_key";
+    public static final String HOME_LAYOUT_VARIANT = "home_layout_variant";
+    public static final String NATIVE_AD_INTERVAL = "native_ad_interval";
+    public static final String FORCE_UPDATE_VERSION = "force_update_version";
+    public static final String UPDATE_MESSAGE = "update_message";
+
     public static final String INTENT_FEST_ID = "fest_id";
     public static final String INTENT_FEST_NAME = "fest_name";
     public static final String INTENT_TYPE = "intent_type";
     public static final String INTENT_POST_IMAGE = "intent_post_image";
     public static final String INTENT_VIDEO = "intent_video";
     public static final String INTENT_IS_FROM_NOTIFICATION = "is_from_notification";
+    public static final String INTENT_POST_ID = "intent_post_id";
+    public static final String INTENT_CATEGORY_ID = "intent_category_id";
 
     public static final String PRF_TYPE = "prf_type";
     public static final String PRF_ID = "prf_id";

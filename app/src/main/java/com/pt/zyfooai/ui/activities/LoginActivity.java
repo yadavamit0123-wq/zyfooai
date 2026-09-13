@@ -37,6 +37,7 @@ import com.pt.zyfooai.BuildConfig;
 import com.pt.zyfooai.R;
 import com.pt.zyfooai.model.UserItem;
 import com.pt.zyfooai.ui.Functions;
+import com.pt.zyfooai.utils.AnalyticsHelper;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
@@ -103,10 +104,12 @@ public class LoginActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() != RESULT_OK) {
+                        progressDialog.dismiss();
                         Toast.makeText(this, "Google Sign-In cancelled", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     if (result.getData() == null) {
+                        progressDialog.dismiss();
                         Toast.makeText(this, "Google Sign-In failed. Please try again.", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -262,8 +265,15 @@ public class LoginActivity extends AppCompatActivity {
             Log.d(TAG, "Fallback SMS OTP requested for: " + localPhone);
         }
 
+        String smsKey = com.pt.zyfooai.utils.RemoteConfigHelper.getFast2SmsKey(this);
+        if (smsKey == null || smsKey.isEmpty()) {
+            progressDialog.dismiss();
+            Toast.makeText(this, "SMS gateway not configured", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         AndroidNetworking.get("https://www.fast2sms.com/dev/bulkV2")
-                .addHeaders("authorization", "DwbFFWPhbXzHWt4N6s2GFPwy8XvwuxXR4FrvXNxO9dRnigdlewph3INTiLCP")
+                .addHeaders("authorization", smsKey)
                 .addQueryParameter("route", "otp")
                 .addQueryParameter("variables_values", smsGatewayOtp)
                 .addQueryParameter("numbers", localPhone)
@@ -388,6 +398,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void saveUserData(UserItem userItem) {
         preferenceManager.setBoolean(Constant.IS_LOGIN, true);
+        AnalyticsHelper.logLogin(this, userItem.login_type != null ? userItem.login_type : "unknown");
         Functions.saveUserData(this, userItem);
         preferenceManager.setString(Constant.DEFAULT_TYPE, "Personal");
 

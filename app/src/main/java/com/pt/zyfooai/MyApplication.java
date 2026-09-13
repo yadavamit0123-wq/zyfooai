@@ -10,6 +10,10 @@ import android.util.Log;
 import com.pt.zyfooai.AdsUtils.AppOpenManager;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.NetworkConnectivity;
+import com.pt.zyfooai.utils.LocaleHelper;
+import com.pt.zyfooai.utils.ReleaseVerifyHelper;
+import com.pt.zyfooai.utils.RemoteConfigHelper;
+import com.pt.zyfooai.utils.ThemeHelper;
 
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.Util;
@@ -54,6 +58,11 @@ public class MyApplication extends Application {
     }
 
     @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(LocaleHelper.wrap(base));
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
 
@@ -65,6 +74,9 @@ public class MyApplication extends Application {
         preferenceManager = new PreferenceManager(this);
 
         FirebaseApp.initializeApp(this);
+        ThemeHelper.applySavedTheme(this);
+        RemoteConfigHelper.fetchAndActivate(this, null);
+        ReleaseVerifyHelper.logBuildInfo(this);
 
         context = this;
         if (networkConnectivity.isConnected()) {

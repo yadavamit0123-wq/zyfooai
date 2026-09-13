@@ -76,7 +76,7 @@
 
             <LinearLayout
                 android:id="@+id/frameLay"
-                android:background="#FFFFFF"
+                android:background="@color/white"
                 android:paddingLeft="@dimen/_5sdp"
                 android:layout_above="@+id/shareImg"
                 android:orientation="vertical"

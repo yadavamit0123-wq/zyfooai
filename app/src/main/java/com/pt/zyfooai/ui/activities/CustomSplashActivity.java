@@ -14,9 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.pt.zyfooai.AppConfig;
+import com.pt.zyfooai.utils.AppUpdateHelper;
+import com.pt.zyfooai.utils.RemoteConfigHelper;
 import com.pt.zyfooai.MyApplication;
 import com.pt.zyfooai.R;
 import com.pt.zyfooai.model.SubscriptionModel;
@@ -67,21 +67,17 @@ public class CustomSplashActivity extends AppCompatActivity {
 
     public void loadData() {
         if (networkConnectivity.isConnected()) {
-            FirebaseRemoteConfig firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-            firebaseRemoteConfig.fetch(0)  // Force a fetch from the server
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            firebaseRemoteConfig.activate();
-                            String apiKey = firebaseRemoteConfig.getString("apiKey");
-                            Log.d("RemoteConfig_", "Fetched apiKey: " + apiKey);
-                            preferenceManager.setString(Constant.API_KEY, apiKey);
-                            AppConfig.API_KEY = apiKey;
-                            loadAppData();
-                        } else {
-                            Log.e("RemoteConfig_", "Fetch failed: " + task.getException().getMessage());
-                        }
-                    });
+            RemoteConfigHelper.fetchAndActivate(this, () -> {
+                AppConfig.API_KEY = preferenceManager.getString(Constant.API_KEY);
+                loadAppData();
+            });
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppUpdateHelper.checkForUpdate(this);
     }
 
     public void loadAppData() {

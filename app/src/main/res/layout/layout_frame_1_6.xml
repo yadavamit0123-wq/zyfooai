@@ -22,7 +22,7 @@
             android:background="@color/white"
             android:scaleType="centerCrop"
             android:src="@drawable/logo_dummy_business_2"
-            app:riv_border_color="#ffffff"
+            app:riv_border_color="@color/white"
             app:riv_border_width="@dimen/_2sdp"
             app:riv_corner_radius="@dimen/_50sdp"
             app:riv_mutate_background="true" />

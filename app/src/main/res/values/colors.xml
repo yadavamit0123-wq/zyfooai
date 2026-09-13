@@ -281,4 +281,28 @@
     <color name="brown_color">#955306</color>
     <color name="tab_unselect">#4d626d</color>
 
+    <!-- Semantic colors for layouts (dark-mode aware via values-night) -->
+    <color name="feed_background">#F3EFFE</color>
+    <color name="hand_overlay_scrim">#57000000</color>
+    <color name="settings_title_text">#213b4a</color>
+    <color name="settings_muted_text">#8a979f</color>
+    <color name="settings_accent_blue">#2196F3</color>
+    <color name="icon_tint_dark">#001e2f</color>
+    <color name="icon_tint_muted">#67737A</color>
+    <color name="icon_tint_settings">#011521</color>
+    <color name="language_hint">#99a5ac</color>
+    <color name="support_icon_bg">#f7f7f7</color>
+    <color name="editor_panel_bg">#f0f0f0</color>
+    <color name="editor_label_text">#4d626d</color>
+    <color name="login_button_tint">#2F344D</color>
+    <color name="no_internet_title">@color/textColor</color>
+    <color name="template_preview_bg">#5f5146</color>
+    <color name="post_meta_text">#888888</color>
+    <color name="post_meta_text_secondary">#AFB1B5</color>
+    <color name="profile_label_text">#611c162e</color>
+    <color name="profile_hint_text">#61001e2f</color>
+    <color name="dialog_muted_text">#666666</color>
+    <color name="create_post_muted_text">#8d8b97</color>
+    <color name="create_post_secondary_text">#a3a3a3</color>
+
 </resources>

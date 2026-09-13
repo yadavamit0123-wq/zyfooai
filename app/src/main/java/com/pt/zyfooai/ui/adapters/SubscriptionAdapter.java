@@ -14,6 +14,7 @@ import com.pt.zyfooai.R;
 import com.pt.zyfooai.databinding.ItemPlansBinding;
 import com.pt.zyfooai.listener.AdapterClickListener;
 import com.pt.zyfooai.model.SubscriptionModel;
+import com.pt.zyfooai.utils.FeatureFlags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
         }
 
 
-        holder.binding.planName.setText(""+model.getName());
+        holder.binding.planName.setText(FeatureFlags.tierLabel(model.getType(), model.getName()));
         holder.binding.discountPrice.setText(context.getString(R.string.currency)+" "+model.getDiscount_price());
         holder.binding.priceTv.setText(context.getString(R.string.currency)+" "+model.getPrice());
         holder.binding.priceTv.setPaintFlags(holder.binding.priceTv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);

@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:orientation="horizontal"
-        android:background="#FFFFFF">
+        android:background="@color/white">
 
         <com.makeramen.roundedimageview.RoundedImageView
             android:layout_marginLeft="@dimen/_5sdp"
@@ -111,7 +111,7 @@
         android:id="@+id/bottomBackView"
         android:layout_width="match_parent"
         android:layout_height="85dp"
-        android:background="#FFFFFF"/>
+        android:background="@color/white"/>
 
     <LinearLayout
         android:orientation="vertical"

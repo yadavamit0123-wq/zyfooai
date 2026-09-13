@@ -59,12 +59,20 @@ public class SavedAdapter extends RecyclerView.Adapter<SavedAdapter.MyViewHolder
 
         universalDialog = new UniversalDialog(context, false);
 
-        if (downloadItems.get(position).isVideo) {
-            Glide.with(context).load(downloadItems.get(position).uri.getPath()).into(holder.ivImage);
+        DownloadItem item = downloadItems.get(position);
+        if (item.isVideo) {
+            Glide.with(context).load(item.uri.getPath()).into(holder.ivImage);
             holder.ivPlayVideo.setVisibility(View.VISIBLE);
         } else {
-            Glide.with(context).load(downloadItems.get(position).uri).into(holder.ivImage);
+            Glide.with(context).load(item.uri).into(holder.ivImage);
             holder.ivPlayVideo.setVisibility(View.GONE);
+        }
+
+        if (item.getDateLabel() != null && item.getSizeLabel() != null) {
+            holder.tvDownloadMeta.setVisibility(View.VISIBLE);
+            holder.tvDownloadMeta.setText(item.getDateLabel() + "  •  " + item.getSizeLabel());
+        } else {
+            holder.tvDownloadMeta.setVisibility(View.GONE);
         }
 
         holder.itemView.setOnClickListener(v -> listener.onClick(downloadItems.get(position)));
@@ -134,6 +142,7 @@ public class SavedAdapter extends RecyclerView.Adapter<SavedAdapter.MyViewHolder
         ImageView ivImage;
         ImageView ivPlayVideo;
         ImageView delete;
+        android.widget.TextView tvDownloadMeta;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -141,6 +150,7 @@ public class SavedAdapter extends RecyclerView.Adapter<SavedAdapter.MyViewHolder
             ivImage = itemView.findViewById(R.id.iv_post);
             ivPlayVideo = itemView.findViewById(R.id.iv_play_video);
             delete = itemView.findViewById(R.id.delete);
+            tvDownloadMeta = itemView.findViewById(R.id.tvDownloadMeta);
         }
     }
 }

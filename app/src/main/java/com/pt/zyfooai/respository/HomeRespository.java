@@ -81,6 +81,11 @@ public class HomeRespository {
 
     public LiveData<List<CategoryItem>> getCategories(String type) {
         MutableLiveData<List<CategoryItem>> data = new MutableLiveData<>();
+        loadCategories(type, data);
+        return data;
+    }
+
+    public void loadCategories(String type, MutableLiveData<List<CategoryItem>> data) {
         apiService.getCategories(type).enqueue(new Callback<List<CategoryItem>>() {
             @Override
             public void onResponse(Call<List<CategoryItem>> call, Response<List<CategoryItem>> response) {
@@ -92,7 +97,6 @@ public class HomeRespository {
                 data.setValue(null);
             }
         });
-        return data;
     }
 
     public LiveData<List<CategoryItem>> getBusinessCategory(String search, String type) {
@@ -163,20 +167,25 @@ public class HomeRespository {
 
     public LiveData<List<PostItem>> getDailyPosts(int page, String catid, String language, String business_id, String political_id) {
         MutableLiveData<List<PostItem>> data = new MutableLiveData<>();
-        apiService.getDailyPostData(page, catid, language, business_id,political_id).enqueue(new Callback<List<PostItem>>() {
+        loadDailyPosts(page, catid, language, business_id, political_id, data);
+        return data;
+    }
+
+    public void loadDailyPosts(int page, String catid, String language, String business_id, String political_id,
+                               MutableLiveData<List<PostItem>> data) {
+        apiService.getDailyPostData(page, catid, language, business_id, political_id).enqueue(new Callback<List<PostItem>>() {
             @Override
             public void onResponse(Call<List<PostItem>> call, Response<List<PostItem>> response) {
                 data.setValue(response.body());
-                Log.d("zyfooai__", "onResponse: "+response.body());
+                Log.d("zyfooai__", "onResponse: " + response.body());
             }
 
             @Override
             public void onFailure(Call<List<PostItem>> call, Throwable t) {
                 data.setValue(null);
-                Log.d("zyfooai__", "onFailure: "+t.getMessage());
+                Log.d("zyfooai__", "onFailure: " + t.getMessage());
             }
         });
-        return data;
     }
     public LiveData<List<PostItem>> getFestivalPost(int page, String catid, String language) {
         MutableLiveData<List<PostItem>> data = new MutableLiveData<>();

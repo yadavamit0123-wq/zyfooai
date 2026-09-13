@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="Log Out"
                 android:fontFamily="@font/inter_bold"
-                android:textColor="#2196F3"
+                android:textColor="@color/settings_accent_blue"
                 android:textSize="@dimen/_13ssp"/>
 
         </LinearLayout>
@@ -90,7 +90,7 @@
                         android:fontFamily="@font/inter_semi_bold"
                         android:includeFontPadding="false"
                         android:text="More Options"
-                        android:textColor="#213b4a"
+                        android:textColor="@color/settings_title_text"
                         android:textSize="@dimen/_13ssp" />
 
                     <androidx.cardview.widget.CardView
@@ -208,7 +208,7 @@
                                 android:layout_marginStart="@dimen/_12sdp"
                                 android:padding="@dimen/_6sdp"
                                 android:src="@drawable/ep_business_name_img"
-                                app:tint="#011521" />
+                                app:tint="@color/icon_tint_settings" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -251,7 +251,7 @@
                                 android:layout_marginStart="@dimen/_12sdp"
                                 android:padding="@dimen/_7sdp"
                                 android:src="@drawable/flag_regular"
-                                app:tint="#67737A" />
+                                app:tint="@color/icon_tint_muted" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -299,7 +299,7 @@
                                 android:layout_marginStart="@dimen/_12sdp"
                                 android:padding="@dimen/_7sdp"
                                 android:src="@drawable/ic_edit"
-                                app:tint="#001e2f" />
+                                app:tint="@color/icon_tint_dark" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -320,6 +320,171 @@
                                 android:src="@drawable/setting_arrow_img" />
                         </LinearLayout>
 
+
+                        <LinearLayout
+                            android:id="@+id/ll_dark_mode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_5sdp">
+
+                            <ImageView
+                                android:layout_width="@dimen/_32sdp"
+                                android:layout_height="@dimen/_32sdp"
+                                android:layout_marginStart="@dimen/_12sdp"
+                                android:padding="@dimen/_7sdp"
+                                android:src="@drawable/setting_4_img"
+                                app:tint="@color/icon_tint_dark" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/inter_regular"
+                                android:includeFontPadding="false"
+                                android:text="Dark Mode"
+                                android:textColor="@color/sub_text_color"
+                                android:textSize="@dimen/_13ssp" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchDarkMode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/_10sdp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/ll_biometric"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_5sdp">
+
+                            <ImageView
+                                android:layout_width="@dimen/_32sdp"
+                                android:layout_height="@dimen/_32sdp"
+                                android:layout_marginStart="@dimen/_12sdp"
+                                android:padding="@dimen/_7sdp"
+                                android:src="@drawable/setting_5_img"
+                                app:tint="@color/icon_tint_dark" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/inter_regular"
+                                android:includeFontPadding="false"
+                                android:text="Biometric Lock"
+                                android:textColor="@color/sub_text_color"
+                                android:textSize="@dimen/_13ssp" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchBiometric"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/_10sdp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/ll_referral"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_5sdp">
+
+                            <ImageView
+                                android:layout_width="@dimen/_32sdp"
+                                android:layout_height="@dimen/_32sdp"
+                                android:layout_marginStart="@dimen/_12sdp"
+                                android:src="@drawable/setting_2_img" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/inter_regular"
+                                android:text="@string/referral_title"
+                                android:textColor="@color/sub_text_color"
+                                android:textSize="@dimen/_13ssp" />
+
+                            <TextView
+                                android:id="@+id/tvReferralCode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/_10sdp"
+                                android:textColor="@color/active_color"
+                                android:textSize="@dimen/_11ssp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/ll_creator_stats"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_5sdp">
+
+                            <ImageView
+                                android:layout_width="@dimen/_32sdp"
+                                android:layout_height="@dimen/_32sdp"
+                                android:layout_marginStart="@dimen/_12sdp"
+                                android:src="@drawable/setting_4_img" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/inter_regular"
+                                android:text="Creator Analytics"
+                                android:textColor="@color/sub_text_color"
+                                android:textSize="@dimen/_13ssp" />
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/_10sdp"
+                                android:src="@drawable/setting_arrow_img" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/ll_chat_support"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_5sdp">
+
+                            <ImageView
+                                android:layout_width="@dimen/_32sdp"
+                                android:layout_height="@dimen/_32sdp"
+                                android:layout_marginStart="@dimen/_12sdp"
+                                android:src="@drawable/support" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/inter_regular"
+                                android:text="@string/support_chat_title"
+                                android:textColor="@color/sub_text_color"
+                                android:textSize="@dimen/_13ssp" />
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/_10sdp"
+                                android:src="@drawable/setting_arrow_img" />
+                        </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/ll_download"
@@ -430,7 +595,7 @@
                                 android:fontFamily="@font/inter_regular"
                                 android:includeFontPadding="false"
                                 android:text=""
-                                android:textColor="#99a5ac"
+                                android:textColor="@color/language_hint"
                                 android:textSize="@dimen/_13ssp" />
 
                             <ImageView
@@ -488,7 +653,7 @@
                         android:fontFamily="@font/inter_semi_bold"
                         android:includeFontPadding="false"
                         android:text="More Options"
-                        android:textColor="#213b4a"
+                        android:textColor="@color/settings_title_text"
                         android:textSize="@dimen/_13ssp" />
 
                     <LinearLayout
@@ -513,7 +678,7 @@
                                 android:layout_height="@dimen/_32sdp"
                                 android:layout_marginStart="@dimen/_12sdp"
                                 android:background="@drawable/round_bg"
-                                android:backgroundTint="#f7f7f7"
+                                android:backgroundTint="@color/support_icon_bg"
                                 android:padding="@dimen/_7sdp"
                                 android:src="@drawable/support" />
 
@@ -655,7 +820,7 @@
                     android:fontFamily="@font/inter_semi_bold"
                     android:includeFontPadding="false"
                     android:text="version"
-                    android:textColor="#8a979f"
+                    android:textColor="@color/settings_muted_text"
                     android:textSize="@dimen/_11ssp" />
             </LinearLayout>
         </ScrollView>

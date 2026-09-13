@@ -19,9 +19,13 @@ import com.pt.zyfooai.binding.GlideDataBinding;
 import com.pt.zyfooai.databinding.ActivitySettingBinding;
 import com.pt.zyfooai.ui.Functions;
 import com.pt.zyfooai.ui.fragments.SelectBusinessFragment;
+import com.pt.zyfooai.utils.AnalyticsHelper;
+import com.pt.zyfooai.utils.BiometricHelper;
 import com.pt.zyfooai.utils.ClickDebouncer;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.PreferenceManager;
+import com.pt.zyfooai.utils.ReferralHelper;
+import com.pt.zyfooai.utils.ThemeHelper;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
 
 import java.text.ParseException;
@@ -43,6 +47,7 @@ public class SettingActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         context = this;
+        AnalyticsHelper.logScreen(context, "settings");
         firebaseAuth = FirebaseAuth.getInstance();
         preferenceManager = new PreferenceManager(context);
 
@@ -71,6 +76,26 @@ public class SettingActivity extends AppCompatActivity {
 
         topIconBar(this);
 
+        binding.switchDarkMode.setChecked(ThemeHelper.isDarkModeEnabled(context));
+        binding.switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) ->
+                ThemeHelper.setDarkMode(context, isChecked));
+
+        binding.switchBiometric.setEnabled(BiometricHelper.isBiometricAvailable(context));
+        binding.switchBiometric.setChecked(BiometricHelper.isLockEnabled(context));
+        binding.switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked && !BiometricHelper.isBiometricAvailable(context)) {
+                binding.switchBiometric.setChecked(false);
+                Toast.makeText(context, "Biometric not available on this device", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            BiometricHelper.setLockEnabled(context, isChecked);
+        });
+
+        binding.tvReferralCode.setText(ReferralHelper.getOrCreateReferralCode(context));
+        binding.llReferral.setOnClickListener(v -> startActivity(ReferralHelper.buildShareIntent(context)));
+        binding.llChatSupport.setOnClickListener(v -> startActivity(new Intent(this, ChatSupportActivity.class)));
+        binding.llCreatorStats.setOnClickListener(v -> startActivity(new Intent(this, CreatorStatsActivity.class)));
+
         binding.backImg.setOnClickListener(v -> {
             onBackPressed();
         });
@@ -90,7 +115,12 @@ public class SettingActivity extends AppCompatActivity {
 
         binding.llDownload.setOnClickListener(view -> {
             if (clickDebouncer.shouldIgnore()) return;
-            startActivity(new Intent(this, DownloadActivity.class));
+            Runnable openDownloads = () -> startActivity(new Intent(this, DownloadActivity.class));
+            if (BiometricHelper.isLockEnabled(this)) {
+                BiometricHelper.authenticate(this, openDownloads, null);
+            } else {
+                openDownloads.run();
+            }
         });
 
         binding.llPolitical.setOnClickListener(view -> {

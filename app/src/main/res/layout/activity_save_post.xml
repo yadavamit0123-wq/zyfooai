@@ -7,13 +7,13 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F3EFFE"
+        android:background="@color/feed_background"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#F3EFFE"
+            android:background="@color/feed_background"
             android:orientation="vertical">
 
             <RelativeLayout
@@ -90,7 +90,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#F3EFFE"
+                        android:background="@color/feed_background"
                         android:orientation="vertical">
 
                         <androidx.cardview.widget.CardView
@@ -107,7 +107,7 @@
                                 android:id="@+id/p_layoutTemp"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:background="#5f5146"
+                                android:background="@color/template_preview_bg"
                                 android:visibility="visible">
 
                                 <ImageView
