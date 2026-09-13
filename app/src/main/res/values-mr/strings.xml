@@ -144,8 +144,8 @@
     <string name="tansaction_succeed">अपना Transaction was सफलतापूर्वक \n Complete. Enjoy प्रीमियम Access!</string>
     <string name="notification">सूचना</string>
     <string name="clear_cache">कैश साफ़ करें</string>
-    <string name="refund_policy">रिफंड & रद्द करेंlation Policy</string>
-    <string name="terms_and_service">नियम & Service</string>
+    <string name="refund_policy">रिफंड &amp; रद्द करेंlation Policy</string>
+    <string name="terms_and_service">नियम &amp; Service</string>
     <string name="version">संस्करण</string>
     <string name="theme">थीम</string>
     <string name="system_default">System Default</string>
@@ -397,7 +397,7 @@
     <string name="rzp_key_id">rzp_live_G8XcWSNNYtENTp</string>
     <string name="_123_456_7890">(123) 456–7890</string>
     <string name="username_123456">username_123456</string>
-    <string name="watch_ad_to_download_amp_use">(विज्ञापन देखें to डाउनलोड & Use)</string>
+    <string name="watch_ad_to_download_amp_use">(विज्ञापन देखें to डाउनलोड &amp; Use)</string>
     <string name="about_business">About बिज़नेस</string>
     <string name="str_2">नहींne</string>
     <string name="str_3">Shadow</string>
@@ -414,7 +414,7 @@
     <string name="str_14">पसंदीदा भाषा</string>
     <string name="str_15">हमारे बारे में</string>
     <string name="str_16">गोपनीयता नीति</string>
-    <string name="str_17">नियम & Condition</string>
+    <string name="str_17">नियम &amp; Condition</string>
     <string name="str_18">रिफंड और रद्दीकरण</string>
     <string name="str_19">NEXT</string>
     <string name="str_26">बिज़नेस Category</string>
@@ -423,7 +423,7 @@
     <string name="str_29">Choose your भाषा:</string>
     <string name="str_30">You can change language any\ntime from settings</string>
     <string name="str_31">Switching to बिज़नेस</string>
-    <string name="post_with_name_amp_photo">Post With नाम & Photo</string>
+    <string name="post_with_name_amp_photo">Post With नाम &amp; Photo</string>
     <string name="str_34">बनाएं Post</string>
     <string name="str_35">Upload your thoughts from\nyour phone gallery</string>
     <string name="str_36">To write on, choose a background</string>
