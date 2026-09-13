@@ -85,8 +85,13 @@ public final class FooterSizeHelper {
             }
             View card = contentContainer.findViewById(R.id.mainLayOut);
             if (card != null) {
+                int maxHeight = Math.max(available - footerHeight, 0);
                 card.setMinimumHeight(0);
-                card.setMaxHeight(Math.max(available - footerHeight, 0));
+                ViewGroup.LayoutParams params = card.getLayoutParams();
+                if (params != null && maxHeight > 0) {
+                    params.height = maxHeight;
+                    card.setLayoutParams(params);
+                }
             }
         });
     }
