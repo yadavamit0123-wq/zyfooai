@@ -109,7 +109,7 @@
     <string name="Gallery">गैलरी</string>
     <string name="cancel">रद्द करें</string>
     <string name="err_save_image">त्रुटि while saving image</string>
-    <string name="don_t_create">Can\\'t create directory to save image</string>
+    <string name="don_t_create">Can\'t create directory to save image</string>
     <string name="image_saved">इमेज सफलतापूर्वक सेव हुई</string>
     <string name="video_saved">वीडियो सफलतापूर्वक सेव हुआ</string>
     <string name="share_via">शेयर Via</string>
@@ -120,7 +120,7 @@
     <string name="video">वीडियो</string>
     <string name="image">इमेज</string>
     <string name="share_txt">Hey guys. I am using ZyFoo AI App.डाउनलोड नहींw \n\nhttps://play.google.com/store/apps/details?id=</string>
-    <string name="share_card">Hello! Here\\'s my Digital बिज़नेस Card. You can click on the link to open it. \n </string>
+    <string name="share_card">Hello! Here\'s my Digital बिज़नेस Card. You can click on the link to open it. \n </string>
     <string name="subscribe">सब्सक्राइब</string>
     <string name="premium">प्रीमियम Post</string>
     <string name="please_subscribe">This is a प्रीमियम Post \n कृपया subscribe</string>
@@ -313,7 +313,7 @@
     <string name="enter_otp">OTP</string>
     <string name="hint_password">दर्ज करें Password</string>
     <string name="hint_confirm_password">दर्ज करें Confirm Password</string>
-    <string name="login_dot_n_have_account">Don\\'t Have Account?</string>
+    <string name="login_dot_n_have_account">Don\'t Have Account?</string>
     <string name="login_already_account">Already have Account?</string>
     <string name="login_continue_with">or जारी रखें with</string>
     <string name="login_forgot_password">Forgot Password?</string>
@@ -338,7 +338,7 @@
     <string name="try_again">पुनः प्रयास करें</string>
     <string name="user_error">User error</string>
     <string name="add_more_business">Add More बिज़नेस</string>
-    <string name="premium_user">You\\'re A प्रीमियम User</string>
+    <string name="premium_user">You\'re A प्रीमियम User</string>
     <string name="premium_user_message">You have already purchased a subscription. This will override your previous purchase.</string>
     <string name="continue_ok">जारी रखें</string>
     <string name="otp_verify">OTP सत्यापन</string>
