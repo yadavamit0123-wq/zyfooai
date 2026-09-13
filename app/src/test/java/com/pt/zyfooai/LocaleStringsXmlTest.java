@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,7 +29,7 @@ public class LocaleStringsXmlTest {
 
     private static void assertValidLocaleStrings(Path path) {
         try {
-            String content = Files.readString(path);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
             assertFalse(
                     path + " contains \\\\' (use \\' for apostrophes in Android strings)",
                     DOUBLE_ESCAPED_APOSTROPHE.matcher(content).find()
