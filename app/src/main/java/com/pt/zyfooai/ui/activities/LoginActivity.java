@@ -69,6 +69,7 @@ public class LoginActivity extends AppCompatActivity {
     private String phoneNumber;
     private String smsGatewayOtp;
     private boolean usingSmsGatewayOtp;
+    private String firebaseOtpFailureReason;
 
     HomeViewModel homeViewModel;
     PreferenceManager preferenceManager;
@@ -208,6 +209,7 @@ public class LoginActivity extends AppCompatActivity {
         phoneNumber = etPhoneNumber.getText().toString().trim();
         usingSmsGatewayOtp = false;
         smsGatewayOtp = null;
+        firebaseOtpFailureReason = null;
 
         if (phoneNumber.isEmpty() || phoneNumber.length() < 10) {
             Toast.makeText(this, "Enter valid phone number", Toast.LENGTH_SHORT).show();
@@ -235,6 +237,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onVerificationFailed(@NonNull FirebaseException e) {
                         Log.e(TAG, "Firebase phone verification failed", e);
+                        firebaseOtpFailureReason = e.getMessage();
                         sendOtpViaSmsGateway();
                     }
 
@@ -268,7 +271,10 @@ public class LoginActivity extends AppCompatActivity {
         String smsKey = com.pt.zyfooai.utils.RemoteConfigHelper.getFast2SmsKey(this);
         if (smsKey == null || smsKey.isEmpty()) {
             progressDialog.dismiss();
-            Toast.makeText(this, "SMS gateway not configured", Toast.LENGTH_SHORT).show();
+            String reason = firebaseOtpFailureReason != null
+                    ? firebaseOtpFailureReason
+                    : "SMS gateway not configured";
+            Toast.makeText(this, "OTP failed: " + reason, Toast.LENGTH_LONG).show();
             return;
         }
 

@@ -49,6 +49,9 @@ jobs:
               -alias "$ANDROID_KEY_ALIAS" \
               -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>/dev/null | grep -E "SHA1:|SHA256:" || true
           else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set. Builds will be signed with a"\
+              "throwaway debug keystore whose SHA-1 is not registered in google-services.json,"\
+              "so Firebase phone OTP and Google Sign-In will fail in the resulting APK."
             mkdir -p "$HOME/.android"
             if [ ! -f "$HOME/.android/debug.keystore" ]; then
               keytool -genkeypair -v \
@@ -59,6 +62,11 @@ jobs:
                 -storepass android -keypass android \
                 -dname "CN=Android Debug,O=Android,C=US"
             fi
+            echo "=== Debug keystore SHA fingerprints actually used by this build ==="
+            keytool -list -v \
+              -keystore "$HOME/.android/debug.keystore" \
+              -alias androiddebugkey \
+              -storepass android 2>/dev/null | grep -E "SHA1:|SHA256:" || true
           fi
 
       - name: Grant execute permission for gradlew
@@ -68,6 +76,8 @@ jobs:
         run: ./gradlew testDebugUnitTest --stacktrace --no-daemon
 
       - name: Build Debug APK
+        env:
+          FAST2SMS_KEY: ${{ secrets.FAST2SMS_KEY }}
         run: ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Build Release APK and AAB
@@ -76,6 +86,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          FAST2SMS_KEY: ${{ secrets.FAST2SMS_KEY }}
         run: ./gradlew assembleRelease bundleRelease --stacktrace --no-daemon
 
       - name: Upload Debug APK

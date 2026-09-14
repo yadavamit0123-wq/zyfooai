@@ -34,6 +34,12 @@ android {
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword System.getenv("ANDROID_KEY_PASSWORD")
             } else {
+                // Firebase phone auth and Google Sign-In only work when the signing
+                // certificate SHA-1 is registered in google-services.json, so a release
+                // signed with the debug key silently loses both.
+                logger.warn("WARNING: ANDROID_KEYSTORE_FILE/ANDROID_KEYSTORE_PASSWORD are not set. "
+                        + "The release build will be signed with the debug keystore, and Firebase "
+                        + "phone OTP plus Google Sign-In will fail on that APK.")
                 storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
                 storePassword "android"
                 keyAlias "androiddebugkey"
@@ -65,10 +71,12 @@ android {
         }
         release {
             debuggable false
-            shrinkResources true
-            minifyEnabled true
+            // Minification and resource shrinking stay off until a release APK has been
+            // verified on a real device; enabling them is what regressed the OTP flow.
+            shrinkResources false
+            minifyEnabled false
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -90,9 +98,13 @@ android {
         }
     }
 
+    // An empty CI secret must not shadow the value in gradle.properties.
+    def fast2SmsKey = [System.getenv('FAST2SMS_KEY'), project.findProperty('FAST2SMS_KEY')]
+            .find { it != null && !it.toString().trim().isEmpty() } ?: ''
+
     buildTypes.each {
         it.buildConfigField 'String', 'APP_URL', APP_URL
-        it.buildConfigField 'String', 'FAST2SMS_KEY', '"' + (project.findProperty('FAST2SMS_KEY') ?: '') + '"'
+        it.buildConfigField 'String', 'FAST2SMS_KEY', '"' + fast2SmsKey + '"'
     }
 
 }
