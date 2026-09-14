@@ -41,6 +41,8 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
@@ -99,6 +101,7 @@ import com.pt.zyfooai.utils.CreatorAnalyticsHelper;
 import com.pt.zyfooai.utils.MyUtils;
 import com.pt.zyfooai.utils.NetworkConnectivity;
 import com.pt.zyfooai.utils.OfflinePostsCache;
+import com.pt.zyfooai.utils.PostDownloadTracker;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.RemoteConfigHelper;
 import com.pt.zyfooai.utils.Util;
@@ -147,6 +150,25 @@ public class MainActivity extends AppCompatActivity {
     private boolean showingOfflineCache;
     private BillingHelper billingHelper;
     private PostItem lastActionPostItem;
+    private final ActivityResultLauncher<Intent> searchLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != RESULT_OK || result.getData() == null) {
+                    return;
+                }
+                selectedCat = result.getData().getStringExtra(Constant.INTENT_CATEGORY_ID);
+                if (selectedCat == null) {
+                    selectedCat = "-1";
+                }
+                if (adapter != null) {
+                    adapter.stopAndClearPlayer();
+                }
+                pageCount = 1;
+                loading = false;
+                binding.shimmerViewContainer.setVisibility(VISIBLE);
+                binding.main.setVisibility(GONE);
+                getData();
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -223,6 +245,11 @@ public class MainActivity extends AppCompatActivity {
         binding.circularImageView.setOnClickListener(view -> {
             if (clickDebouncer.shouldIgnore()) return;
             startActivity(new Intent(this, SettingActivity.class));
+        });
+
+        binding.searchActionButton.setOnClickListener(view -> {
+            if (clickDebouncer.shouldIgnore()) return;
+            searchLauncher.launch(new Intent(this, SearchActivity.class));
         });
 
         binding.createActionButton.setOnClickListener(view -> {
@@ -412,6 +439,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (adapter != null) {
             adapter.onResumeVideo();
+            adapter.notifyDataSetChanged();
         }
         playMusic();
         binding.allVideo.post(() -> playVisibleVideo(binding.allVideo));
@@ -472,6 +500,9 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
+                    if (dy != 0) {
+                        playVisibleVideo(recyclerView);
+                    }
                     if (idleRunnable != null) {
                         resetIdleTimer();
                     }
@@ -526,6 +557,19 @@ public class MainActivity extends AppCompatActivity {
             setupDialogWatermarkOption();
         } else if (view.getId() == R.id.downloadBtn) {
             remove.setVisibility(GONE);
+            String postKey = PostDownloadTracker.postKey(postItem);
+            if (PostDownloadTracker.isDownloading(postKey)) {
+                getDownloadProgressDialog().showPercentOnly();
+                PostDownloadTracker.Job job = PostDownloadTracker.getCurrent();
+                getDownloadProgressDialog().updateProgress(job.progress, "");
+                Toast.makeText(context, getString(R.string.download_in_progress), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (PostDownloadTracker.isComplete(postKey)) {
+                Toast.makeText(context, getString(R.string.download_already_complete), Toast.LENGTH_SHORT).show();
+                openDownloadResult(PostDownloadTracker.getCurrent().outputPath);
+                return;
+            }
             if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
                 setupDialogPremium(postItem, postItem, "download");
                 return;
@@ -1096,10 +1140,8 @@ public class MainActivity extends AppCompatActivity {
                 CreatorAnalyticsHelper.trackDownload(context, postItem.postId, selectedCat);
             }
             stopMusic(true);
-            stopAllVideos(binding.allVideo);
-            if (adapter != null) {
-                adapter.onPauseVideo();
-            }
+            PostDownloadTracker.start(PostDownloadTracker.postKey(postItem), type);
+            getDownloadProgressDialog().showPercentOnly();
 
             if (postItem.is_video) {
 
@@ -1170,8 +1212,11 @@ public class MainActivity extends AppCompatActivity {
                         File file2 = new File(filePath);
                         try {
                             FileOutputStream fileOutputStream = new FileOutputStream(file2);
+                            Bitmap.Config imageConfig = bitmap.getConfig() != null
+                                    ? bitmap.getConfig()
+                                    : Bitmap.Config.ARGB_8888;
                             Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(),
-                                    bitmap.getHeight(), bitmap.getConfig());
+                                    bitmap.getHeight(), imageConfig);
                             Canvas canvas = new Canvas(createBitmap);
                             canvas.drawColor(-1);
                             canvas.drawBitmap(bitmap, 0.0f, 0.0f, (Paint) null);
@@ -1208,13 +1253,10 @@ public class MainActivity extends AppCompatActivity {
                             downloadMp3(filePath, musicPath, type);
                         }else {
                             if (type.equals("download")) {
-                                getDownloadProgressDialog().show("Saving Image");
-                                getDownloadProgressDialog().updateProgress(100, "Image saved successfully");
+                                PostDownloadTracker.complete(filePath);
+                                getDownloadProgressDialog().updateProgress(100, "");
                                 getDownloadProgressDialog().dismiss();
-                                Util.showToast(context, getString(R.string.image_saved));
-                                Intent intent = new Intent(context, ShareImageActivity.class);
-                                intent.putExtra("uri", filePath);
-                                startActivity(intent);
+                                openDownloadResult(filePath);
                             } else {
                                 shareFileImageUri(getImageContentUri(new File(filePath)), type);
                             }
@@ -1366,10 +1408,20 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    private void openDownloadResult(String path) {
+        if (path == null || path.isEmpty()) {
+            return;
+        }
+        Intent intent = new Intent(context, ShareImageActivity.class);
+        intent.putExtra("uri", path);
+        startActivity(intent);
+    }
+
     private void downloadVideo(String framePath, String videoUrl, String type) {
         createNotificationChannel();
-        getDownloadProgressDialog().show("Downloading Video");
-        getDownloadProgressDialog().updateProgress(2, "Starting video download...");
+        getDownloadProgressDialog().showPercentOnly();
+        getDownloadProgressDialog().updateProgress(2, "");
+        PostDownloadTracker.updateProgress(2);
         String fileName = videoUrl.substring(videoUrl.lastIndexOf('/') + 1);
         File cacheDir = context.getExternalCacheDir();
         if (cacheDir == null) {
@@ -1385,30 +1437,37 @@ public class MainActivity extends AppCompatActivity {
                         public void onProgress(long bytesDownloaded, long totalBytes) {
                             if (totalBytes > 0) {
                                 int percent = (int) ((bytesDownloaded * 70) / totalBytes);
-                                runOnUiThread(() -> getDownloadProgressDialog()
-                                        .updateProgress(Math.max(percent, 3), "Downloading video..."));
+                                int safePercent = Math.max(percent, 3);
+                                runOnUiThread(() -> {
+                                    getDownloadProgressDialog().updateProgress(safePercent, "");
+                                    PostDownloadTracker.updateProgress(safePercent);
+                                });
                             }
                         }
                     })
                     .startDownload(new DownloadListener() {
                         public void onDownloadComplete() {
-                            getDownloadProgressDialog().updateProgress(72, "Processing video...");
+                            getDownloadProgressDialog().updateProgress(72, "");
+                            PostDownloadTracker.updateProgress(72);
                             applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type);
                         }
 
                         public void onError(ANError aNError) {
+                            PostDownloadTracker.fail();
                             getDownloadProgressDialog().dismiss();
                             Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
         } else {
-            getDownloadProgressDialog().updateProgress(72, "Processing video...");
+            getDownloadProgressDialog().updateProgress(72, "");
+            PostDownloadTracker.updateProgress(72);
             applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type);
         }
     }
 
     private void applyFrameOnVideo(String videoath, String framePath, String type) {
-        getDownloadProgressDialog().showIndeterminate("Processing video with frame...");
+        getDownloadProgressDialog().updateProgress(75, "");
+        PostDownloadTracker.updateProgress(75);
         updateNotification("Making video...");
         runOnUiThread(new Runnable() {
             @Override
@@ -1480,6 +1539,7 @@ public class MainActivity extends AppCompatActivity {
                     public void apply(long executionId, int returnCode) {
                         getDownloadProgressDialog().dismiss();
                         if (returnCode == 1) {
+                            PostDownloadTracker.fail();
                             FFmpeg.cancel(executionId);
                             Toast.makeText(context, "Try Again", Toast.LENGTH_SHORT).show();
                         }
@@ -1490,10 +1550,8 @@ public class MainActivity extends AppCompatActivity {
                                     });
 
                             if (type.equals("download")) {
-                                Toast.makeText(context, getString(R.string.video_saved), Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(context, ShareImageActivity.class);
-                                intent.putExtra("uri", outputDir);
-                                startActivity(intent);
+                                PostDownloadTracker.complete(outputDir);
+                                openDownloadResult(outputDir);
                                 updateNotification("Download complete");
                             } else {
                                 shareFileImageUri(getImageContentUri(new File(outputDir)), type);
@@ -1602,30 +1660,31 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout withouWatermark = dialogWatermarkOption.findViewById(R.id.cv_yes);
 
         withouWatermark.setOnClickListener(view -> {
-
             progressBar.setVisibility(VISIBLE);
-
-            new RewardAdsManager(context, new RewardAdsManager.OnAdLoaded() {
+            RewardAdsManager rewardAdsManager = new RewardAdsManager(context, new RewardAdsManager.OnAdLoaded() {
                 @Override
                 public void onAdClosed() {
-
+                    progressBar.setVisibility(GONE);
                     Toast.makeText(context, "Ad not loaded, Try Again", Toast.LENGTH_SHORT).show();
                     rewateBtn.setVisibility(VISIBLE);
                     dialogWatermarkOption.dismiss();
-
                 }
 
                 @Override
                 public void onAdWatched() {
-
+                    progressBar.setVisibility(GONE);
                     rewateBtn.setVisibility(GONE);
+                    if (currentView != null) {
+                        View watermarkLayout = currentView.findViewById(R.id.watermarkLayout);
+                        if (watermarkLayout != null) {
+                            watermarkLayout.setVisibility(GONE);
+                        }
+                    }
                     Toast.makeText(context, "Congratulations, Remove Watermark", Toast.LENGTH_SHORT).show();
                     dialogWatermarkOption.dismiss();
-
                 }
             });
-
-
+            rewardAdsManager.loadRewardAd();
         });
 
         dialogWatermarkOption.show();
@@ -1680,21 +1739,25 @@ public class MainActivity extends AppCompatActivity {
                     saveImage(freeBit, postItem, "download");
                 });
 
-                dialogPremium.findViewById(R.id.adsWatch).setOnClickListener(view -> {
+                LinearLayout adsWatch = dialogPremium.findViewById(R.id.adsWatch);
+                adsWatch.setBackgroundResource(R.drawable.bg_ads_watch_selector);
+                adsWatch.setClickable(true);
+                adsWatch.setOnClickListener(view -> {
+                    view.setSelected(true);
+                    Toast.makeText(context, getString(R.string.watch_ad_loading), Toast.LENGTH_SHORT).show();
                     RewardAdsManager rewardAdsManager =
                             new RewardAdsManager(context, new RewardAdsManager.OnAdLoaded() {
 
                                 @Override
                                 public void onAdClosed() {
-                                    // user closed ad or failed
+                                    view.setSelected(false);
                                     dialogPremium.dismiss();
                                 }
 
                                 @Override
                                 public void onAdWatched() {
-                                    // ✅ user watched full ad
+                                    view.setSelected(false);
                                     dialogPremium.dismiss();
-
                                     saveImage(
                                             GlideDataBinding.viewToBitmap(currentView),
                                             postItem,
@@ -1702,7 +1765,6 @@ public class MainActivity extends AppCompatActivity {
                                     );
                                 }
                             });
-
                     rewardAdsManager.loadRewardAd();
                 });
 

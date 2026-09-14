@@ -3,6 +3,9 @@ package com.pt.zyfooai.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.pt.zyfooai.R;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
@@ -78,6 +81,8 @@ public class BillingHelper implements PurchasesUpdatedListener {
             if (billingResult.getResponseCode() != BillingClient.BillingResponseCode.OK
                     || productDetailsList == null || productDetailsList.isEmpty()) {
                 Log.w(TAG, "Product not found: " + productId);
+                activity.runOnUiThread(() ->
+                        Toast.makeText(activity, R.string.watermark_product_unavailable, Toast.LENGTH_LONG).show());
                 return;
             }
             ProductDetails details = productDetailsList.get(0);

@@ -172,17 +172,23 @@ public class CreatePostActivity extends AppCompatActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UCrop.REQUEST_CROP) {
-            if (data != null) {
+            if (resultCode == RESULT_OK && data != null && data.getExtras() != null) {
+                imageUri = data.getExtras().getParcelable(UCrop.EXTRA_OUTPUT_URI);
+                if (imageUri == null) {
+                    return;
+                }
+                Uri finalUri = imageUri;
                 interstitialsAdsManager.showInterstitialAd(new InterstitialsAdsManager.onAdClosedListener() {
                     @Override
                     public void onAdClosed() {
-                        imageUri = data.getExtras().getParcelable(UCrop.EXTRA_OUTPUT_URI);;
                         Intent intent = new Intent(CreatePostActivity.this, EditorActivity.class);
-                        intent.putExtra("imageUri", imageUri.toString());
+                        intent.putExtra("imageUri", finalUri.toString());
                         startActivity(intent);
-                    }});
+                    }
+                });
+            } else if (resultCode == UCrop.RESULT_ERROR) {
+                android.widget.Toast.makeText(this, getString(R.string.error), android.widget.Toast.LENGTH_SHORT).show();
             }
-
         }
 
     }

@@ -47,6 +47,10 @@
             android:name=".ui.activities.CreatePostActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.activities.SearchActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ui.activities.LanguageActivity"
             android:exported="false" />
         <activity

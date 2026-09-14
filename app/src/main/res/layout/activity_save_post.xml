@@ -114,7 +114,6 @@
                                     android:id="@+id/imageB"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="65dp"
                                     android:adjustViewBounds="true"
                                     android:src="@drawable/placeholder"
                                     android:visibility="gone" />
@@ -129,13 +128,11 @@
                                 <androidx.recyclerview.widget.RecyclerView
                                     android:id="@+id/recyclerview"
                                     android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentStart="true"
-                                    android:layout_alignParentTop="true"
-                                    android:layout_alignParentEnd="true"
-                                    android:layout_marginStart="0dp"
-                                    android:layout_marginTop="0dp"
-                                    android:layout_marginEnd="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_alignStart="@id/imageP"
+                                    android:layout_alignTop="@id/imageP"
+                                    android:layout_alignEnd="@id/imageP"
+                                    android:layout_alignBottom="@id/imageP"
                                     android:orientation="horizontal"
                                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                                     tools:listitem="@layout/layout_frame_1_1" />

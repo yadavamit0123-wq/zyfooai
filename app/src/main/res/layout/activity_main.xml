@@ -74,6 +74,19 @@
                 </LinearLayout>
 
 
+                <ImageView
+                    android:id="@+id/searchActionButton"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="@dimen/_8sdp"
+                    android:layout_toStartOf="@+id/createActionButton"
+                    android:background="@drawable/bg_ripple_round"
+                    android:contentDescription="@string/search_title"
+                    android:padding="@dimen/_6sdp"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/black" />
+
                 <LinearLayout
                     android:id="@+id/createActionButton"
                     android:layout_width="wrap_content"

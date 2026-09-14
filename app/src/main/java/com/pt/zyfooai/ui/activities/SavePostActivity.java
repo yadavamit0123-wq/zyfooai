@@ -46,6 +46,7 @@ import com.pt.zyfooai.R;
 import com.pt.zyfooai.binding.GlideDataBinding;
 import com.pt.zyfooai.databinding.ActivitySavePostBinding;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.FramePolishHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.SnapHelperOneByOne;
 import com.pt.zyfooai.utils.Util;
@@ -83,6 +84,11 @@ public class SavePostActivity extends AppCompatActivity {
 
         path = getIntent().getStringExtra("uri");
         musicPath = getIntent().getStringExtra("music");
+        if (path == null || path.isEmpty()) {
+            Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         if (preferenceManager.getString("DataType").equals("Business")) {
 
@@ -143,6 +149,19 @@ public class SavePostActivity extends AppCompatActivity {
         if (musicPath != null && !musicPath.isEmpty()) {
             playMusic(musicPath);
         }
+
+        binding.pLayoutTemp.post(this::alignFrameOverlayToImage);
+    }
+
+    private void alignFrameOverlayToImage() {
+        View anchor = binding.imageB.getVisibility() == View.VISIBLE ? binding.imageB : binding.imageP;
+        android.widget.RelativeLayout.LayoutParams params =
+                (android.widget.RelativeLayout.LayoutParams) binding.recyclerview.getLayoutParams();
+        params.addRule(android.widget.RelativeLayout.ALIGN_TOP, anchor.getId());
+        params.addRule(android.widget.RelativeLayout.ALIGN_BOTTOM, anchor.getId());
+        params.addRule(android.widget.RelativeLayout.ALIGN_START, anchor.getId());
+        params.addRule(android.widget.RelativeLayout.ALIGN_END, anchor.getId());
+        binding.recyclerview.setLayoutParams(params);
     }
 
     ExoPlayer musicPlayer;
@@ -210,6 +229,10 @@ public class SavePostActivity extends AppCompatActivity {
             list.add(R.layout.layout_frame_1_4);
             list.add(R.layout.layout_frame_1_5);
             list.add(R.layout.layout_frame_1_6);
+            list.add(R.layout.layout_frame_glass_1);
+            list.add(R.layout.layout_frame_glass_2);
+            list.add(R.layout.layout_frame_gradient_1);
+            list.add(R.layout.layout_frame_gradient_2);
 
         }
 
@@ -311,14 +334,17 @@ public class SavePostActivity extends AppCompatActivity {
             setVisibilityIfEmpty(holder.businessWebsiteTv);
             setVisibilityIfEmpty(holder.businessAddressTv);
 
-            String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault()).format(new Date()).toUpperCase(Locale.ROOT);
-            holder.dateTv.setText(currentDate);
-            // Generate a random dark color
-            int randomDarkColor = getRandomDarkColor();
-            // Set text color
-            holder.dateTv.setTextColor(randomDarkColor);
-            // Set background tint
-            holder.dateTv.getBackground().setTint(randomDarkColor);
+            if (holder.dateTv != null) {
+                String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
+                        .format(new Date()).toUpperCase(Locale.ROOT);
+                holder.dateTv.setText(currentDate);
+            }
+            View glassTopPanel = holder.itemView.findViewById(R.id.glassTopPanel);
+            if (glassTopPanel != null) {
+                boolean isBusiness = !preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal");
+                glassTopPanel.setVisibility(isBusiness ? View.VISIBLE : View.GONE);
+            }
+            FramePolishHelper.apply(holder.itemView, position);
         }
 
         private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {
@@ -331,14 +357,6 @@ public class SavePostActivity extends AppCompatActivity {
             if (textView.getText().toString().trim().isEmpty()) {
                 textView.setVisibility(View.GONE);
             }
-        }
-
-        private int getRandomDarkColor() {
-            Random random = new Random();
-            int red = random.nextInt(128); // Darker shade (0-127)
-            int green = random.nextInt(128); // Darker shade (0-127)
-            int blue = random.nextInt(128); // Darker shade (0-127)
-            return Color.rgb(red, green, blue);
         }
 
         @Override
@@ -405,12 +423,15 @@ public class SavePostActivity extends AppCompatActivity {
                         success = false;
                     }
                 }
-                File file2 = new File(file.getAbsolutePath() + "/" + fileName);
+                File file2 = new File(filePath);
 
                 try {
                     FileOutputStream fileOutputStream = new FileOutputStream(file2);
+                    Bitmap.Config config = bitmap.getConfig() != null
+                            ? bitmap.getConfig()
+                            : Bitmap.Config.ARGB_8888;
                     Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(),
-                            bitmap.getHeight(), bitmap.getConfig());
+                            bitmap.getHeight(), config);
                     Canvas canvas = new Canvas(createBitmap);
                     canvas.drawColor(-1);
                     canvas.drawBitmap(bitmap, 0.0f, 0.0f, (Paint) null);

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="frame_social_strip_bg">#CC0F0F14</color>
+    <color name="frame_text_on_accent_muted">#D8D8DE</color>
+    <color name="frame_date_text">#F0F0F0</color>
+    <color name="frame_date_border">#33FFFFFF</color>
+
+    <color name="frame_glass_light_fill">#CC1E1E28</color>
+    <color name="frame_glass_dark_fill">#B30A0A10</color>
+    <color name="frame_glass_stroke">#44FFFFFF</color>
+    <color name="frame_glass_text_primary">#F2F2F5</color>
+    <color name="frame_glass_text_secondary">#A8A8B2</color>
+    <color name="frame_glass_text_on_dark">#F5F5F7</color>
+    <color name="frame_glass_text_muted_on_dark">#B8B8C0</color>
+
+    <color name="frame_gradient_purple_start">#7A4FD0</color>
+    <color name="frame_gradient_purple_end">#5248C8</color>
+    <color name="frame_gradient_purple_bottom_start">#6E48C8</color>
+    <color name="frame_gradient_purple_bottom_end">#3A349E</color>
+    <color name="frame_gradient_gold_start">#E67400</color>
+    <color name="frame_gradient_gold_end">#D9007A</color>
+    <color name="frame_gradient_gold_bottom_start">#1A1424</color>
+    <color name="frame_gradient_gold_bottom_end">#0A0810</color>
+    <color name="frame_gradient_gold_stroke">#55FFC107</color>
+    <color name="frame_gradient_date_bg">#EE1E1E28</color>
+    <color name="frame_gradient_date_stroke">#44FFFFFF</color>
+    <color name="frame_gradient_social_chip_bg">#28FFFFFF</color>
+</resources>

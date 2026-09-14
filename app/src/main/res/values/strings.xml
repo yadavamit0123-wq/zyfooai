@@ -555,5 +555,18 @@
     <string name="tier_basic">Basic</string>
     <string name="tier_pro">Pro</string>
     <string name="tier_business">Business</string>
+    <string name="frame_size">Frame size</string>
+    <string name="frame_opacity">Frame opacity</string>
+    <string name="update_strip_photo">Update strip photo</string>
+    <string name="search_hint">Search categories…</string>
+    <string name="search_title">Search</string>
+    <string name="download_in_progress">Download in progress</string>
+    <string name="download_already_complete">Already downloaded — tap to open</string>
+    <string name="watermark_product_unavailable">Purchase unavailable. Check Play Console product setup.</string>
+    <string name="watch_ad_loading">Loading ad…</string>
+    <string name="frame_glass_light">Glass — Light</string>
+    <string name="frame_glass_dark">Glass — Dark</string>
+    <string name="frame_gradient_purple">Premium — Royal Purple</string>
+    <string name="frame_gradient_gold">Premium — Executive Gold</string>
 
 </resources>

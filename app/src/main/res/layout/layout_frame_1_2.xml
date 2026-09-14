@@ -103,8 +103,8 @@
     <androidx.cardview.widget.CardView
         android:layout_below="@+id/topLay"
         app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/_1sdp"
-        app:cardElevation="@dimen/_15sdp"
+        app:cardCornerRadius="@dimen/frame_date_corner_radius"
+        app:cardElevation="@dimen/frame_card_elevation"
         android:layout_margin="@dimen/_10sdp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">

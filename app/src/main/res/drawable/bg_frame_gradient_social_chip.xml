@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/frame_gradient_social_chip_bg" />
+    <corners android:radius="@dimen/frame_social_corner_radius" />
+</shape>

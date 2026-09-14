@@ -74,26 +74,12 @@ public final class FooterSizeHelper {
         if (contentContainer == null || footer == null) {
             return;
         }
-        footer.post(() -> {
-            int footerHeight = footer.getHeight();
-            if (footerHeight <= 0) {
-                footerHeight = contentContainer.getResources().getDimensionPixelSize(R.dimen._120sdp);
-            }
-            int available = contentContainer.getHeight();
-            if (available <= 0) {
-                return;
-            }
-            View card = contentContainer.findViewById(R.id.mainLayOut);
-            if (card != null) {
-                int maxHeight = Math.max(available - footerHeight, 0);
-                card.setMinimumHeight(0);
-                ViewGroup.LayoutParams params = card.getLayoutParams();
-                if (params != null && maxHeight > 0) {
-                    params.height = maxHeight;
-                    card.setLayoutParams(params);
-                }
-            }
-        });
+        View mainLayout = contentContainer.findViewById(R.id.mainLayOut);
+        View mediaView = contentContainer.findViewById(R.id.image_post);
+        if (mediaView == null) {
+            mediaView = contentContainer.findViewById(R.id.playerview);
+        }
+        FrameOverlayHelper.fillContentArea(contentContainer, footer, mainLayout, mediaView);
     }
 
     private static void scaleText(TextView textView, float baseSp, float scale) {

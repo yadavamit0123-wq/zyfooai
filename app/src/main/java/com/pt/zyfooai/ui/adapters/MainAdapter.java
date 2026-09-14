@@ -8,7 +8,6 @@ import static com.pt.zyfooai.utils.Constant.NATIVE_AD_ID;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -62,10 +61,13 @@ import com.pt.zyfooai.databinding.AdViewBinding;
 import com.pt.zyfooai.databinding.ItemMainLayoutBinding;
 import com.pt.zyfooai.databinding.ItemMainVideoLayoutBinding;
 import com.pt.zyfooai.model.PostItem;
+import com.pt.zyfooai.ui.activities.EditProfileActivity;
 import com.pt.zyfooai.ui.activities.MainActivity;
 import com.pt.zyfooai.ui.activities.SubscriptionActivity;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.FrameOverlayHelper;
+import com.pt.zyfooai.utils.FramePolishHelper;
 import com.pt.zyfooai.utils.FooterSizeHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.ReferralHelper;
@@ -220,14 +222,44 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         }
     }
 
-    private void setupFooterControls(View footer, View contentArea, android.widget.SeekBar seekBar) {
+    private void setupFooterControls(
+            View footer,
+            View contentArea,
+            RecyclerView frameRecyclerView,
+            android.widget.SeekBar stripSeekBar,
+            android.widget.SeekBar frameSizeSeekBar,
+            android.widget.SeekBar frameAlphaSeekBar,
+            View updatePhotoBtn
+    ) {
+        Runnable refreshLayout = () -> {
+            FooterSizeHelper.applyFooterScale(footer, preferenceManager);
+            FrameOverlayHelper.applyFrameOverlay(frameRecyclerView, preferenceManager);
+            FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
+        };
         FooterSizeHelper.applyFooterScale(footer, preferenceManager);
-        if (seekBar != null && seekBar.getTag() == null) {
-            seekBar.setTag(Boolean.TRUE);
-            FooterSizeHelper.bindFooterSizeSeekBar(seekBar, preferenceManager, () -> {
-                FooterSizeHelper.applyFooterScale(footer, preferenceManager);
-                FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
-            });
+        FrameOverlayHelper.applyFrameOverlay(frameRecyclerView, preferenceManager);
+        if (stripSeekBar != null && stripSeekBar.getTag() == null) {
+            stripSeekBar.setTag(Boolean.TRUE);
+            FooterSizeHelper.bindFooterSizeSeekBar(stripSeekBar, preferenceManager, refreshLayout);
+        }
+        FrameOverlayHelper.bindSeekBar(
+                frameSizeSeekBar,
+                FrameOverlayHelper.FRAME_SCALE,
+                50,
+                preferenceManager,
+                refreshLayout
+        );
+        FrameOverlayHelper.bindSeekBar(
+                frameAlphaSeekBar,
+                FrameOverlayHelper.FRAME_ALPHA,
+                100,
+                preferenceManager,
+                refreshLayout
+        );
+        if (updatePhotoBtn != null && updatePhotoBtn.getTag() == null) {
+            updatePhotoBtn.setTag(Boolean.TRUE);
+            updatePhotoBtn.setOnClickListener(v ->
+                    context.startActivity(new Intent(context, EditProfileActivity.class)));
         }
         FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
     }
@@ -281,10 +313,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
 
             holder.currentPosition = position;
+            FrameOverlayHelper.prepareContentForLayout(holder.videoLayoutBinding.mainLayOut);
             setupFooterControls(
                     holder.videoLayoutBinding.swipeFrames,
                     holder.videoLayoutBinding.relativeLayout4,
-                    holder.videoLayoutBinding.footerSizeSeekBar
+                    holder.videoLayoutBinding.recyclerview,
+                    holder.videoLayoutBinding.footerSizeSeekBar,
+                    holder.videoLayoutBinding.frameSizeSeekBar,
+                    holder.videoLayoutBinding.frameAlphaSeekBar,
+                    holder.videoLayoutBinding.updateStripPhotoBtn
             );
 
             CustomPagerVideoAdapter customPagerAdapter = new CustomPagerVideoAdapter(list.get(position).image_url);
@@ -328,10 +365,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.binding.imagePost.setLayoutParams(layoutParams);
             }
 
+            FrameOverlayHelper.prepareContentForLayout(holder.binding.mainLayOut);
             setupFooterControls(
                     holder.binding.swipeFrames,
                     holder.binding.relativeLayout4,
-                    holder.binding.footerSizeSeekBar
+                    holder.binding.recyclerview,
+                    holder.binding.footerSizeSeekBar,
+                    holder.binding.frameSizeSeekBar,
+                    holder.binding.frameAlphaSeekBar,
+                    holder.binding.updateStripPhotoBtn
             );
 
             holder.binding.mainLayOut.post(() -> {
@@ -366,6 +408,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                             imageWidth = resource.getIntrinsicWidth();
                             imageHeight = resource.getIntrinsicHeight();
                             tryCalculateSpace(holder);
+                            FooterSizeHelper.fitContentAboveFooter(
+                                    holder.binding.relativeLayout4,
+                                    holder.binding.swipeFrames
+                            );
 
                             return false; // allow Glide to set image
                         }
@@ -433,6 +479,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                     if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
                         currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
+                        FooterSizeHelper.fitContentAboveFooter(
+                                currentHolder.videoLayoutBinding.relativeLayout4,
+                                currentHolder.videoLayoutBinding.swipeFrames
+                        );
                     }
                 }
             });
@@ -537,6 +587,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             bottomSpace = 0;
         }
         applyFrameSpacingDecoration(holder);
+        holder.binding.mainLayOut.setAlpha(1f);
     }
 
     private void applyFrameSpacingDecoration(ViewHolder holder) {
@@ -626,6 +677,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             list.add(R.layout.layout_frame_1_4);
             list.add(R.layout.layout_frame_1_5);
             list.add(R.layout.layout_frame_1_6);
+            list.add(R.layout.layout_frame_glass_1);
+            list.add(R.layout.layout_frame_glass_2);
+            list.add(R.layout.layout_frame_gradient_1);
+            list.add(R.layout.layout_frame_gradient_2);
 
         }
 
@@ -723,14 +778,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             setVisibilityIfEmpty(holder.businessAddressTv);
             setVisibilityIfEmpty(holder.userDesTv);
 
-            String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault()).format(new Date()).toUpperCase(Locale.ROOT);
-            holder.dateTv.setText(currentDate);
-            // Generate a random dark color
-            int randomDarkColor = getRandomDarkColor();
-            // Set text color
-            holder.dateTv.setTextColor(randomDarkColor);
-            // Set background tint
-            holder.dateTv.getBackground().setTint(randomDarkColor);
+            if (holder.dateTv != null) {
+                String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
+                        .format(new Date()).toUpperCase(Locale.ROOT);
+                holder.dateTv.setText(currentDate);
+            }
+            applyGlassBusinessHeader(holder.itemView);
+            FramePolishHelper.apply(holder.itemView, position);
         }
 
         private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {
@@ -743,14 +797,6 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             if (textView.getText().toString().trim().isEmpty()) {
                 textView.setVisibility(View.GONE);
             }
-        }
-
-        private int getRandomDarkColor() {
-            Random random = new Random();
-            int red = random.nextInt(128); // Darker shade (0-127)
-            int green = random.nextInt(128); // Darker shade (0-127)
-            int blue = random.nextInt(128); // Darker shade (0-127)
-            return Color.rgb(red, green, blue);
         }
 
         @Override
@@ -807,6 +853,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             list.add(R.layout.layout_video_frame_1);
             list.add(R.layout.layout_video_frame_2);
             list.add(R.layout.layout_video_frame_3);
+            list.add(R.layout.layout_video_frame_glass_1);
+            list.add(R.layout.layout_video_frame_glass_2);
+            list.add(R.layout.layout_video_frame_gradient_1);
+            list.add(R.layout.layout_video_frame_gradient_2);
 
         }
 
@@ -875,6 +925,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             setVisibilityIfEmpty(holder.businessWebsiteTv);
             setVisibilityIfEmpty(holder.businessAddressTv);
             setVisibilityIfEmpty(holder.businessAddressTv);
+            applyGlassBusinessHeader(holder.itemView);
+            FramePolishHelper.apply(holder.itemView, position);
         }
 
         private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {
@@ -887,14 +939,6 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             if (textView.getText().toString().trim().isEmpty()) {
                 textView.setVisibility(View.GONE);
             }
-        }
-
-        private int getRandomDarkColor() {
-            Random random = new Random();
-            int red = random.nextInt(128); // Darker shade (0-127)
-            int green = random.nextInt(128); // Darker shade (0-127)
-            int blue = random.nextInt(128); // Darker shade (0-127)
-            return Color.rgb(red, green, blue);
         }
 
         @Override
@@ -932,6 +976,17 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 businessImgView = itemView.findViewById(R.id.businesslogoImg);
 
             }
+        }
+    }
+
+    private void applyGlassBusinessHeader(View itemView) {
+        if (!com.pt.zyfooai.utils.FrameGlassHelper.isGlassFrame(itemView)) {
+            return;
+        }
+        boolean isBusiness = !preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal");
+        View glassTopPanel = itemView.findViewById(R.id.glassTopPanel);
+        if (glassTopPanel != null) {
+            glassTopPanel.setVisibility(isBusiness ? View.VISIBLE : View.GONE);
         }
     }
 

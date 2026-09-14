@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Phase 1 (Option A): shared frame polish tokens -->
+    <color name="frame_social_strip_bg">#CC1A1A22</color>
+    <color name="frame_text_on_accent_muted">#E8E8EC</color>
+    <color name="frame_date_text">#2D2929</color>
+    <color name="frame_date_border">#22000000</color>
+    <color name="frame_top_shadow">#33000000</color>
+
+    <dimen name="frame_date_corner_radius">8dp</dimen>
+    <dimen name="frame_card_elevation">4dp</dimen>
+    <dimen name="frame_profile_elevation">6dp</dimen>
+    <dimen name="frame_social_corner_radius">12dp</dimen>
+    <dimen name="frame_social_padding_v">4dp</dimen>
+    <dimen name="frame_social_padding_h">10dp</dimen>
+
+    <!-- Phase 2 (Option B): glass strip frames -->
+    <color name="frame_glass_light_fill">#BFFFFFFF</color>
+    <color name="frame_glass_dark_fill">#990F0F14</color>
+    <color name="frame_glass_stroke">#55FFFFFF</color>
+    <color name="frame_glass_text_primary">#1A1A22</color>
+    <color name="frame_glass_text_secondary">#5C5C66</color>
+    <color name="frame_glass_text_on_dark">#F5F5F7</color>
+    <color name="frame_glass_text_muted_on_dark">#C8C8D0</color>
+
+    <dimen name="frame_glass_corner_top">20dp</dimen>
+    <dimen name="frame_glass_corner_pill">24dp</dimen>
+    <dimen name="frame_glass_panel_padding">14dp</dimen>
+
+    <!-- Phase 3 (Option C): premium gradient business frames -->
+    <color name="frame_gradient_purple_start">#965DE9</color>
+    <color name="frame_gradient_purple_end">#6358EE</color>
+    <color name="frame_gradient_purple_bottom_start">#8B52E0</color>
+    <color name="frame_gradient_purple_bottom_end">#4E46C4</color>
+    <color name="frame_gradient_gold_start">#FF8200</color>
+    <color name="frame_gradient_gold_end">#FF0099</color>
+    <color name="frame_gradient_gold_bottom_start">#221A2E</color>
+    <color name="frame_gradient_gold_bottom_end">#120E18</color>
+    <color name="frame_gradient_gold_stroke">#66FFC107</color>
+    <color name="frame_gradient_gold_accent">#FFC107</color>
+    <color name="frame_gradient_text_on_gradient">#FFFFFF</color>
+    <color name="frame_gradient_text_muted">#E8E8F0</color>
+    <color name="frame_gradient_date_bg">#F5FFFFFF</color>
+    <color name="frame_gradient_date_stroke">#33FFFFFF</color>
+    <color name="frame_gradient_social_chip_bg">#33FFFFFF</color>
+
+    <dimen name="frame_gradient_corner_top">18dp</dimen>
+    <dimen name="frame_gradient_panel_padding">14dp</dimen>
+    <dimen name="frame_gradient_top_height">56dp</dimen>
+</resources>

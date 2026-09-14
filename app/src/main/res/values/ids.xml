@@ -2,4 +2,11 @@
 <resources>
     <item name="frame_recycler_setup" type="id" />
     <item name="frame_spacing_applied" type="id" />
+    <item name="frame_seek_bound" type="id" />
+    <item name="glassBottomPanel" type="id" />
+    <item name="glassTopPanel" type="id" />
+    <item name="glassSocialRow" type="id" />
+    <item name="gradientBottomPanel" type="id" />
+    <item name="gradientSocialRow" type="id" />
+    <item name="gradientGoldAccent" type="id" />
 </resources>

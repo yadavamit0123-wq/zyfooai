@@ -1309,7 +1309,8 @@ public class EditorActivity extends AppCompatActivity implements AutofitTextRel.
 
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
-            Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+            Bitmap.Config config = bitmap.getConfig() != null ? bitmap.getConfig() : Bitmap.Config.ARGB_8888;
+            Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), config);
             Canvas canvas = new Canvas(createBitmap);
             canvas.drawColor(-1);
             canvas.drawBitmap(bitmap, 0.0f, 0.0f, (Paint) null);

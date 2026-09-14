@@ -1,0 +1,307 @@
+<!-- Phase 3 Option C: Executive Gold premium business gradient (video) -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/framLay"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <View
+        android:id="@+id/gradientGoldAccent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/bottomBackView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/transImg"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/topLay"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/frame_gradient_top_height"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/bg_frame_gradient_top_gold"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/_10sdp"
+        android:paddingVertical="@dimen/_6sdp">
+
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/businesslogoImg"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/logo_dummy_business_2"
+            app:riv_border_color="@color/frame_gradient_gold_accent"
+            app:riv_border_width="@dimen/_2sdp"
+            app:riv_corner_radius="@dimen/_50sdp"
+            app:riv_mutate_background="true" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <com.pt.zyfooai.View.AutoResizeTextView
+                android:id="@+id/businessNameTv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_semi_bold"
+                android:includeFontPadding="false"
+                android:lines="1"
+                android:text="@string/business_name"
+                android:textColor="@color/frame_gradient_text_on_gradient"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold" />
+
+            <com.pt.zyfooai.View.AutoResizeTextView
+                android:id="@+id/businessDesTv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_regular"
+                android:includeFontPadding="false"
+                android:lines="1"
+                android:text="@string/about_you"
+                android:textColor="@color/frame_gradient_text_muted"
+                android:textSize="@dimen/_9ssp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <com.pt.zyfooai.View.AutoResizeTextView
+                android:id="@+id/businessNumberTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/ic_call"
+                android:drawableTint="@color/frame_gradient_text_on_gradient"
+                android:fontFamily="@font/inter_semi_bold"
+                android:includeFontPadding="false"
+                android:lines="1"
+                android:text="0000000000"
+                android:textColor="@color/frame_gradient_text_on_gradient"
+                android:textSize="@dimen/_8ssp" />
+
+            <com.pt.zyfooai.View.AutoResizeTextView
+                android:id="@+id/businessWebsiteTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/ic_website"
+                android:drawableTint="@color/frame_gradient_gold_accent"
+                android:fontFamily="@font/inter_regular"
+                android:includeFontPadding="false"
+                android:lines="1"
+                android:text="website.com"
+                android:textColor="@color/frame_gradient_gold_accent"
+                android:textSize="@dimen/_8ssp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/dateTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/topLay"
+        android:layout_margin="@dimen/_10sdp"
+        android:background="@drawable/bg_frame_gradient_date"
+        android:fontFamily="@font/inter_semi_bold"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:paddingHorizontal="@dimen/_8sdp"
+        android:paddingVertical="@dimen/_3sdp"
+        android:text="12 JUN"
+        android:textColor="@color/frame_gradient_gold_start"
+        android:textSize="@dimen/_9sdp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/gradientBottomPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/bg_frame_gradient_bottom_gold"
+        android:orientation="vertical"
+        android:padding="@dimen/frame_gradient_panel_padding">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/userNameTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_semi_bold"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/your_name"
+                    android:textColor="@color/frame_gradient_text_on_gradient"
+                    android:textSize="@dimen/_15ssp"
+                    android:textStyle="bold" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/userDesTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/about_you"
+                    android:textColor="@color/frame_gradient_text_muted"
+                    android:textSize="@dimen/_10ssp" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/businessAddressTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_2sdp"
+                    android:drawablePadding="@dimen/_4sdp"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/business_address"
+                    android:textColor="@color/frame_gradient_gold_accent"
+                    android:textSize="@dimen/_10ssp"
+                    app:drawableLeftCompat="@drawable/location_img"
+                    app:drawableTint="@color/frame_gradient_gold_accent" />
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/profileLay"
+                android:layout_width="@dimen/_72sdp"
+                android:layout_height="@dimen/_72sdp"
+                android:layout_marginStart="@dimen/_10sdp">
+
+                <com.makeramen.roundedimageview.RoundedImageView
+                    android:id="@+id/profileImg"
+                    android:layout_width="@dimen/_64sdp"
+                    android:layout_height="@dimen/_64sdp"
+                    android:layout_centerInParent="true"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/logo_dummy_personal_2"
+                    app:riv_border_color="@color/frame_gradient_gold_accent"
+                    app:riv_border_width="@dimen/_3sdp"
+                    app:riv_corner_radius="@dimen/_50sdp"
+                    app:riv_mutate_background="true" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/gradientSocialRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/whatsappLay"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_4sdp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_frame_gradient_social_chip"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/_6sdp"
+                android:paddingVertical="@dimen/_3sdp">
+
+                <ImageView
+                    android:layout_width="@dimen/_12sdp"
+                    android:layout_height="@dimen/_12sdp"
+                    android:src="@drawable/ep_whatsapp_img" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/whatsappTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="0000000000"
+                    android:textColor="@color/frame_gradient_text_on_gradient"
+                    android:textSize="@dimen/_9ssp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/facebookLay"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_4sdp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_frame_gradient_social_chip"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/_6sdp"
+                android:paddingVertical="@dimen/_3sdp">
+
+                <ImageView
+                    android:layout_width="@dimen/_12sdp"
+                    android:layout_height="@dimen/_12sdp"
+                    android:src="@drawable/ep_facebook_img" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/facebookTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="Facebook"
+                    android:textColor="@color/frame_gradient_text_on_gradient"
+                    android:textSize="@dimen/_9ssp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/instagramLay"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_frame_gradient_social_chip"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/_6sdp"
+                android:paddingVertical="@dimen/_3sdp">
+
+                <ImageView
+                    android:layout_width="@dimen/_12sdp"
+                    android:layout_height="@dimen/_12sdp"
+                    android:src="@drawable/ep_instagram_img" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/instagramTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="Instagram"
+                    android:textColor="@color/frame_gradient_text_on_gradient"
+                    android:textSize="@dimen/_9ssp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

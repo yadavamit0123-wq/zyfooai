@@ -20,6 +20,7 @@ public class DownloadProgressDialog {
     private final ProgressBar progressBar;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private boolean isDestroyed;
+    private boolean percentOnlyMode;
 
     public DownloadProgressDialog(Context context) {
         dialog = new Dialog(context);
@@ -38,13 +39,33 @@ public class DownloadProgressDialog {
     }
 
     public void show(String title) {
+        percentOnlyMode = false;
         runSafely(() -> {
             if (isDestroyed) {
                 return;
             }
+            titleView.setVisibility(android.view.View.VISIBLE);
+            messageView.setVisibility(android.view.View.VISIBLE);
             titleView.setText(title);
             messageView.setText("Starting...");
             updateProgress(0, "Starting...");
+            if (!dialog.isShowing()) {
+                dialog.show();
+            }
+        });
+    }
+
+    public void showPercentOnly() {
+        percentOnlyMode = true;
+        runSafely(() -> {
+            if (isDestroyed) {
+                return;
+            }
+            titleView.setVisibility(android.view.View.GONE);
+            messageView.setVisibility(android.view.View.GONE);
+            progressBar.setIndeterminate(false);
+            progressBar.setProgress(0);
+            percentView.setText("0%");
             if (!dialog.isShowing()) {
                 dialog.show();
             }
@@ -60,7 +81,9 @@ public class DownloadProgressDialog {
             progressBar.setIndeterminate(false);
             progressBar.setProgress(safePercent);
             percentView.setText(safePercent + "%");
-            messageView.setText(message);
+            if (!percentOnlyMode) {
+                messageView.setText(message);
+            }
         });
     }
 
