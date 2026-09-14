@@ -35,6 +35,12 @@ public final class FramePolishHelper {
         if (frameRoot == null) {
             return;
         }
+        if (FrameStickerHelper.isStickerFrame(frameRoot)) {
+            applyTypography(frameRoot);
+            PreferenceManager pm = new PreferenceManager(frameRoot.getContext());
+            FrameStickerHelper.apply(frameRoot, frameIndex, pm);
+            return;
+        }
         if (FrameGradientHelper.isGradientFrame(frameRoot)) {
             applyTypography(frameRoot);
             FrameGradientHelper.apply(frameRoot, frameIndex);

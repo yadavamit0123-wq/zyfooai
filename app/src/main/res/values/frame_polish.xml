@@ -47,4 +47,28 @@
     <dimen name="frame_gradient_corner_top">18dp</dimen>
     <dimen name="frame_gradient_panel_padding">14dp</dimen>
     <dimen name="frame_gradient_top_height">56dp</dimen>
+
+    <!-- Phase A (P0): Instagram Add Yours sticker-style frames -->
+    <color name="frame_sticker_chip_fill">#D9FFFFFF</color>
+    <color name="frame_sticker_chip_stroke">#66FFFFFF</color>
+    <color name="frame_sticker_prompt_fill">#CC1A1A22</color>
+    <color name="frame_sticker_prompt_stroke">#44FFFFFF</color>
+    <color name="frame_sticker_nametag_fill">#E6FFFFFF</color>
+    <color name="frame_sticker_gold_fill">#E6121018</color>
+    <color name="frame_sticker_gold_stroke">#FFC107</color>
+    <color name="frame_sticker_text_primary">#1A1A22</color>
+    <color name="frame_sticker_text_secondary">#5C5C66</color>
+    <color name="frame_sticker_text_on_dark">#FFFFFF</color>
+    <color name="frame_sticker_text_muted_on_dark">#C8C8D0</color>
+    <color name="frame_sticker_gold_accent">#FFC107</color>
+    <color name="frame_sticker_gold_border">#E6FFC107</color>
+    <color name="frame_sticker_premium_name">#FFFFFF</color>
+
+    <dimen name="frame_sticker_corner_pill">28dp</dimen>
+    <dimen name="frame_sticker_panel_padding">12dp</dimen>
+    <dimen name="frame_sticker_margin">12dp</dimen>
+
+    <!-- Phase Next: 9:16 Reels / Shorts safe zones -->
+    <dimen name="reels_safe_top">52dp</dimen>
+    <dimen name="reels_safe_bottom">88dp</dimen>
 </resources>

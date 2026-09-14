@@ -97,6 +97,9 @@ public class Constant {
     public static final String INTENT_IS_FROM_NOTIFICATION = "is_from_notification";
     public static final String INTENT_POST_ID = "intent_post_id";
     public static final String INTENT_CATEGORY_ID = "intent_category_id";
+    public static final String SELECTED_CATEGORY_ID = "selected_category_id";
+    public static final String SELECTED_CATEGORY_NAME = "selected_category_name";
+    public static final String SEASONAL_STICKER_JSON = "seasonal_sticker_json";
 
     public static final String PRF_TYPE = "prf_type";
     public static final String PRF_ID = "prf_id";

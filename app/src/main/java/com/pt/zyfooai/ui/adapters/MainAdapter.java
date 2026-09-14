@@ -66,9 +66,13 @@ import com.pt.zyfooai.ui.activities.SubscriptionActivity;
 import com.pt.zyfooai.ui.dialog.FrameCustomizeBottomSheet;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
+import com.pt.zyfooai.utils.FrameSelectionHelper;
+import com.pt.zyfooai.utils.FrameStickerHelper;
+import com.pt.zyfooai.utils.ModernFrameCatalog;
 import com.pt.zyfooai.utils.FooterSizeHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.ReferralHelper;
@@ -346,8 +350,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             );
             holder.videoLayoutBinding.indicator.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
 
-            int random = new Random().nextInt(2) + 1;
-            holder.videoLayoutBinding.recyclerview.scrollToPosition(random);
+            int defaultFrame = FrameSelectionHelper.defaultFeedFramePosition(preferenceManager, new Random());
+            holder.videoLayoutBinding.recyclerview.scrollToPosition(defaultFrame);
 
             View.OnClickListener onClickListener = view -> {
                 holder.videoLayoutBinding.ivWatermark.setImageResource(R.drawable.watermark);
@@ -456,8 +460,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             );
             holder.binding.indicator.attachToRecyclerView(holder.binding.recyclerview);
 
-            int random = new Random().nextInt(3) + 1;
-            holder.binding.recyclerview.scrollToPosition(random);
+            int defaultFrame = FrameSelectionHelper.defaultFeedFramePosition(preferenceManager, new Random());
+            holder.binding.recyclerview.scrollToPosition(defaultFrame);
 
             holder.binding.watermarkLayout.setVisibility(shouldHideWatermark() ? View.GONE : View.VISIBLE);
 
@@ -707,16 +711,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             this.contentArea = contentArea;
             this.frameRecyclerView = frameRecyclerView;
 
-            list.add(R.layout.layout_frame_1_1);
-            list.add(R.layout.layout_frame_1_2);
-            list.add(R.layout.layout_frame_1_3);
-            list.add(R.layout.layout_frame_1_4);
-            list.add(R.layout.layout_frame_1_5);
-            list.add(R.layout.layout_frame_1_6);
-            list.add(R.layout.layout_frame_glass_1);
-            list.add(R.layout.layout_frame_glass_2);
-            list.add(R.layout.layout_frame_gradient_1);
-            list.add(R.layout.layout_frame_gradient_2);
+            list.addAll(ModernFrameCatalog.imageFrameLayouts());
 
         }
 
@@ -749,9 +744,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                     holder.businessAddressTv.setCompoundDrawablesWithIntrinsicBounds(null, null, context.getDrawable(R.drawable.frame_6_call_icon), null);
                 }
 
-                holder.itemView.findViewById(R.id.topLay).setVisibility(View.GONE);
-
-                holder.itemView.findViewById(R.id.whatsappLay).setVisibility(View.GONE);
+                FrameBindHelper.hideIfPresent(holder.itemView, R.id.topLay);
+                FrameBindHelper.hideIfPresent(holder.itemView, R.id.whatsappLay);
 
                 Glide.with(context)
                         .load(preferenceManager.getString(Constant.USER_IMAGE))
@@ -803,37 +797,26 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 //                holder.userNameTv.setTextSize(textSize);
 //            }
 
-            setVisibilityIfEmpty(holder.facebookTv, holder.itemView.findViewById(R.id.facebookLay));
-            setVisibilityIfEmpty(holder.instagramTv, holder.itemView.findViewById(R.id.instagramLay));
-            setVisibilityIfEmpty(holder.whatsapptv, holder.itemView.findViewById(R.id.whatsappLay));
+            FrameBindHelper.setVisibilityIfEmpty(holder.facebookTv, holder.itemView.findViewById(R.id.facebookLay));
+            FrameBindHelper.setVisibilityIfEmpty(holder.instagramTv, holder.itemView.findViewById(R.id.instagramLay));
+            FrameBindHelper.setVisibilityIfEmpty(holder.whatsapptv, holder.itemView.findViewById(R.id.whatsappLay));
 
-            setVisibilityIfEmpty(holder.businessNameTv);
-            setVisibilityIfEmpty(holder.businessDesTv);
-            setVisibilityIfEmpty(holder.businessNumberTv);
-            setVisibilityIfEmpty(holder.businessWebsiteTv);
-            setVisibilityIfEmpty(holder.businessAddressTv);
-            setVisibilityIfEmpty(holder.userDesTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessNameTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessDesTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessNumberTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessWebsiteTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessAddressTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.userDesTv);
 
             if (holder.dateTv != null) {
                 String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
                         .format(new Date()).toUpperCase(Locale.ROOT);
                 holder.dateTv.setText(currentDate);
             }
-            applyGlassBusinessHeader(holder.itemView);
+            applyFrameBusinessHeader(holder.itemView);
             FramePolishHelper.apply(holder.itemView, position);
+            FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
             holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
-        }
-
-        private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {
-            if (textView.getText().toString().trim().isEmpty()) {
-                view.setVisibility(View.GONE);
-            }
-        }
-
-        private void setVisibilityIfEmpty(TextView textView) {
-            if (textView.getText().toString().trim().isEmpty()) {
-                textView.setVisibility(View.GONE);
-            }
         }
 
         @Override
@@ -891,13 +874,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             this.contentArea = contentArea;
             this.frameRecyclerView = frameRecyclerView;
 
-            list.add(R.layout.layout_video_frame_1);
-            list.add(R.layout.layout_video_frame_2);
-            list.add(R.layout.layout_video_frame_3);
-            list.add(R.layout.layout_video_frame_glass_1);
-            list.add(R.layout.layout_video_frame_glass_2);
-            list.add(R.layout.layout_video_frame_gradient_1);
-            list.add(R.layout.layout_video_frame_gradient_2);
+            list.addAll(ModernFrameCatalog.videoFrameLayouts());
 
         }
 
@@ -931,9 +908,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
                 
                 
-                holder.itemView.findViewById(R.id.topLay).setVisibility(View.GONE);
-
-                holder.itemView.findViewById(R.id.whatsappLay).setVisibility(View.GONE);
+                FrameBindHelper.hideIfPresent(holder.itemView, R.id.topLay);
+                FrameBindHelper.hideIfPresent(holder.itemView, R.id.whatsappLay);
 
                 Glide.with(context)
                         .load(preferenceManager.getString(Constant.USER_IMAGE))
@@ -957,30 +933,25 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 GlideDataBinding.bindImage(holder.businessImgView, preferenceManager.getString(Constant.BUSINESS_IMAGE));
             }
 
-            setVisibilityIfEmpty(holder.facebookTv, holder.itemView.findViewById(R.id.facebookLay));
-            setVisibilityIfEmpty(holder.instagramTv, holder.itemView.findViewById(R.id.instagramLay));
-            setVisibilityIfEmpty(holder.whatsapptv, holder.itemView.findViewById(R.id.whatsappLay));
-            setVisibilityIfEmpty(holder.businessNameTv);
-            setVisibilityIfEmpty(holder.businessDesTv);
-            setVisibilityIfEmpty(holder.userDesTv);
-            setVisibilityIfEmpty(holder.businessWebsiteTv);
-            setVisibilityIfEmpty(holder.businessAddressTv);
-            setVisibilityIfEmpty(holder.businessAddressTv);
-            applyGlassBusinessHeader(holder.itemView);
+            FrameBindHelper.setVisibilityIfEmpty(holder.facebookTv, holder.itemView.findViewById(R.id.facebookLay));
+            FrameBindHelper.setVisibilityIfEmpty(holder.instagramTv, holder.itemView.findViewById(R.id.instagramLay));
+            FrameBindHelper.setVisibilityIfEmpty(holder.whatsapptv, holder.itemView.findViewById(R.id.whatsappLay));
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessNameTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessDesTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.userDesTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessWebsiteTv);
+            FrameBindHelper.setVisibilityIfEmpty(holder.businessAddressTv);
+
+            if (holder.dateTv != null) {
+                String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
+                        .format(new Date()).toUpperCase(Locale.ROOT);
+                holder.dateTv.setText(currentDate);
+            }
+
+            applyFrameBusinessHeader(holder.itemView);
             FramePolishHelper.apply(holder.itemView, position);
+            FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
             holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
-        }
-
-        private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {
-            if (textView.getText().toString().trim().isEmpty()) {
-                view.setVisibility(View.GONE);
-            }
-        }
-
-        private void setVisibilityIfEmpty(TextView textView) {
-            if (textView.getText().toString().trim().isEmpty()) {
-                textView.setVisibility(View.GONE);
-            }
         }
 
         @Override
@@ -997,6 +968,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
             TextView businessNameTv, businessDesTv, businessNumberTv, businessWebsiteTv, businessAddressTv;
             TextView userNameTv, userDesTv, facebookTv, instagramTv, whatsapptv;
+            TextView dateTv;
             ImageView userImgView, businessImgView;
 
             public ViewHolder(@NonNull View itemView) {
@@ -1013,6 +985,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 facebookTv = itemView.findViewById(R.id.facebookTv);
                 instagramTv = itemView.findViewById(R.id.instagramTv);
                 whatsapptv = itemView.findViewById(R.id.whatsappTv);
+                dateTv = itemView.findViewById(R.id.dateTv);
 
                 userImgView = itemView.findViewById(R.id.profileImg);
                 businessImgView = itemView.findViewById(R.id.businesslogoImg);
@@ -1021,15 +994,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         }
     }
 
-    private void applyGlassBusinessHeader(View itemView) {
-        if (!com.pt.zyfooai.utils.FrameGlassHelper.isGlassFrame(itemView)) {
-            return;
-        }
-        boolean isBusiness = !preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal");
-        View glassTopPanel = itemView.findViewById(R.id.glassTopPanel);
-        if (glassTopPanel != null) {
-            glassTopPanel.setVisibility(isBusiness ? View.VISIBLE : View.GONE);
-        }
+    private void applyFrameBusinessHeader(View itemView) {
+        FrameStickerHelper.applyBusinessHeader(itemView, preferenceManager);
     }
 
     public void next(ViewHolder viewHolder, int i, View view) {

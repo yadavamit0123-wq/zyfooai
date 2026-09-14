@@ -84,9 +84,9 @@ public class CategorysAdapter extends RecyclerView.Adapter<CategorysAdapter.MyVi
        holder.binding.catName.setText("" + titles.get(position).getName());
 
         holder.binding.getRoot().setOnClickListener(view -> {
-            if (titles.get(position).getName() == "My Business" && preferenceManager.getString(Constant.BUSINESS_ID).equals("0")){
+            if ("My Business".equals(titles.get(position).getName()) && preferenceManager.getString(Constant.BUSINESS_ID).equals("0")){
                 listener.onItemClick(view, position, null);
-            }else if (titles.get(position).getName() == "Political" && preferenceManager.getString(Constant.POLITICAL_ID).equals("0")){
+            }else if ("Political".equals(titles.get(position).getName()) && preferenceManager.getString(Constant.POLITICAL_ID).equals("0")){
                 listener.onItemClick(view, position, null);
             }else {
                 CategorysAdapter recyclerOverLayAdapter = CategorysAdapter.this;

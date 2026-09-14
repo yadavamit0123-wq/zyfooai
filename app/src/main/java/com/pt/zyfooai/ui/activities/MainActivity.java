@@ -195,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
         AnalyticsHelper.logScreen(context, "home");
         billingHelper = new BillingHelper(this);
         handleDeepLinkIntent(getIntent());
+        updateSelectedCategory(selectedCat, "All");
         registerDataObservers();
         loadCategories();
         getData();
@@ -316,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         binding.swipeRefresh.setOnRefreshListener(() -> {
             pageCount = 1;
             loading = false;
-            selectedCat = "-1";
+            updateSelectedCategory("-1", "All");
             showingOfflineCache = false;
             binding.offlineBanner.setVisibility(GONE);
             binding.shimmerViewContainer.setVisibility(VISIBLE);
@@ -345,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
     private void setProfileType(String business) {
         pageCount = 1;
         loading = false;
-        selectedCat = "-1";
+        updateSelectedCategory("-1", "All");
         binding.swipeRefresh.setRefreshing(false);
         binding.shimmerViewContainer.setVisibility(VISIBLE);
         binding.main.setVisibility(GONE);
@@ -604,7 +605,26 @@ public class MainActivity extends AppCompatActivity {
             pendingDeepLinkPostId = intent.getStringExtra(Constant.INTENT_POST_ID);
             String categoryId = intent.getStringExtra(Constant.INTENT_CATEGORY_ID);
             if (categoryId != null && !categoryId.isEmpty()) {
-                selectedCat = categoryId;
+                updateSelectedCategory(categoryId, preferenceManager.getString(Constant.SELECTED_CATEGORY_NAME));
+            }
+        }
+    }
+
+    private void updateSelectedCategory(String categoryId, String categoryName) {
+        selectedCat = categoryId != null && !categoryId.isEmpty() ? categoryId : "-1";
+        preferenceManager.setString(Constant.SELECTED_CATEGORY_ID, selectedCat);
+        preferenceManager.setString(Constant.SELECTED_CATEGORY_NAME,
+                categoryName != null && !categoryName.trim().isEmpty() ? categoryName : "All");
+    }
+
+    private void syncSelectedCategoryNameFromList() {
+        if (categoryItemList.isEmpty()) {
+            return;
+        }
+        for (CategoryItem item : categoryItemList) {
+            if (selectedCat.equals(item.getId())) {
+                preferenceManager.setString(Constant.SELECTED_CATEGORY_NAME, item.getName());
+                return;
             }
         }
     }
@@ -648,6 +668,7 @@ public class MainActivity extends AppCompatActivity {
             int politicalIndex = Math.min(businessIndex + 1, categoryItemList.size());
             categoryItemList.add(politicalIndex, new CategoryItem("-4", "Political", R.drawable.flag_regular, true));
 
+            syncSelectedCategoryNameFromList();
             bindCategoriesAdapter();
         });
 
@@ -795,7 +816,7 @@ public class MainActivity extends AppCompatActivity {
                     Functions.saveUserData(context, userItem);
                     pageCount = 1;
                     loading = false;
-                    selectedCat = "-1";
+                    updateSelectedCategory("-1", "All");
                     binding.swipeRefresh.setRefreshing(false);
                     binding.shimmerViewContainer.setVisibility(VISIBLE);
                     binding.main.setVisibility(GONE);
@@ -1633,7 +1654,7 @@ public class MainActivity extends AppCompatActivity {
                     if (item == null) {
                         return;
                     }
-                    selectedCat = item.getId();
+                    updateSelectedCategory(item.getId(), item.getName());
                     AnalyticsHelper.logCategorySelect(context, selectedCat, item.getName());
                     CreatorAnalyticsHelper.trackCategoryView(context, selectedCat, item.getName());
                     if (adapter != null) {

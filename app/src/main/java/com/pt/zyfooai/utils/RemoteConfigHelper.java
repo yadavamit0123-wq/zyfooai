@@ -14,6 +14,11 @@ public final class RemoteConfigHelper {
     public static final String KEY_NATIVE_AD_INTERVAL = "native_ad_interval";
     public static final String KEY_FORCE_UPDATE = "force_update_version_code";
     public static final String KEY_UPDATE_MESSAGE = "update_message";
+    /** JSON {@link com.pt.zyfooai.model.SeasonalStickerConfig} for festival sticker drops (P2). */
+    public static final String KEY_SEASONAL_STICKER_PACK = "seasonal_sticker_pack";
+
+    private static final String DEFAULT_SEASONAL_STICKER_JSON =
+            "{\"enabled\":false,\"id\":\"\",\"prompt\":\"\",\"start\":\"\",\"end\":\"\",\"force_dark_gold\":true}";
 
     private RemoteConfigHelper() {
     }
@@ -28,6 +33,7 @@ public final class RemoteConfigHelper {
         defaults.put(KEY_NATIVE_AD_INTERVAL, 6L);
         defaults.put(KEY_FORCE_UPDATE, 0L);
         defaults.put(KEY_UPDATE_MESSAGE, "A new version is available. Please update.");
+        defaults.put(KEY_SEASONAL_STICKER_PACK, DEFAULT_SEASONAL_STICKER_JSON);
         config.setDefaultsAsync(defaults);
         config.fetchAndActivate().addOnCompleteListener(task -> {
             PreferenceManager prefs = new PreferenceManager(context);
@@ -43,6 +49,7 @@ public final class RemoteConfigHelper {
             prefs.setInt(Constant.NATIVE_AD_INTERVAL, (int) config.getLong(KEY_NATIVE_AD_INTERVAL));
             prefs.setInt(Constant.FORCE_UPDATE_VERSION, (int) config.getLong(KEY_FORCE_UPDATE));
             prefs.setString(Constant.UPDATE_MESSAGE, config.getString(KEY_UPDATE_MESSAGE));
+            prefs.setString(Constant.SEASONAL_STICKER_JSON, config.getString(KEY_SEASONAL_STICKER_PACK));
             if (onComplete != null) {
                 onComplete.run();
             }

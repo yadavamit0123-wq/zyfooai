@@ -111,6 +111,17 @@
                                 android:visibility="visible">
 
                                 <ImageView
+                                    android:id="@+id/media_blur_bg"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_alignTop="@id/imageP"
+                                    android:layout_alignBottom="@id/imageP"
+                                    android:layout_alignStart="@id/imageP"
+                                    android:layout_alignEnd="@id/imageP"
+                                    android:scaleType="centerCrop"
+                                    android:visibility="gone" />
+
+                                <ImageView
                                     android:id="@+id/imageB"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
@@ -135,7 +146,7 @@
                                     android:layout_alignBottom="@id/imageP"
                                     android:orientation="horizontal"
                                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                                    tools:listitem="@layout/layout_frame_1_1" />
+                                    tools:listitem="@layout/layout_frame_sticker_3" />
 
 
 

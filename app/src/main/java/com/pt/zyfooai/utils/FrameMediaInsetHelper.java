@@ -106,6 +106,12 @@ public final class FrameMediaInsetHelper {
     private static View findMediaView(View contentArea) {
         View mediaView = contentArea.findViewById(R.id.image_post);
         if (mediaView == null) {
+            mediaView = contentArea.findViewById(R.id.imageP);
+        }
+        if (mediaView == null) {
+            mediaView = contentArea.findViewById(R.id.imageB);
+        }
+        if (mediaView == null) {
             mediaView = contentArea.findViewById(R.id.playerview);
         }
         return mediaView;
@@ -133,11 +139,14 @@ public final class FrameMediaInsetHelper {
         int topInset = 0;
         topInset = Math.max(topInset, bottomEdge(frameRoot.findViewById(R.id.topLay)));
         topInset = Math.max(topInset, bottomEdge(frameRoot.findViewById(R.id.glassTopPanel)));
+        topInset = Math.max(topInset, bottomEdge(frameRoot.findViewById(R.id.stickerTopPrompt)));
         return topInset;
     }
 
     private static int measureBottomInset(View frameRoot, int rootHeight) {
         int bottomInset = 0;
+        bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.stickerBottomPanel, rootHeight));
+        bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.stickerNameTag, rootHeight));
         bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.glassBottomPanel, rootHeight));
         bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.gradientBottomPanel, rootHeight));
         bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.gradientSocialRow, rootHeight));
