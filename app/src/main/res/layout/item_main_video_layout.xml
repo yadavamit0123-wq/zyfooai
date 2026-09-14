@@ -38,12 +38,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
+                    <ImageView
+                        android:id="@+id/media_blur_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:importantForAccessibility="no"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
                     <com.google.android.exoplayer2.ui.PlayerView
                         android:id="@+id/playerview"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_alignParentTop="true"
+                        android:background="@android:color/transparent"
                         app:resize_mode="zoom"
+                        app:shutter_background_color="@android:color/transparent"
+                        app:surface_type="texture_view"
                         app:use_controller="false"/>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -156,104 +167,26 @@
             android:id="@+id/swipeFrames"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="@dimen/_120sdp"
+            android:minHeight="@dimen/_80sdp"
             android:paddingHorizontal="@dimen/_10sdp"
             android:paddingVertical="@dimen/_10sdp"
             android:background="@color/white"
             android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/footerSizeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_regular"
-                    android:text="Strip size"
-                    android:textColor="@color/post_meta_text"
-                    android:textSize="@dimen/_9sdp" />
-
-                <SeekBar
-                    android:id="@+id/footerSizeSeekBar"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_8sdp"
-                    android:layout_weight="1"
-                    android:max="100"
-                    android:progress="50" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/frameSizeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_regular"
-                    android:text="@string/frame_size"
-                    android:textColor="@color/post_meta_text"
-                    android:textSize="@dimen/_9sdp" />
-
-                <SeekBar
-                    android:id="@+id/frameSizeSeekBar"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_8sdp"
-                    android:layout_weight="1"
-                    android:max="100"
-                    android:progress="50" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/frameAlphaLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_regular"
-                    android:text="@string/frame_opacity"
-                    android:textColor="@color/post_meta_text"
-                    android:textSize="@dimen/_9sdp" />
-
-                <SeekBar
-                    android:id="@+id/frameAlphaSeekBar"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_8sdp"
-                    android:layout_weight="1"
-                    android:max="100"
-                    android:progress="100" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/updateStripPhotoBtn"
+                android:id="@+id/customizeFrameBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
                 android:background="@drawable/bg_ripple_round"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/_8sdp"
-                android:paddingVertical="@dimen/_4sdp">
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:paddingVertical="@dimen/_5sdp">
 
                 <ImageView
                     android:layout_width="@dimen/_16sdp"
                     android:layout_height="@dimen/_16sdp"
-                    android:src="@drawable/ic_add_images"
+                    android:src="@drawable/ic_edit_"
                     app:tint="@color/g3" />
 
                 <TextView
@@ -261,9 +194,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/_6sdp"
                     android:fontFamily="@font/inter_semi_bold"
-                    android:text="@string/update_strip_photo"
+                    android:text="@string/customize_frame"
                     android:textColor="@color/g3"
-                    android:textSize="@dimen/_9sdp" />
+                    android:textSize="@dimen/_10sdp" />
             </LinearLayout>
 
             <LinearLayout

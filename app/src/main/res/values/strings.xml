@@ -553,9 +553,15 @@
     <string name="tier_business">Business</string>
     <string name="frame_size">Frame size</string>
     <string name="frame_opacity">Frame opacity</string>
+    <string name="media_fit_in_frame">Fit in frame</string>
+    <string name="media_full_bleed">Full bleed</string>
+    <string name="customize_frame_title">Customize frame</string>
+    <string name="customize_frame_subtitle">Adjust strip, frame size, opacity &amp; media fit</string>
+    <string name="customize_frame">Customize</string>
     <string name="update_strip_photo">Update strip photo</string>
     <string name="search_hint">Search categories…</string>
     <string name="search_title">Search</string>
+    <string name="search_no_categories">No categories found</string>
     <string name="download_in_progress">Download in progress</string>
     <string name="download_already_complete">Already downloaded — tap to open</string>
     <string name="watermark_product_unavailable">Purchase unavailable. Check Play Console product setup.</string>

@@ -33,6 +33,31 @@ public class CategorysAdapter extends RecyclerView.Adapter<CategorysAdapter.MyVi
         preferenceManager = new PreferenceManager(context);
     }
 
+    public void updateItems(List<CategoryItem> newItems) {
+        this.titles = newItems;
+        notifyDataSetChanged();
+    }
+
+    public void syncSelectedByCategoryId(String categoryId) {
+        selectedPosition = 0;
+        if (categoryId != null) {
+            for (int i = 0; i < titles.size(); i++) {
+                if (categoryId.equals(titles.get(i).getId())) {
+                    selectedPosition = i;
+                    break;
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    public CategoryItem getItemAt(int position) {
+        if (position >= 0 && position < titles.size()) {
+            return titles.get(position);
+        }
+        return null;
+    }
+
 
     @NonNull
     @Override

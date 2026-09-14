@@ -61,11 +61,12 @@ import com.pt.zyfooai.databinding.AdViewBinding;
 import com.pt.zyfooai.databinding.ItemMainLayoutBinding;
 import com.pt.zyfooai.databinding.ItemMainVideoLayoutBinding;
 import com.pt.zyfooai.model.PostItem;
-import com.pt.zyfooai.ui.activities.EditProfileActivity;
 import com.pt.zyfooai.ui.activities.MainActivity;
 import com.pt.zyfooai.ui.activities.SubscriptionActivity;
+import com.pt.zyfooai.ui.dialog.FrameCustomizeBottomSheet;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
 import com.pt.zyfooai.utils.FooterSizeHelper;
@@ -210,58 +211,68 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 || ReferralHelper.hasReferralReward(context);
     }
 
-    private void setupFrameRecyclerView(RecyclerView recyclerView, RecyclerView.Adapter<?> frameAdapter) {
+    private static String blurSourceForPost(PostItem post) {
+        if (post == null) {
+            return "";
+        }
+        if (post.is_video && post.thumbnail != null && !post.thumbnail.trim().isEmpty()) {
+            return post.thumbnail;
+        }
+        return post.image_url != null ? post.image_url : "";
+    }
+
+    private void setupFrameRecyclerView(
+            RecyclerView recyclerView,
+            RecyclerView.Adapter<?> frameAdapter,
+            View contentArea
+    ) {
         if (recyclerView.getTag(R.id.frame_recycler_setup) == null) {
             recyclerView.setTag(R.id.frame_recycler_setup, Boolean.TRUE);
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setAdapter(frameAdapter);
             new SnapHelperOneByOne().attachToRecyclerView(recyclerView);
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        FrameMediaInsetHelper.apply(contentArea, rv, preferenceManager);
+                    }
+                }
+            });
         } else {
             recyclerView.setAdapter(frameAdapter);
         }
+        recyclerView.post(() -> FrameMediaInsetHelper.apply(contentArea, recyclerView, preferenceManager));
     }
 
     private void setupFooterControls(
             View footer,
             View contentArea,
             RecyclerView frameRecyclerView,
-            android.widget.SeekBar stripSeekBar,
-            android.widget.SeekBar frameSizeSeekBar,
-            android.widget.SeekBar frameAlphaSeekBar,
-            View updatePhotoBtn
+            View customizeFrameBtn
     ) {
         Runnable refreshLayout = () -> {
             FooterSizeHelper.applyFooterScale(footer, preferenceManager);
             FrameOverlayHelper.applyFrameOverlay(frameRecyclerView, preferenceManager);
             FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
+            FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager);
         };
         FooterSizeHelper.applyFooterScale(footer, preferenceManager);
         FrameOverlayHelper.applyFrameOverlay(frameRecyclerView, preferenceManager);
-        if (stripSeekBar != null && stripSeekBar.getTag() == null) {
-            stripSeekBar.setTag(Boolean.TRUE);
-            FooterSizeHelper.bindFooterSizeSeekBar(stripSeekBar, preferenceManager, refreshLayout);
-        }
-        FrameOverlayHelper.bindSeekBar(
-                frameSizeSeekBar,
-                FrameOverlayHelper.FRAME_SCALE,
-                50,
-                preferenceManager,
-                refreshLayout
-        );
-        FrameOverlayHelper.bindSeekBar(
-                frameAlphaSeekBar,
-                FrameOverlayHelper.FRAME_ALPHA,
-                100,
-                preferenceManager,
-                refreshLayout
-        );
-        if (updatePhotoBtn != null && updatePhotoBtn.getTag() == null) {
-            updatePhotoBtn.setTag(Boolean.TRUE);
-            updatePhotoBtn.setOnClickListener(v ->
-                    context.startActivity(new Intent(context, EditProfileActivity.class)));
-        }
         FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
+        FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager);
+
+        if (customizeFrameBtn != null && customizeFrameBtn.getTag(R.id.customize_frame_btn_bound) == null) {
+            customizeFrameBtn.setTag(R.id.customize_frame_btn_bound, Boolean.TRUE);
+            customizeFrameBtn.setOnClickListener(v -> FrameCustomizeBottomSheet.show(
+                    context,
+                    preferenceManager,
+                    footer,
+                    contentArea,
+                    frameRecyclerView
+            ));
+        }
     }
 
 
@@ -311,6 +322,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
             holder.videoLayoutBinding.watermarkLayout.setVisibility(shouldHideWatermark() ? View.GONE : View.VISIBLE);
 
+            holder.videoLayoutBinding.relativeLayout4.setTag(
+                    R.id.media_blur_source_url, blurSourceForPost(list.get(position)));
 
             holder.currentPosition = position;
             FrameOverlayHelper.prepareContentForLayout(holder.videoLayoutBinding.mainLayOut);
@@ -318,14 +331,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                     holder.videoLayoutBinding.swipeFrames,
                     holder.videoLayoutBinding.relativeLayout4,
                     holder.videoLayoutBinding.recyclerview,
-                    holder.videoLayoutBinding.footerSizeSeekBar,
-                    holder.videoLayoutBinding.frameSizeSeekBar,
-                    holder.videoLayoutBinding.frameAlphaSeekBar,
-                    holder.videoLayoutBinding.updateStripPhotoBtn
+                    holder.videoLayoutBinding.customizeFrameBtn
             );
 
-            CustomPagerVideoAdapter customPagerAdapter = new CustomPagerVideoAdapter(list.get(position).image_url);
-            setupFrameRecyclerView(holder.videoLayoutBinding.recyclerview, customPagerAdapter);
+            CustomPagerVideoAdapter customPagerAdapter = new CustomPagerVideoAdapter(
+                    list.get(position).image_url,
+                    holder.videoLayoutBinding.relativeLayout4,
+                    holder.videoLayoutBinding.recyclerview
+            );
+            setupFrameRecyclerView(
+                    holder.videoLayoutBinding.recyclerview,
+                    customPagerAdapter,
+                    holder.videoLayoutBinding.relativeLayout4
+            );
             holder.videoLayoutBinding.indicator.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
 
             int random = new Random().nextInt(2) + 1;
@@ -354,11 +372,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 //            holder.binding.ivPremium.setVisibility(View.GONE);
             Log.d("farukh------------->", "updatePlayer: " + list.get(position).image_url);
 
-            if (!preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal")) {
+            holder.binding.relativeLayout4.setTag(
+                    R.id.media_blur_source_url, blurSourceForPost(list.get(position)));
+
+            if (!FrameMediaInsetHelper.isFitInFrame(preferenceManager)
+                    && !preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal")) {
                 ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.binding.imagePost.getLayoutParams();
                 int topMarginInPx = (int) TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP,
-                        55, // Replace 16 with your desired margin value in dp
+                        55,
                         holder.itemView.getResources().getDisplayMetrics()
                 );
                 layoutParams.topMargin = topMarginInPx;
@@ -370,10 +392,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                     holder.binding.swipeFrames,
                     holder.binding.relativeLayout4,
                     holder.binding.recyclerview,
-                    holder.binding.footerSizeSeekBar,
-                    holder.binding.frameSizeSeekBar,
-                    holder.binding.frameAlphaSeekBar,
-                    holder.binding.updateStripPhotoBtn
+                    holder.binding.customizeFrameBtn
             );
 
             holder.binding.mainLayOut.post(() -> {
@@ -412,6 +431,11 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                                     holder.binding.relativeLayout4,
                                     holder.binding.swipeFrames
                             );
+                            FrameMediaInsetHelper.apply(
+                                    holder.binding.relativeLayout4,
+                                    holder.binding.recyclerview,
+                                    preferenceManager
+                            );
 
                             return false; // allow Glide to set image
                         }
@@ -420,8 +444,16 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 //            GlideDataBinding.bindImage(holder.binding.imagePost, list.get(position).image_url);
 
 
-            CustomPagerAdapter customPagerAdapter = new CustomPagerAdapter(list.get(position).image_url);
-            setupFrameRecyclerView(holder.binding.recyclerview, customPagerAdapter);
+            CustomPagerAdapter customPagerAdapter = new CustomPagerAdapter(
+                    list.get(position).image_url,
+                    holder.binding.relativeLayout4,
+                    holder.binding.recyclerview
+            );
+            setupFrameRecyclerView(
+                    holder.binding.recyclerview,
+                    customPagerAdapter,
+                    holder.binding.relativeLayout4
+            );
             holder.binding.indicator.attachToRecyclerView(holder.binding.recyclerview);
 
             int random = new Random().nextInt(3) + 1;
@@ -667,9 +699,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
         String item_url;
         List<Integer> list = new ArrayList<>();
+        private final View contentArea;
+        private final RecyclerView frameRecyclerView;
 
-        public CustomPagerAdapter(String str) {
+        public CustomPagerAdapter(String str, View contentArea, RecyclerView frameRecyclerView) {
             this.item_url = str;
+            this.contentArea = contentArea;
+            this.frameRecyclerView = frameRecyclerView;
 
             list.add(R.layout.layout_frame_1_1);
             list.add(R.layout.layout_frame_1_2);
@@ -785,6 +821,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             }
             applyGlassBusinessHeader(holder.itemView);
             FramePolishHelper.apply(holder.itemView, position);
+            holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
         }
 
         private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {
@@ -846,9 +883,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
         String item_url;
         List<Integer> list = new ArrayList<>();
+        private final View contentArea;
+        private final RecyclerView frameRecyclerView;
 
-        public CustomPagerVideoAdapter(String str) {
+        public CustomPagerVideoAdapter(String str, View contentArea, RecyclerView frameRecyclerView) {
             this.item_url = str;
+            this.contentArea = contentArea;
+            this.frameRecyclerView = frameRecyclerView;
 
             list.add(R.layout.layout_video_frame_1);
             list.add(R.layout.layout_video_frame_2);
@@ -927,6 +968,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             setVisibilityIfEmpty(holder.businessAddressTv);
             applyGlassBusinessHeader(holder.itemView);
             FramePolishHelper.apply(holder.itemView, position);
+            holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
         }
 
         private <T extends View> void setVisibilityIfEmpty(TextView textView, T view) {

@@ -9,4 +9,7 @@
     <item name="gradientBottomPanel" type="id" />
     <item name="gradientSocialRow" type="id" />
     <item name="gradientGoldAccent" type="id" />
+    <item name="frame_media_inset_listener" type="id" />
+    <item name="media_blur_source_url" type="id" />
+    <item name="customize_frame_btn_bound" type="id" />
 </resources>

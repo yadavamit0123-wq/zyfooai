@@ -127,6 +127,57 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
 
+                <LinearLayout
+                    android:id="@+id/toolbarSearchExpanded"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/_4sdp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/closeSearchButton"
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:background="@drawable/bg_ripple_round"
+                        android:contentDescription="@string/search_title"
+                        android:padding="@dimen/_6sdp"
+                        android:src="@drawable/back_img" />
+
+                    <EditText
+                        android:id="@+id/searchInputExpanded"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:layout_marginHorizontal="@dimen/_6sdp"
+                        android:layout_weight="1"
+                        android:background="@drawable/full_rounded_bg"
+                        android:backgroundTint="@color/white"
+                        android:drawableStart="@drawable/ic_search"
+                        android:drawablePadding="@dimen/_6sdp"
+                        android:fontFamily="@font/inter_regular"
+                        android:hint="@string/search_hint"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingHorizontal="@dimen/_10sdp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/post_meta_text_secondary"
+                        android:textSize="@dimen/_11sdp" />
+
+                    <ImageView
+                        android:id="@+id/clearSearchButton"
+                        android:layout_width="@dimen/_26sdp"
+                        android:layout_height="@dimen/_26sdp"
+                        android:background="@drawable/bg_ripple_round"
+                        android:contentDescription="@string/search_hint"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_close2"
+                        android:visibility="gone"
+                        app:tint="@color/black" />
+
+                </LinearLayout>
+
             </RelativeLayout>
 
 
@@ -204,6 +255,17 @@
                             app:spanCount="3"
                             tools:listitem="@layout/item_category" />
 
+                        <TextView
+                            android:id="@+id/categorySearchEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/inter_regular"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_8sdp"
+                            android:text="@string/search_no_categories"
+                            android:textColor="@color/post_meta_text_secondary"
+                            android:textSize="@dimen/_11sdp"
+                            android:visibility="gone" />
 
                     </LinearLayout>
 

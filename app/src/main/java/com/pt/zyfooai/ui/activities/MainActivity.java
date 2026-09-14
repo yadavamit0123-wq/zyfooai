@@ -29,20 +29,21 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
@@ -113,6 +114,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -136,6 +138,9 @@ public class MainActivity extends AppCompatActivity {
     private Dialog dialogPremium;
     LinearLayoutManager layoutManager;
     List<CategoryItem> categoryItemList = new ArrayList<>();
+    private final List<CategoryItem> displayedCategoryList = new ArrayList<>();
+    private CategorysAdapter categoryAdapter;
+    private boolean inlineSearchExpanded;
     NetworkConnectivity networkConnectivity;
     ImageView remove;
     //    ImageView premium;
@@ -150,25 +155,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean showingOfflineCache;
     private BillingHelper billingHelper;
     private PostItem lastActionPostItem;
-    private final ActivityResultLauncher<Intent> searchLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() != RESULT_OK || result.getData() == null) {
-                    return;
-                }
-                selectedCat = result.getData().getStringExtra(Constant.INTENT_CATEGORY_ID);
-                if (selectedCat == null) {
-                    selectedCat = "-1";
-                }
-                if (adapter != null) {
-                    adapter.stopAndClearPlayer();
-                }
-                pageCount = 1;
-                loading = false;
-                binding.shimmerViewContainer.setVisibility(VISIBLE);
-                binding.main.setVisibility(GONE);
-                getData();
-            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -247,10 +233,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SettingActivity.class));
         });
 
-        binding.searchActionButton.setOnClickListener(view -> {
-            if (clickDebouncer.shouldIgnore()) return;
-            searchLauncher.launch(new Intent(this, SearchActivity.class));
-        });
+        setupInlineSearch();
 
         binding.createActionButton.setOnClickListener(view -> {
             if (clickDebouncer.shouldIgnore()) return;
@@ -665,30 +648,7 @@ public class MainActivity extends AppCompatActivity {
             int politicalIndex = Math.min(businessIndex + 1, categoryItemList.size());
             categoryItemList.add(politicalIndex, new CategoryItem("-4", "Political", R.drawable.flag_regular, true));
 
-            binding.rvCategory.setAdapter(new CategorysAdapter(context, categoryItemList, new AdapterClickListener() {
-                @Override
-                public void onItemClick(View view, int pos, Object object) {
-                    selectedCat = categoryItemList.get(pos).getId();
-                    AnalyticsHelper.logCategorySelect(context, selectedCat, categoryItemList.get(pos).getName());
-                    CreatorAnalyticsHelper.trackCategoryView(context, selectedCat, categoryItemList.get(pos).getName());
-                    if (adapter != null) {
-                        adapter.stopAndClearPlayer();
-                    }
-                    if ("My Business".equals(categoryItemList.get(pos).getName())
-                            && preferenceManager.getString(Constant.BUSINESS_ID).equals("0")) {
-                        updateBusinessID("business");
-                    } else if ("Political".equals(categoryItemList.get(pos).getName())
-                            && preferenceManager.getString(Constant.POLITICAL_ID).equals("0")) {
-                        updateBusinessID("political");
-                    } else {
-                        pageCount = 1;
-                        loading = false;
-                        binding.shimmerViewContainer.setVisibility(VISIBLE);
-                        binding.main.setVisibility(GONE);
-                        getData();
-                    }
-                }
-            }));
+            bindCategoriesAdapter();
         });
 
         homeViewModel.observeDailyPosts().observe(this, postItems -> {
@@ -1606,8 +1566,159 @@ public class MainActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(shareIntent, getString(R.string.share_txt) + getPackageName()));
     }
 
+    private void setupInlineSearch() {
+        binding.searchActionButton.setOnClickListener(view -> {
+            if (clickDebouncer.shouldIgnore()) return;
+            expandInlineSearch();
+        });
+
+        binding.closeSearchButton.setOnClickListener(view -> collapseInlineSearch());
+
+        binding.clearSearchButton.setOnClickListener(view -> {
+            binding.searchInputExpanded.setText("");
+            binding.searchInputExpanded.requestFocus();
+        });
+
+        binding.searchInputExpanded.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                binding.clearSearchButton.setVisibility(s.length() > 0 ? VISIBLE : GONE);
+                applyCategoryFilter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+    private void expandInlineSearch() {
+        inlineSearchExpanded = true;
+        binding.toolbarSearchExpanded.setVisibility(VISIBLE);
+        binding.linearLayout11.setVisibility(GONE);
+        binding.searchActionButton.setVisibility(GONE);
+        binding.createActionButton.setVisibility(GONE);
+        binding.circularImageView.setVisibility(GONE);
+        binding.searchInputExpanded.requestFocus();
+        showKeyboard(binding.searchInputExpanded);
+        applyCategoryFilter(binding.searchInputExpanded.getText().toString());
+    }
+
+    private void collapseInlineSearch() {
+        if (!inlineSearchExpanded) {
+            return;
+        }
+        inlineSearchExpanded = false;
+        binding.toolbarSearchExpanded.setVisibility(GONE);
+        binding.linearLayout11.setVisibility(VISIBLE);
+        binding.searchActionButton.setVisibility(VISIBLE);
+        binding.createActionButton.setVisibility(VISIBLE);
+        binding.circularImageView.setVisibility(VISIBLE);
+        binding.searchInputExpanded.setText("");
+        binding.clearSearchButton.setVisibility(GONE);
+        hideKeyboard(binding.searchInputExpanded);
+        applyCategoryFilter("");
+    }
+
+    private void bindCategoriesAdapter() {
+        if (categoryAdapter == null) {
+            categoryAdapter = new CategorysAdapter(context, displayedCategoryList, new AdapterClickListener() {
+                @Override
+                public void onItemClick(View view, int pos, Object object) {
+                    CategoryItem item = categoryAdapter.getItemAt(pos);
+                    if (item == null) {
+                        return;
+                    }
+                    selectedCat = item.getId();
+                    AnalyticsHelper.logCategorySelect(context, selectedCat, item.getName());
+                    CreatorAnalyticsHelper.trackCategoryView(context, selectedCat, item.getName());
+                    if (adapter != null) {
+                        adapter.stopAndClearPlayer();
+                    }
+                    if ("My Business".equals(item.getName())
+                            && preferenceManager.getString(Constant.BUSINESS_ID).equals("0")) {
+                        updateBusinessID("business");
+                    } else if ("Political".equals(item.getName())
+                            && preferenceManager.getString(Constant.POLITICAL_ID).equals("0")) {
+                        updateBusinessID("political");
+                    } else {
+                        pageCount = 1;
+                        loading = false;
+                        binding.shimmerViewContainer.setVisibility(VISIBLE);
+                        binding.main.setVisibility(GONE);
+                        getData();
+                    }
+                    if (inlineSearchExpanded) {
+                        collapseInlineSearch();
+                        if (categoryAdapter != null) {
+                            categoryAdapter.syncSelectedByCategoryId(selectedCat);
+                        }
+                    }
+                }
+            });
+            binding.rvCategory.setAdapter(categoryAdapter);
+        }
+        applyCategoryFilter(inlineSearchExpanded
+                ? binding.searchInputExpanded.getText().toString()
+                : "");
+    }
+
+    private void applyCategoryFilter(String query) {
+        displayedCategoryList.clear();
+        if (query == null || query.trim().isEmpty()) {
+            displayedCategoryList.addAll(categoryItemList);
+        } else {
+            String lower = query.toLowerCase(Locale.getDefault());
+            for (CategoryItem item : categoryItemList) {
+                if (item.getName() != null
+                        && item.getName().toLowerCase(Locale.getDefault()).contains(lower)) {
+                    displayedCategoryList.add(item);
+                }
+            }
+        }
+        if (categoryAdapter != null) {
+            categoryAdapter.updateItems(displayedCategoryList);
+            categoryAdapter.syncSelectedByCategoryId(selectedCat);
+        }
+        updateCategorySearchEmptyState();
+    }
+
+    private void updateCategorySearchEmptyState() {
+        if (binding.categorySearchEmpty == null) {
+            return;
+        }
+        boolean showEmpty = inlineSearchExpanded
+                && !binding.searchInputExpanded.getText().toString().trim().isEmpty()
+                && displayedCategoryList.isEmpty();
+        binding.categorySearchEmpty.setVisibility(showEmpty ? VISIBLE : GONE);
+        binding.rvCategory.setVisibility(showEmpty ? GONE : VISIBLE);
+    }
+
+    private void showKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+    private void hideKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     @Override
     public void onBackPressed() {
+        if (inlineSearchExpanded) {
+            collapseInlineSearch();
+            return;
+        }
+
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         if (fragmentManager.getBackStackEntryCount() > 0) {
