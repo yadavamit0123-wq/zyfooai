@@ -144,14 +144,14 @@
 
             <RelativeLayout
                 android:id="@+id/profileLay"
-                android:layout_width="@dimen/_72sdp"
-                android:layout_height="@dimen/_72sdp"
+                android:layout_width="@dimen/frame_footer_profile_outer_wide"
+                android:layout_height="@dimen/frame_footer_profile_outer_wide"
                 android:layout_marginEnd="@dimen/_10sdp">
 
                 <com.makeramen.roundedimageview.RoundedImageView
                     android:id="@+id/profileImg"
-                    android:layout_width="@dimen/_64sdp"
-                    android:layout_height="@dimen/_64sdp"
+                    android:layout_width="@dimen/frame_footer_profile_img_wide"
+                    android:layout_height="@dimen/frame_footer_profile_img_wide"
                     android:layout_centerInParent="true"
                     android:scaleType="centerCrop"
                     android:src="@drawable/logo_dummy_personal_2"

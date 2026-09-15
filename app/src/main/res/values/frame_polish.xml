@@ -11,8 +11,22 @@
     <dimen name="frame_card_elevation">4dp</dimen>
     <dimen name="frame_profile_elevation">6dp</dimen>
     <dimen name="frame_social_corner_radius">12dp</dimen>
-    <dimen name="frame_social_padding_v">4dp</dimen>
-    <dimen name="frame_social_padding_h">10dp</dimen>
+    <dimen name="frame_social_padding_v">3dp</dimen>
+    <dimen name="frame_social_padding_h">8dp</dimen>
+
+    <!-- Compact frame footer — less media covered, cleaner strip -->
+    <dimen name="frame_footer_profile_outer">44dp</dimen>
+    <dimen name="frame_footer_profile_img">38dp</dimen>
+    <dimen name="frame_footer_profile_outer_wide">58dp</dimen>
+    <dimen name="frame_footer_profile_img_wide">50dp</dimen>
+    <dimen name="frame_footer_social_gap">4dp</dimen>
+
+    <!-- Feed action strip below the post card -->
+    <dimen name="feed_footer_min_height">58dp</dimen>
+    <dimen name="feed_footer_padding_v">6dp</dimen>
+    <dimen name="feed_footer_padding_h">8dp</dimen>
+    <dimen name="feed_footer_btn_height">26dp</dimen>
+    <dimen name="feed_footer_fallback_height">96dp</dimen>
 
     <!-- Phase 2 (Option B): glass strip frames -->
     <color name="frame_glass_light_fill">#BFFFFFFF</color>
@@ -25,7 +39,7 @@
 
     <dimen name="frame_glass_corner_top">20dp</dimen>
     <dimen name="frame_glass_corner_pill">24dp</dimen>
-    <dimen name="frame_glass_panel_padding">14dp</dimen>
+    <dimen name="frame_glass_panel_padding">9dp</dimen>
 
     <!-- Phase 3 (Option C): premium gradient business frames -->
     <color name="frame_gradient_purple_start">#965DE9</color>
@@ -45,7 +59,7 @@
     <color name="frame_gradient_social_chip_bg">#33FFFFFF</color>
 
     <dimen name="frame_gradient_corner_top">18dp</dimen>
-    <dimen name="frame_gradient_panel_padding">14dp</dimen>
+    <dimen name="frame_gradient_panel_padding">9dp</dimen>
     <dimen name="frame_gradient_top_height">56dp</dimen>
 
     <!-- Phase A (P0): Instagram Add Yours sticker-style frames -->
@@ -65,8 +79,8 @@
     <color name="frame_sticker_premium_name">#FFFFFF</color>
 
     <dimen name="frame_sticker_corner_pill">28dp</dimen>
-    <dimen name="frame_sticker_panel_padding">12dp</dimen>
-    <dimen name="frame_sticker_margin">12dp</dimen>
+    <dimen name="frame_sticker_panel_padding">8dp</dimen>
+    <dimen name="frame_sticker_margin">8dp</dimen>
 
     <!-- Phase Next: 9:16 Reels / Shorts safe zones -->
     <dimen name="reels_safe_top">52dp</dimen>

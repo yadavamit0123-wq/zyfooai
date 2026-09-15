@@ -121,8 +121,8 @@
 
         <ImageView
             android:id="@+id/stickerQrCode"
-            android:layout_width="@dimen/_72sdp"
-            android:layout_height="@dimen/_72sdp"
+            android:layout_width="@dimen/frame_footer_profile_outer_wide"
+            android:layout_height="@dimen/frame_footer_profile_outer_wide"
             android:background="@color/white"
             android:contentDescription="@string/sticker_scan_to_connect"
             android:padding="@dimen/_4sdp"

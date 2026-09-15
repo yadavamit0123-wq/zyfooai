@@ -89,7 +89,7 @@ public final class FrameOverlayHelper {
         contentArea.post(() -> {
             int footerHeight = footer.getHeight();
             if (footerHeight <= 0) {
-                footerHeight = contentArea.getResources().getDimensionPixelSize(R.dimen._120sdp);
+                footerHeight = contentArea.getResources().getDimensionPixelSize(R.dimen.feed_footer_fallback_height);
             }
             int available = contentArea.getHeight();
             if (available <= 0) {

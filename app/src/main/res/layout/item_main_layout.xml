@@ -104,9 +104,9 @@
             android:id="@+id/swipeFrames"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="@dimen/_80sdp"
-            android:paddingHorizontal="@dimen/_10sdp"
-            android:paddingVertical="@dimen/_10sdp"
+            android:minHeight="@dimen/feed_footer_min_height"
+            android:paddingHorizontal="@dimen/feed_footer_padding_h"
+            android:paddingVertical="@dimen/feed_footer_padding_v"
             android:background="@color/white"
             android:orientation="vertical">
 
@@ -117,8 +117,8 @@
                 android:background="@drawable/bg_ripple_round"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/_10sdp"
-                android:paddingVertical="@dimen/_5sdp">
+                android:paddingHorizontal="@dimen/_8sdp"
+                android:paddingVertical="@dimen/_3sdp">
 
                 <ImageView
                     android:layout_width="@dimen/_16sdp"
@@ -209,9 +209,9 @@
                 android:id="@+id/btnLay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_marginTop="@dimen/_3sdp"
                 android:orientation="horizontal"
-                android:paddingTop="@dimen/_3sdp">
+                android:paddingTop="@dimen/_2sdp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -225,14 +225,14 @@
                         android:id="@+id/edit_Btn"
                         android:layout_weight="1"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_30sdp"
+                        android:layout_height="@dimen/feed_footer_btn_height"
                         android:gravity="center"
                         android:orientation="horizontal">
 
                         <ImageView
                             android:layout_marginStart="@dimen/_10sdp"
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
+                            android:layout_width="@dimen/_18sdp"
+                            android:layout_height="@dimen/_18sdp"
                             android:padding="@dimen/_2sdp"
                             android:src="@drawable/ic_pen_regular"
                             app:tint="@color/white" />
@@ -256,7 +256,7 @@
                         android:id="@+id/downloadBtn"
                         android:layout_weight="0.8"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_30sdp"
+                        android:layout_height="@dimen/feed_footer_btn_height"
                         android:layout_marginHorizontal="@dimen/_10sdp"
                         android:gravity="center"
                         android:orientation="horizontal">
@@ -286,7 +286,7 @@
                         android:id="@+id/shareBtn"
                         android:layout_weight="1"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_30sdp"
+                        android:layout_height="@dimen/feed_footer_btn_height"
                         android:gravity="center"
                         android:orientation="horizontal">
 

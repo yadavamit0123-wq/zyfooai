@@ -11,9 +11,10 @@ import com.pt.zyfooai.R;
 public final class FooterSizeHelper {
 
     public static final String FOOTER_SIZE_SCALE = "footer_size_scale";
-    private static final float MIN_SCALE = 0.75f;
-    private static final float MAX_SCALE = 1.35f;
-    private static final int DEFAULT_PROGRESS = 50;
+    private static final float MIN_SCALE = 0.70f;
+    private static final float MAX_SCALE = 1.20f;
+    /** Default ~0.86 scale — slimmer strip, more media visible. */
+    private static final int DEFAULT_PROGRESS = 32;
 
     private FooterSizeHelper() {
     }
@@ -28,8 +29,8 @@ public final class FooterSizeHelper {
             return;
         }
         float scale = getScale(preferenceManager);
-        int horizontal = swipeFrames.getResources().getDimensionPixelSize(R.dimen._10sdp);
-        int vertical = swipeFrames.getResources().getDimensionPixelSize(R.dimen._10sdp);
+        int horizontal = swipeFrames.getResources().getDimensionPixelSize(R.dimen.feed_footer_padding_h);
+        int vertical = swipeFrames.getResources().getDimensionPixelSize(R.dimen.feed_footer_padding_v);
         swipeFrames.setPadding(
                 Math.round(horizontal * scale),
                 Math.round(vertical * scale),
@@ -37,11 +38,13 @@ public final class FooterSizeHelper {
                 Math.round(vertical * scale)
         );
 
-        scaleText(swipeFrames.findViewById(R.id.footerSizeLabel), 10, scale);
-        scaleViewHeight(swipeFrames.findViewById(R.id.btnLay), 30, scale);
-        scaleViewHeight(swipeFrames.findViewById(R.id.edit_Btn), 30, scale);
-        scaleViewHeight(swipeFrames.findViewById(R.id.downloadBtn), 30, scale);
-        scaleViewHeight(swipeFrames.findViewById(R.id.shareBtn), 30, scale);
+        float btnBaseDp = swipeFrames.getResources().getDimension(R.dimen.feed_footer_btn_height)
+                / swipeFrames.getResources().getDisplayMetrics().density;
+        scaleText(swipeFrames.findViewById(R.id.footerSizeLabel), 9, scale);
+        scaleViewHeight(swipeFrames.findViewById(R.id.btnLay), btnBaseDp, scale);
+        scaleViewHeight(swipeFrames.findViewById(R.id.edit_Btn), btnBaseDp, scale);
+        scaleViewHeight(swipeFrames.findViewById(R.id.downloadBtn), btnBaseDp, scale);
+        scaleViewHeight(swipeFrames.findViewById(R.id.shareBtn), btnBaseDp, scale);
     }
 
     public static void bindFooterSizeSeekBar(SeekBar seekBar, PreferenceManager preferenceManager, Runnable onChanged) {
