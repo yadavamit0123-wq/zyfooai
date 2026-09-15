@@ -95,9 +95,17 @@ public final class FrameMediaInsetHelper {
         toggle.setChecked(isFitInFrame(preferenceManager));
         toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             preferenceManager.setBoolean(MEDIA_FIT_IN_FRAME, isChecked);
-            apply(contentArea, frameRecyclerView, preferenceManager);
-            if (onChanged != null) {
-                onChanged.run();
+            Runnable applyAfterLayout = () -> {
+                apply(contentArea, frameRecyclerView, preferenceManager);
+                if (onChanged != null) {
+                    onChanged.run();
+                }
+            };
+            if (isChecked) {
+                frameRecyclerView.post(() -> frameRecyclerView.post(applyAfterLayout));
+            } else {
+                clearInset(contentArea, findMediaView(contentArea));
+                contentArea.post(applyAfterLayout);
             }
         });
         apply(contentArea, frameRecyclerView, preferenceManager);
@@ -214,8 +222,42 @@ public final class FrameMediaInsetHelper {
     }
 
     private static void clearInset(View contentArea, View mediaView) {
-        applyInset(mediaView, 0, 0, false);
+        if (mediaView != null) {
+            resetMediaLayout(mediaView);
+        }
         syncBlurBackground(contentArea, 0, 0, false);
+    }
+
+    private static void resetMediaLayout(View mediaView) {
+        ViewGroup.LayoutParams params = mediaView.getLayoutParams();
+        if (params instanceof RelativeLayout.LayoutParams) {
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) params;
+            layoutParams.topMargin = 0;
+            layoutParams.bottomMargin = 0;
+            layoutParams.leftMargin = 0;
+            layoutParams.rightMargin = 0;
+            layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END);
+            mediaView.setLayoutParams(layoutParams);
+        } else if (params instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) params;
+            layoutParams.topMargin = 0;
+            layoutParams.bottomMargin = 0;
+            layoutParams.leftMargin = 0;
+            layoutParams.rightMargin = 0;
+            mediaView.setLayoutParams(layoutParams);
+        }
+        if (mediaView instanceof ImageView) {
+            ((ImageView) mediaView).setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else if (mediaView instanceof PlayerView) {
+            PlayerView playerView = (PlayerView) mediaView;
+            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+            playerView.setShutterBackgroundColor(Color.BLACK);
+            playerView.setBackgroundColor(Color.BLACK);
+        }
     }
 
     private static void syncBlurBackground(View contentArea, int topInset, int bottomInset, boolean show) {

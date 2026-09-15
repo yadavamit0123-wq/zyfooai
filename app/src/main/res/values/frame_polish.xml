@@ -15,10 +15,10 @@
     <dimen name="frame_social_padding_h">8dp</dimen>
 
     <!-- Compact frame footer — less media covered, cleaner strip -->
-    <dimen name="frame_footer_profile_outer">44dp</dimen>
-    <dimen name="frame_footer_profile_img">38dp</dimen>
-    <dimen name="frame_footer_profile_outer_wide">58dp</dimen>
-    <dimen name="frame_footer_profile_img_wide">50dp</dimen>
+    <dimen name="frame_footer_profile_outer">54dp</dimen>
+    <dimen name="frame_footer_profile_img">48dp</dimen>
+    <dimen name="frame_footer_profile_outer_wide">68dp</dimen>
+    <dimen name="frame_footer_profile_img_wide">60dp</dimen>
     <dimen name="frame_footer_social_gap">4dp</dimen>
 
     <!-- Feed action strip below the post card -->

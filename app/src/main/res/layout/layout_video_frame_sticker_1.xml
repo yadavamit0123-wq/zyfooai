@@ -55,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="@dimen/frame_sticker_margin"
+        android:layout_margin="0dp"
         android:background="@drawable/bg_frame_sticker_chip"
         android:gravity="center_vertical"
         android:orientation="vertical"

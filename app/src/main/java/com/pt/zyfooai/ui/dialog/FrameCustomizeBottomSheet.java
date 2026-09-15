@@ -52,7 +52,8 @@ public final class FrameCustomizeBottomSheet {
             FooterSizeHelper.applyFooterScale(footer, preferenceManager);
             FrameOverlayHelper.applyFrameOverlay(frameRecyclerView, preferenceManager);
             FooterSizeHelper.fitContentAboveFooter(contentArea, footer);
-            FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager);
+            frameRecyclerView.post(() ->
+                    FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
         };
 
         FooterSizeHelper.bindFooterSizeSeekBar(stripSeekBar, preferenceManager, refreshPreview);

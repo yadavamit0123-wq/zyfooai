@@ -14,13 +14,11 @@ public final class FrameSelectionHelper {
     public static final String USER_SELECTED_FRAME_INDEX = "user_selected_frame_index";
     public static final int NO_USER_SELECTION = -1;
 
-    public static final int STICKER_FRAME_COUNT = 8;
+    /** Personal default: glass chip frame. */
+    public static final int DEFAULT_PERSONAL_STICKER_INDEX = ModernFrameCatalog.INDEX_STICKER_GLASS_CHIP;
 
-    /** Personal default: minimal glass chip (sticker 3). */
-    public static final int DEFAULT_PERSONAL_STICKER_INDEX = 2;
-
-    /** Dark gold premium sticker (sticker 5). */
-    public static final int DEFAULT_DARK_GOLD_STICKER_INDEX = 4;
+    /** Business / seasonal default: primary sticker prompt frame. */
+    public static final int DEFAULT_BUSINESS_STICKER_INDEX = ModernFrameCatalog.INDEX_STICKER_PROMPT;
 
     private FrameSelectionHelper() {
     }
@@ -46,13 +44,15 @@ public final class FrameSelectionHelper {
 
     public static int defaultFeedFramePosition(PreferenceManager preferenceManager, Random random) {
         if (SeasonalStickerHelper.prefersSeasonalFrame(preferenceManager)) {
-            return DEFAULT_DARK_GOLD_STICKER_INDEX;
+            return DEFAULT_BUSINESS_STICKER_INDEX;
         }
         if (prefersDarkGoldFrame(preferenceManager)) {
-            return DEFAULT_DARK_GOLD_STICKER_INDEX;
+            return DEFAULT_BUSINESS_STICKER_INDEX;
         }
         if (random != null) {
-            return DEFAULT_PERSONAL_STICKER_INDEX + random.nextInt(2);
+            return random.nextBoolean()
+                    ? ModernFrameCatalog.INDEX_STICKER_GLASS_CHIP
+                    : ModernFrameCatalog.INDEX_STICKER_CORNER;
         }
         return DEFAULT_PERSONAL_STICKER_INDEX;
     }
@@ -67,9 +67,11 @@ public final class FrameSelectionHelper {
             return DEFAULT_PERSONAL_STICKER_INDEX;
         }
         int saved = preferenceManager.getInt(USER_SELECTED_FRAME_INDEX, NO_USER_SELECTION);
-        int frameCount = ModernFrameCatalog.imageFrameLayouts().size();
-        if (saved >= 0 && saved < frameCount) {
-            return saved;
+        if (saved >= 0) {
+            int normalized = ModernFrameCatalog.normalizeSavedIndex(preferenceManager, saved);
+            if (normalized >= 0 && normalized < ModernFrameCatalog.frameCount()) {
+                return normalized;
+            }
         }
         return defaultFeedFramePosition(preferenceManager, random);
     }
@@ -82,11 +84,11 @@ public final class FrameSelectionHelper {
         if (preferenceManager == null || index < 0) {
             return;
         }
-        int frameCount = ModernFrameCatalog.imageFrameLayouts().size();
-        if (index >= frameCount) {
+        if (index >= ModernFrameCatalog.frameCount()) {
             return;
         }
         preferenceManager.setInt(USER_SELECTED_FRAME_INDEX, index);
+        preferenceManager.setInt(ModernFrameCatalog.FRAME_CATALOG_VERSION_KEY, ModernFrameCatalog.FRAME_CATALOG_VERSION);
     }
 
     public static int visibleFrameIndex(RecyclerView recyclerView) {
@@ -105,8 +107,4 @@ public final class FrameSelectionHelper {
         return position;
     }
 
-    /** Business users: QR card frame index in {@link ModernFrameCatalog}. */
-    public static int qrFrameIndex() {
-        return ModernFrameCatalog.INDEX_STICKER_QR;
-    }
 }

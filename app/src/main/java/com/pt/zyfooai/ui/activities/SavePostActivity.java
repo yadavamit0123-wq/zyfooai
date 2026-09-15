@@ -1,6 +1,5 @@
 package com.pt.zyfooai.ui.activities;
 
-import static com.pt.zyfooai.binding.GlideDataBinding.viewToBitmap;
 import static com.pt.zyfooai.utils.MyUtils.topIconBar;
 
 import android.app.Activity;
@@ -50,6 +49,7 @@ import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
+import com.pt.zyfooai.utils.FrameCaptureHelper;
 import com.pt.zyfooai.utils.FrameScrollHelper;
 import com.pt.zyfooai.utils.FrameSelectionHelper;
 import com.pt.zyfooai.utils.FrameStickerHelper;
@@ -136,14 +136,14 @@ public class SavePostActivity extends AppCompatActivity {
         binding.layShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveImage(viewToBitmap(binding.pLayoutTemp), false);
+                saveImage(FrameCaptureHelper.capture(binding.pLayoutTemp), false);
             }
         });
 
         binding.layDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveImage(viewToBitmap(binding.pLayoutTemp), true);
+                saveImage(FrameCaptureHelper.capture(binding.pLayoutTemp), true);
             }
         });
 

@@ -533,14 +533,20 @@ public class MainActivity extends AppCompatActivity {
         remove = currentView.findViewById(R.id.removeWatermark);
 
         if (preferenceManager.getBoolean(IS_SUBSCRIBE)) {
-            remove.setVisibility(GONE);
-            rewateBtn.setVisibility(GONE);
+            if (remove != null) {
+                remove.setVisibility(GONE);
+            }
+            if (rewateBtn != null) {
+                rewateBtn.setVisibility(GONE);
+            }
         }
 
         if (view.getId() == R.id.watermarkLayout) {
             setupDialogWatermarkOption();
         } else if (view.getId() == R.id.downloadBtn) {
-            remove.setVisibility(GONE);
+            if (remove != null) {
+                remove.setVisibility(GONE);
+            }
             String postKey = PostDownloadTracker.postKey(postItem);
             if (PostDownloadTracker.isDownloading(postKey)) {
                 getDownloadProgressDialog().showPercentOnly();
@@ -558,14 +564,16 @@ public class MainActivity extends AppCompatActivity {
                 setupDialogPremium(postItem, postItem, "download");
                 return;
             }
-            saveImage(GlideDataBinding.viewToBitmap(currentView), postItem, "download");
+            saveImage(com.pt.zyfooai.utils.FrameCaptureHelper.capture(currentView), postItem, "download");
         } else if (view.getId() == R.id.shareBtn) {
-            remove.setVisibility(GONE);
+            if (remove != null) {
+                remove.setVisibility(GONE);
+            }
             if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
                 setupDialogPremium(postItem, postItem, "Share");
                 return;
             }
-            saveImage(GlideDataBinding.viewToBitmap(currentView), postItem, "Share");
+            saveImage(com.pt.zyfooai.utils.FrameCaptureHelper.capture(currentView), postItem, "Share");
         } else if (view.getId() == R.id.edit_Btn) {
             if (clickDebouncer.shouldIgnore()) return;
             startActivity(new Intent(context, EditProfileActivity.class)

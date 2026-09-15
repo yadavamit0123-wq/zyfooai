@@ -39,17 +39,20 @@ public final class FramePolishHelper {
             applyTypography(frameRoot);
             PreferenceManager pm = new PreferenceManager(frameRoot.getContext());
             FrameStickerHelper.apply(frameRoot, frameIndex, pm);
+            FrameFooterLayoutHelper.applyEdgeToEdge(frameRoot);
             return;
         }
         if (FrameGradientHelper.isGradientFrame(frameRoot)) {
             applyTypography(frameRoot);
             FrameGradientHelper.apply(frameRoot, frameIndex);
+            FrameFooterLayoutHelper.applyEdgeToEdge(frameRoot);
             return;
         }
         if (FrameGlassHelper.isGlassFrame(frameRoot)) {
             boolean darkGlass = frameRoot.findViewById(R.id.glassTopPanel) != null;
             applyTypography(frameRoot);
             FrameGlassHelper.apply(frameRoot, frameIndex, darkGlass);
+            FrameFooterLayoutHelper.applyEdgeToEdge(frameRoot);
             return;
         }
         applyTypography(frameRoot);
@@ -58,6 +61,7 @@ public final class FramePolishHelper {
         polishProfile(frameRoot.findViewById(R.id.profileLay));
         polishTopBar(frameRoot.findViewById(R.id.topLay));
         polishSecondaryText(frameRoot);
+        FrameFooterLayoutHelper.applyEdgeToEdge(frameRoot);
     }
 
     public static int accentColorForFrame(int frameIndex) {
