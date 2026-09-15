@@ -1,8 +1,6 @@
 package com.pt.zyfooai.utils;
 
 import android.graphics.Color;
-import android.graphics.RenderEffect;
-import android.graphics.Shader;
 import android.os.Build;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -29,10 +27,11 @@ public final class FrameGlassHelper {
         if (root == null) {
             return;
         }
+        View blurRoot = (View) root.getTag(R.id.frost_blur_root);
         View bottomPanel = root.findViewById(R.id.glassBottomPanel);
         View topPanel = root.findViewById(R.id.glassTopPanel);
-        applyFrostEffect(bottomPanel);
-        applyFrostEffect(topPanel);
+        FrameFrostHelper.applyFrostPanel(bottomPanel, blurRoot, root);
+        FrameFrostHelper.applyFrostPanel(topPanel, blurRoot, root);
 
         int primary = ContextCompat.getColor(root.getContext(),
                 darkBottom ? R.color.frame_glass_text_on_dark : R.color.frame_glass_text_primary);
@@ -60,18 +59,6 @@ public final class FrameGlassHelper {
         polishGlassProfile(root.findViewById(R.id.profileLay));
     }
 
-    private static void applyFrostEffect(View panel) {
-        if (panel == null) {
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            panel.setRenderEffect(RenderEffect.createBlurEffect(18f, 18f, Shader.TileMode.CLAMP));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            panel.setElevation(panel.getResources().getDimension(R.dimen._4sdp));
-        }
-    }
-
     private static void applyTextColor(TextView textView, int color) {
         if (textView != null) {
             textView.setTextColor(color);
@@ -87,9 +74,7 @@ public final class FrameGlassHelper {
         if (strip.getId() != R.id.glassSocialRow) {
             return;
         }
-        strip.setBackgroundResource(darkBottom
-                ? R.drawable.bg_frame_glass_panel_dark
-                : R.drawable.bg_frame_glass_panel_light);
+        strip.setBackground(null);
         int v = strip.getResources().getDimensionPixelSize(R.dimen._3sdp);
         int h = strip.getResources().getDimensionPixelSize(R.dimen._8sdp);
         strip.setPadding(h, v, h, v);

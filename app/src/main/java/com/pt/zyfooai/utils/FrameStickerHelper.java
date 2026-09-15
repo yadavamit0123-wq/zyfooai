@@ -1,8 +1,6 @@
 package com.pt.zyfooai.utils;
 
 import android.graphics.Bitmap;
-import android.graphics.RenderEffect;
-import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.view.View;
@@ -63,8 +61,9 @@ public final class FrameStickerHelper {
                 && !"Personal".equals(preferenceManager.getString(Constant.DEFAULT_TYPE));
         boolean gold = isGoldSticker(root);
 
-        applyFrostEffect(root.findViewById(R.id.stickerBottomPanel));
-        applyFrostEffect(root.findViewById(R.id.stickerNameTag));
+        View blurRoot = (View) root.getTag(R.id.frost_blur_root);
+        FrameFrostHelper.applyFrostPanel(root.findViewById(R.id.stickerBottomPanel), blurRoot, root);
+        FrameFrostHelper.applyFrostPanel(root.findViewById(R.id.stickerNameTag), blurRoot, root);
 
         TextView prompt = root.findViewById(R.id.stickerTopPrompt);
         if (prompt != null) {
@@ -209,18 +208,6 @@ public final class FrameStickerHelper {
         }
         textView.setTextColor(color);
         textView.setTypeface(textView.getTypeface(), Typeface.BOLD);
-    }
-
-    private static void applyFrostEffect(View panel) {
-        if (panel == null) {
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            panel.setRenderEffect(RenderEffect.createBlurEffect(14f, 14f, Shader.TileMode.CLAMP));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            panel.setElevation(panel.getResources().getDimension(R.dimen._4sdp));
-        }
     }
 
     private static void applyTextColor(TextView textView, int color) {

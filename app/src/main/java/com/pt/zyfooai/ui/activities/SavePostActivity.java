@@ -50,6 +50,7 @@ import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
+import com.pt.zyfooai.utils.FrameScrollHelper;
 import com.pt.zyfooai.utils.FrameSelectionHelper;
 import com.pt.zyfooai.utils.FrameStickerHelper;
 import com.pt.zyfooai.utils.ModernFrameCatalog;
@@ -124,8 +125,7 @@ public class SavePostActivity extends AppCompatActivity {
         customPagerAdapter = new CustomPagerAdapter(path);
         binding.recyclerview.setLayoutManager(linearLayoutManager);
         binding.recyclerview.setAdapter(customPagerAdapter);
-        binding.recyclerview.scrollToPosition(
-                FrameSelectionHelper.defaultSaveFramePosition(preferenceManager));
+        FrameScrollHelper.scrollToSavedFrame(binding.recyclerview, preferenceManager);
         binding.indicator.attachToRecyclerView(binding.recyclerview);
 
         SnapHelperOneByOne snapHelperOneByOne = new SnapHelperOneByOne();
@@ -188,14 +188,11 @@ public class SavePostActivity extends AppCompatActivity {
     private void setupSavePostFrameParity(String mediaPath) {
         binding.pLayoutTemp.setTag(R.id.media_blur_source_url, mediaPath);
         FrameOverlayHelper.applyFrameOverlay(binding.recyclerview, preferenceManager);
-        binding.recyclerview.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager);
-                }
-            }
-        });
+        FrameScrollHelper.bindSelectionPersistence(
+                binding.recyclerview,
+                preferenceManager,
+                binding.pLayoutTemp
+        );
         binding.pLayoutTemp.post(() ->
                 FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager));
     }
@@ -366,6 +363,7 @@ public class SavePostActivity extends AppCompatActivity {
                 holder.dateTv.setText(currentDate);
             }
             FrameStickerHelper.applyBusinessHeader(holder.itemView, preferenceManager);
+            holder.itemView.setTag(R.id.frost_blur_root, binding.pLayoutTemp);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
             holder.itemView.post(() ->

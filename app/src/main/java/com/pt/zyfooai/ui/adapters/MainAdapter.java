@@ -70,6 +70,7 @@ import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
+import com.pt.zyfooai.utils.FrameScrollHelper;
 import com.pt.zyfooai.utils.FrameSelectionHelper;
 import com.pt.zyfooai.utils.FrameStickerHelper;
 import com.pt.zyfooai.utils.ModernFrameCatalog;
@@ -86,7 +87,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ListPreloader.PreloadModelProvider<String> {
@@ -236,14 +236,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setAdapter(frameAdapter);
             new SnapHelperOneByOne().attachToRecyclerView(recyclerView);
-            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        FrameMediaInsetHelper.apply(contentArea, rv, preferenceManager);
-                    }
-                }
-            });
+            FrameScrollHelper.bindSelectionPersistence(recyclerView, preferenceManager, contentArea);
         } else {
             recyclerView.setAdapter(frameAdapter);
         }
@@ -350,8 +343,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             );
             holder.videoLayoutBinding.indicator.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
 
-            int defaultFrame = FrameSelectionHelper.defaultFeedFramePosition(preferenceManager, new Random());
-            holder.videoLayoutBinding.recyclerview.scrollToPosition(defaultFrame);
+            FrameScrollHelper.scrollToSavedFrame(holder.videoLayoutBinding.recyclerview, preferenceManager);
 
             View.OnClickListener onClickListener = view -> {
                 holder.videoLayoutBinding.ivWatermark.setImageResource(R.drawable.watermark);
@@ -460,8 +452,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             );
             holder.binding.indicator.attachToRecyclerView(holder.binding.recyclerview);
 
-            int defaultFrame = FrameSelectionHelper.defaultFeedFramePosition(preferenceManager, new Random());
-            holder.binding.recyclerview.scrollToPosition(defaultFrame);
+            FrameScrollHelper.scrollToSavedFrame(holder.binding.recyclerview, preferenceManager);
 
             holder.binding.watermarkLayout.setVisibility(shouldHideWatermark() ? View.GONE : View.VISIBLE);
 
@@ -814,6 +805,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.dateTv.setText(currentDate);
             }
             applyFrameBusinessHeader(holder.itemView);
+            holder.itemView.setTag(R.id.frost_blur_root, contentArea);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
             holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
@@ -949,6 +941,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             }
 
             applyFrameBusinessHeader(holder.itemView);
+            holder.itemView.setTag(R.id.frost_blur_root, contentArea);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
             holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
