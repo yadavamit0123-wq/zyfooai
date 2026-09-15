@@ -67,12 +67,7 @@ public final class FrameStickerHelper {
 
         TextView prompt = root.findViewById(R.id.stickerTopPrompt);
         if (prompt != null) {
-            if (preferenceManager != null) {
-                prompt.setText(IndustryStickerPromptHelper.promptText(root.getContext(), preferenceManager));
-            } else {
-                prompt.setText(root.getContext().getString(
-                        isBusiness ? R.string.sticker_prompt_business : R.string.sticker_prompt_personal));
-            }
+            prompt.setVisibility(View.GONE);
         }
 
         View nameTag = root.findViewById(R.id.stickerNameTag);

@@ -11,19 +11,9 @@
 
     <TextView
         android:id="@+id/stickerTopPrompt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/frame_sticker_margin"
-        android:background="@drawable/bg_frame_sticker_prompt"
-        android:fontFamily="@font/inter_semi_bold"
-        android:includeFontPadding="false"
-        android:paddingHorizontal="@dimen/_14sdp"
-        android:paddingVertical="@dimen/_6sdp"
-        android:text="@string/sticker_prompt_personal"
-        android:textColor="@color/frame_sticker_text_on_dark"
-        android:textSize="@dimen/_10sdp" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/dateTv"
