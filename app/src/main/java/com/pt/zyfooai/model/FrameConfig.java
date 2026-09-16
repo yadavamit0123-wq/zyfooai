@@ -16,6 +16,7 @@ public class FrameConfig {
     public String overlayAsset;
     public String overlayUrl;
     public FrameFooterConfig footer;
+    public FrameSafeZoneConfig safeZone;
     public String status;
     public int sortOrder;
     public String updatedAt;
@@ -40,4 +41,41 @@ public class FrameConfig {
     public boolean hasRenderableOverlay() {
         return !overlaySource().isEmpty();
     }
+
+    /** Top inset for photo/video inside the PNG window. */
+    public int mediaTopInsetPercent() {
+        if (safeZone != null && safeZone.topPercent > 0) {
+            return safeZone.topPercent;
+        }
+        if (footer != null && !footer.enabled) {
+            return resolvedMediaType() == FrameMediaType.REELS ? 5 : 16;
+        }
+        return resolvedMediaType() == FrameMediaType.REELS ? 0 : 0;
+    }
+
+    /** Bottom inset for photo/video inside the PNG window. */
+    public int mediaBottomInsetPercent() {
+        if (safeZone != null && safeZone.bottomPercent > 0) {
+            return safeZone.bottomPercent;
+        }
+        if (footer != null && footer.enabled) {
+            return footer.heightPercent > 0 ? footer.heightPercent : 12;
+        }
+        return resolvedMediaType() == FrameMediaType.REELS ? 12 : 20;
+    }
+
+    public int mediaLeftInsetPercent() {
+        if (safeZone != null && safeZone.leftPercent > 0) {
+            return safeZone.leftPercent;
+        }
+        return 0;
+    }
+
+    public int mediaRightInsetPercent() {
+        if (safeZone != null && safeZone.rightPercent > 0) {
+            return safeZone.rightPercent;
+        }
+        return 0;
+    }
 }
+

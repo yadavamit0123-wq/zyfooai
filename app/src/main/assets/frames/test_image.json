@@ -6,6 +6,12 @@
   "mediaType": "image",
   "aspectRatio": "1:1",
   "overlayAsset": "frames/test_image.png",
+  "safeZone": {
+    "topPercent": 14,
+    "bottomPercent": 18,
+    "leftPercent": 4,
+    "rightPercent": 4
+  },
   "footer": {
     "enabled": true,
     "heightPercent": 12,

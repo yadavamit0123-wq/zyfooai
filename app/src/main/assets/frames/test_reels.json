@@ -6,6 +6,12 @@
   "mediaType": "reels",
   "aspectRatio": "9:16",
   "overlayAsset": "frames/test_reels.png",
+  "safeZone": {
+    "topPercent": 6,
+    "bottomPercent": 14,
+    "leftPercent": 0,
+    "rightPercent": 0
+  },
   "footer": {
     "enabled": true,
     "heightPercent": 10,

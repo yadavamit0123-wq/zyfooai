@@ -30,6 +30,15 @@ public final class DynamicFrameRenderer {
         return root != null && root.findViewById(R.id.frameOverlayPng) != null;
     }
 
+    @Nullable
+    public static FrameConfig getConfig(View root) {
+        if (root == null) {
+            return null;
+        }
+        Object tag = root.getTag(R.id.frame_config);
+        return tag instanceof FrameConfig ? (FrameConfig) tag : null;
+    }
+
     public static void bind(View root, FrameConfig config, PreferenceManager preferenceManager, int frameIndex) {
         if (root == null || config == null) {
             return;
@@ -61,6 +70,7 @@ public final class DynamicFrameRenderer {
             return;
         }
         overlay.setVisibility(View.VISIBLE);
+        overlay.setScaleType(ImageView.ScaleType.FIT_CENTER);
         Object model;
         RequestOptions options = new RequestOptions()
                 .fitCenter()
@@ -112,6 +122,7 @@ public final class DynamicFrameRenderer {
         }
         bottomPanel.setVisibility(View.VISIBLE);
         bottomPanel.setBackground(buildFooterBackground(footer.bgColor));
+        applyFooterHeight(root, bottomPanel, footer.heightPercent);
 
         applyTextSize(root.findViewById(R.id.userNameTv), footer.fontSize, 13f, 11f, 15f);
         applyTextSize(root.findViewById(R.id.userDesTv), footer.fontSize, 9f, 8f, 10f);
@@ -138,6 +149,26 @@ public final class DynamicFrameRenderer {
         View socialRow = root.findViewById(R.id.stickerSocialRow);
         if (socialRow != null) {
             socialRow.setVisibility(footer.showPhone || footer.showWebsite ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private static void applyFooterHeight(View root, LinearLayout bottomPanel, int heightPercent) {
+        if (heightPercent <= 0) {
+            bottomPanel.setMinimumHeight(0);
+            return;
+        }
+        Runnable apply = () -> {
+            int frameHeight = root.getHeight();
+            if (frameHeight <= 0) {
+                return;
+            }
+            int minHeight = Math.round(frameHeight * (heightPercent / 100f));
+            bottomPanel.setMinimumHeight(minHeight);
+        };
+        if (root.getHeight() > 0) {
+            apply.run();
+        } else {
+            root.post(apply);
         }
     }
 

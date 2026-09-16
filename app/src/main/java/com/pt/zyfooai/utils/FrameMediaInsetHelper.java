@@ -25,6 +25,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.pt.zyfooai.R;
+import com.pt.zyfooai.model.FrameConfig;
 
 /**
  * Fits image/video media inside the visible window of the active frame overlay.
@@ -76,18 +77,36 @@ public final class FrameMediaInsetHelper {
         Runnable applyInsets = () -> {
             int topInset = 0;
             int bottomInset = 0;
+            int leftInset = 0;
+            int rightInset = 0;
             int rootHeight = measureTarget.getHeight();
+            int rootWidth = measureTarget.getWidth();
             if (rootHeight > 0) {
-                topInset = measureTopInset(measureTarget, finalMediaType, rootHeight);
-                bottomInset = measureBottomInset(measureTarget, rootHeight);
+                FrameConfig dynamicConfig = readDynamicConfig(measureTarget);
+                if (dynamicConfig != null) {
+                    topInset = insetFromPercent(dynamicConfig.mediaTopInsetPercent(), rootHeight);
+                    bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
+                    if (rootWidth > 0) {
+                        leftInset = insetFromPercent(dynamicConfig.mediaLeftInsetPercent(), rootWidth);
+                        rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
+                    }
+                    if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
+                        bottomInset = Math.max(bottomInset, measureBottomInset(measureTarget, rootHeight));
+                    }
+                } else {
+                    topInset = measureTopInset(measureTarget, finalMediaType, rootHeight);
+                    bottomInset = measureBottomInset(measureTarget, rootHeight);
+                }
             }
             float overlayScale = preferenceManager != null
                     ? FrameOverlayHelper.getFrameScale(preferenceManager)
                     : 1f;
             topInset = Math.round(topInset * overlayScale);
             bottomInset = Math.round(bottomInset * overlayScale);
-            applyInset(mediaView, topInset, bottomInset, true);
-            syncBlurBackground(contentArea, topInset, bottomInset, true);
+            leftInset = Math.round(leftInset * overlayScale);
+            rightInset = Math.round(rightInset * overlayScale);
+            applyInset(mediaView, topInset, bottomInset, leftInset, rightInset, true);
+            syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, true);
         };
 
         if (measureTarget.getHeight() > 0) {
@@ -183,6 +202,22 @@ public final class FrameMediaInsetHelper {
         return holder != null ? holder.itemView : null;
     }
 
+    @Nullable
+    private static FrameConfig readDynamicConfig(View frameRoot) {
+        if (!DynamicFrameRenderer.isDynamicFrame(frameRoot)) {
+            return null;
+        }
+        Object tag = frameRoot.getTag(R.id.frame_config);
+        return tag instanceof FrameConfig ? (FrameConfig) tag : null;
+    }
+
+    private static int insetFromPercent(int percent, int rootHeight) {
+        if (percent <= 0 || rootHeight <= 0) {
+            return 0;
+        }
+        return Math.round(rootHeight * (percent / 100f));
+    }
+
     private static int measureTopInset(View frameRoot, FrameMediaType mediaType, int rootHeight) {
         if (mediaType == FrameMediaType.REELS) {
             return 0;
@@ -238,20 +273,33 @@ public final class FrameMediaInsetHelper {
         return view != null && view.getVisibility() == View.VISIBLE && view.getHeight() > 0;
     }
 
-    private static void applyInset(View mediaView, int topInset, int bottomInset, boolean fitMode) {
+    private static void applyInset(
+            View mediaView,
+            int topInset,
+            int bottomInset,
+            int leftInset,
+            int rightInset,
+            boolean fitMode
+    ) {
         ViewGroup.LayoutParams params = mediaView.getLayoutParams();
         if (params instanceof RelativeLayout.LayoutParams) {
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) params;
             layoutParams.topMargin = topInset;
             layoutParams.bottomMargin = bottomInset;
+            layoutParams.leftMargin = leftInset;
+            layoutParams.rightMargin = rightInset;
             layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END);
             mediaView.setLayoutParams(layoutParams);
         } else if (params instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) params;
             layoutParams.topMargin = topInset;
             layoutParams.bottomMargin = bottomInset;
+            layoutParams.leftMargin = leftInset;
+            layoutParams.rightMargin = rightInset;
             mediaView.setLayoutParams(layoutParams);
         }
 
@@ -275,7 +323,7 @@ public final class FrameMediaInsetHelper {
         if (mediaView != null) {
             resetMediaLayout(mediaView, mediaType);
         }
-        syncBlurBackground(contentArea, 0, 0, false);
+        syncBlurBackground(contentArea, 0, 0, 0, 0, false);
     }
 
     private static void resetMediaLayout(View mediaView, FrameMediaType mediaType) {
@@ -322,7 +370,14 @@ public final class FrameMediaInsetHelper {
         return id == R.id.imageP || id == R.id.imageB;
     }
 
-    private static void syncBlurBackground(View contentArea, int topInset, int bottomInset, boolean show) {
+    private static void syncBlurBackground(
+            View contentArea,
+            int topInset,
+            int bottomInset,
+            int leftInset,
+            int rightInset,
+            boolean show
+    ) {
         ImageView blurBg = contentArea.findViewById(R.id.media_blur_bg);
         if (blurBg == null) {
             return;
@@ -343,7 +398,7 @@ public final class FrameMediaInsetHelper {
         }
 
         blurBg.setVisibility(View.VISIBLE);
-        applyInset(blurBg, topInset, bottomInset, false);
+        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false);
         blurBg.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         Object loadedUrl = blurBg.getTag(R.id.media_blur_source_url);
