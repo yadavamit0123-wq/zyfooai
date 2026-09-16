@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- P0 Sticker 1: Add Yours prompt pill + glass bottom chip -->
+<!-- PNG overlay frame shell — decorative PNG + dynamic footer -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/framLay"
@@ -8,37 +8,15 @@
 
     <View android:id="@+id/bottomBackView" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <ImageView android:id="@+id/transImg" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <TextView android:id="@+id/dateTv" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    <LinearLayout android:id="@+id/topLay" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/stickerTopPrompt"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/dateTv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@id/stickerTopPrompt"
-        android:layout_margin="@dimen/_6sdp"
-        android:background="@drawable/bg_frame_sticker_prompt"
-        android:fontFamily="@font/inter_semi_bold"
-        android:includeFontPadding="false"
-        android:paddingHorizontal="@dimen/_6sdp"
-        android:paddingVertical="@dimen/_2sdp"
-        android:text="12 JUN"
-        android:textColor="@color/frame_sticker_text_on_dark"
-        android:textSize="@dimen/_7sdp"
-        android:visibility="gone" />
-
-    <LinearLayout android:id="@+id/topLay" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone">
-        <com.makeramen.roundedimageview.RoundedImageView android:id="@+id/businesslogoImg" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-        <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/businessNameTv" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-        <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/businessDesTv" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-        <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/businessNumberTv" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-        <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/businessWebsiteTv" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-    </LinearLayout>
+    <ImageView
+        android:id="@+id/frameOverlayPng"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY" />
 
     <LinearLayout
         android:id="@+id/stickerBottomPanel"
@@ -46,10 +24,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_margin="0dp"
-        android:background="@drawable/bg_frame_sticker_chip"
         android:gravity="center_vertical"
         android:orientation="vertical"
-        android:padding="@dimen/frame_sticker_panel_padding">
+        android:paddingHorizontal="@dimen/_12sdp"
+        android:paddingVertical="@dimen/_8sdp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -90,7 +68,7 @@
                     android:includeFontPadding="false"
                     android:lines="1"
                     android:text="@string/your_name"
-                    android:textColor="@color/frame_sticker_text_primary"
+                    android:textColor="@color/frame_sticker_text_on_dark"
                     android:textSize="@dimen/_13ssp" />
 
                 <com.pt.zyfooai.View.AutoResizeTextView
@@ -101,8 +79,56 @@
                     android:includeFontPadding="false"
                     android:lines="1"
                     android:text="@string/about_you"
-                    android:textColor="@color/frame_sticker_text_secondary"
+                    android:textColor="@color/frame_sticker_text_muted_on_dark"
                     android:textSize="@dimen/_9ssp" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/businessNameTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_semi_bold"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/business_name"
+                    android:textColor="@color/frame_sticker_text_on_dark"
+                    android:textSize="@dimen/_13ssp"
+                    android:visibility="gone" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/businessDesTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/business_detail"
+                    android:textColor="@color/frame_sticker_text_muted_on_dark"
+                    android:textSize="@dimen/_9ssp"
+                    android:visibility="gone" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/businessNumberTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/hint_business_number"
+                    android:textColor="@color/frame_sticker_text_muted_on_dark"
+                    android:textSize="@dimen/_9ssp"
+                    android:visibility="gone" />
+
+                <com.pt.zyfooai.View.AutoResizeTextView
+                    android:id="@+id/businessWebsiteTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:text="@string/business_website"
+                    android:textColor="@color/frame_sticker_text_muted_on_dark"
+                    android:textSize="@dimen/_9ssp"
+                    android:visibility="gone" />
 
                 <com.pt.zyfooai.View.AutoResizeTextView
                     android:id="@+id/businessAddressTv"
@@ -114,7 +140,7 @@
                     android:includeFontPadding="false"
                     android:lines="1"
                     android:text="@string/business_address"
-                    android:textColor="@color/frame_sticker_text_primary"
+                    android:textColor="@color/frame_sticker_text_muted_on_dark"
                     android:textSize="@dimen/_9ssp"
                     app:drawableLeftCompat="@drawable/ic_phone_number" />
             </LinearLayout>
@@ -130,17 +156,22 @@
 
             <LinearLayout android:id="@+id/whatsappLay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center">
                 <ImageView android:layout_width="@dimen/_11sdp" android:layout_height="@dimen/_11sdp" android:src="@drawable/ep_whatsapp_img" />
-                <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/whatsappTv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/_3sdp" android:fontFamily="@font/inter_regular" android:includeFontPadding="false" android:lines="1" android:text="0000000000" android:textColor="@color/frame_sticker_text_primary" android:textSize="@dimen/_8ssp" />
+                <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/whatsappTv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/_3sdp" android:fontFamily="@font/inter_regular" android:includeFontPadding="false" android:lines="1" android:text="0000000000" android:textColor="@color/frame_sticker_text_on_dark" android:textSize="@dimen/_8ssp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/facebookLay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center">
                 <ImageView android:layout_width="@dimen/_11sdp" android:layout_height="@dimen/_11sdp" android:src="@drawable/ep_facebook_img" />
-                <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/facebookTv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/_3sdp" android:fontFamily="@font/inter_regular" android:includeFontPadding="false" android:lines="1" android:text="Facebook" android:textColor="@color/frame_sticker_text_primary" android:textSize="@dimen/_8ssp" />
+                <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/facebookTv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/_3sdp" android:fontFamily="@font/inter_regular" android:includeFontPadding="false" android:lines="1" android:text="Facebook" android:textColor="@color/frame_sticker_text_on_dark" android:textSize="@dimen/_8ssp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/instagramLay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center">
                 <ImageView android:layout_width="@dimen/_11sdp" android:layout_height="@dimen/_11sdp" android:src="@drawable/ep_instagram_img" />
-                <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/instagramTv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/_3sdp" android:fontFamily="@font/inter_regular" android:includeFontPadding="false" android:lines="1" android:text="Instagram" android:textColor="@color/frame_sticker_text_primary" android:textSize="@dimen/_8ssp" />
+                <com.pt.zyfooai.View.AutoResizeTextView android:id="@+id/instagramTv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/_3sdp" android:fontFamily="@font/inter_regular" android:includeFontPadding="false" android:lines="1" android:text="Instagram" android:textColor="@color/frame_sticker_text_on_dark" android:textSize="@dimen/_8ssp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/businesslogoImg"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 </RelativeLayout>

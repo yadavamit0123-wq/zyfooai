@@ -1,0 +1,23 @@
+{
+  "id": "frame_test_reels_01",
+  "version": 1,
+  "name": "Test Reels Overlay",
+  "description": "Local PNG overlay prototype for reels posts",
+  "mediaType": "reels",
+  "aspectRatio": "9:16",
+  "overlayAsset": "frames/test_reels.png",
+  "footer": {
+    "enabled": true,
+    "heightPercent": 10,
+    "showProfile": true,
+    "showName": true,
+    "showPhone": true,
+    "showWebsite": false,
+    "nameColor": "#FFFFFF",
+    "phoneColor": "#DDDDDD",
+    "bgColor": "#B3000000",
+    "fontSize": "small"
+  },
+  "status": "published",
+  "sortOrder": 99
+}

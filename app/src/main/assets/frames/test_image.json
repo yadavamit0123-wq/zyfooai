@@ -1,0 +1,23 @@
+{
+  "id": "frame_test_image_01",
+  "version": 1,
+  "name": "Test Image Overlay",
+  "description": "Local PNG overlay prototype for image posts",
+  "mediaType": "image",
+  "aspectRatio": "1:1",
+  "overlayAsset": "frames/test_image.png",
+  "footer": {
+    "enabled": true,
+    "heightPercent": 12,
+    "showProfile": true,
+    "showName": true,
+    "showPhone": true,
+    "showWebsite": false,
+    "nameColor": "#FFFFFF",
+    "phoneColor": "#CCCCCC",
+    "bgColor": "#CC000000",
+    "fontSize": "medium"
+  },
+  "status": "published",
+  "sortOrder": 99
+}

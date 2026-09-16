@@ -4,6 +4,7 @@ package com.pt.zyfooai.api;
 import com.pt.zyfooai.model.AppInfos;
 
 import com.pt.zyfooai.model.CategoryItem;
+import com.pt.zyfooai.model.FrameListResponse;
 
 import com.pt.zyfooai.model.LanguageItem;
 import com.pt.zyfooai.model.PostItem;
@@ -160,5 +161,11 @@ public interface ApiService {
 
     @GET("storeDevice")
     Call<SubscriptionModel> storeDevice(@Query("device_id") String code);
+
+    @GET("api/frames")
+    Call<FrameListResponse> getFrames(
+            @Query("mediaType") String mediaType,
+            @Query("status") String status
+    );
 
 }

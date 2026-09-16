@@ -21,7 +21,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
         android:layout_margin="0dp"
         android:background="@drawable/bg_frame_sticker_chip"
         android:gravity="center_vertical"

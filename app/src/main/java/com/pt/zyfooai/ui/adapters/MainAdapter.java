@@ -70,6 +70,8 @@ import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
+import com.pt.zyfooai.utils.FrameEntry;
+import com.pt.zyfooai.utils.FrameMediaType;
 import com.pt.zyfooai.utils.FrameScrollHelper;
 import com.pt.zyfooai.utils.FrameSelectionHelper;
 import com.pt.zyfooai.utils.FrameStickerHelper;
@@ -228,7 +230,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     private void setupFrameRecyclerView(
             RecyclerView recyclerView,
             RecyclerView.Adapter<?> frameAdapter,
-            View contentArea
+            View contentArea,
+            FrameMediaType mediaType
     ) {
         if (recyclerView.getTag(R.id.frame_recycler_setup) == null) {
             recyclerView.setTag(R.id.frame_recycler_setup, Boolean.TRUE);
@@ -236,7 +239,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setAdapter(frameAdapter);
             new SnapHelperOneByOne().attachToRecyclerView(recyclerView);
-            FrameScrollHelper.bindSelectionPersistence(recyclerView, preferenceManager, contentArea);
+            FrameScrollHelper.bindSelectionPersistence(recyclerView, preferenceManager, contentArea, mediaType);
         } else {
             recyclerView.setAdapter(frameAdapter);
         }
@@ -339,11 +342,22 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             setupFrameRecyclerView(
                     holder.videoLayoutBinding.recyclerview,
                     customPagerAdapter,
-                    holder.videoLayoutBinding.relativeLayout4
+                    holder.videoLayoutBinding.relativeLayout4,
+                    FrameMediaType.REELS
             );
             holder.videoLayoutBinding.indicator.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
 
-            FrameScrollHelper.scrollToSavedFrame(holder.videoLayoutBinding.recyclerview, preferenceManager);
+            FrameScrollHelper.scrollToSavedFrame(
+                    holder.videoLayoutBinding.recyclerview,
+                    preferenceManager,
+                    FrameMediaType.REELS
+            );
+            holder.videoLayoutBinding.relativeLayout4.post(() ->
+                    FrameMediaInsetHelper.apply(
+                            holder.videoLayoutBinding.relativeLayout4,
+                            holder.videoLayoutBinding.recyclerview,
+                            preferenceManager
+                    ));
 
             View.OnClickListener onClickListener = view -> {
                 holder.videoLayoutBinding.ivWatermark.setImageResource(R.drawable.watermark);
@@ -370,18 +384,6 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
             holder.binding.relativeLayout4.setTag(
                     R.id.media_blur_source_url, blurSourceForPost(list.get(position)));
-
-            if (!FrameMediaInsetHelper.isFitInFrame(preferenceManager)
-                    && !preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal")) {
-                ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.binding.imagePost.getLayoutParams();
-                int topMarginInPx = (int) TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        55,
-                        holder.itemView.getResources().getDisplayMetrics()
-                );
-                layoutParams.topMargin = topMarginInPx;
-                holder.binding.imagePost.setLayoutParams(layoutParams);
-            }
 
             FrameOverlayHelper.prepareContentForLayout(holder.binding.mainLayOut);
             setupFooterControls(
@@ -448,11 +450,16 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             setupFrameRecyclerView(
                     holder.binding.recyclerview,
                     customPagerAdapter,
-                    holder.binding.relativeLayout4
+                    holder.binding.relativeLayout4,
+                    FrameMediaType.IMAGE
             );
             holder.binding.indicator.attachToRecyclerView(holder.binding.recyclerview);
 
-            FrameScrollHelper.scrollToSavedFrame(holder.binding.recyclerview, preferenceManager);
+            FrameScrollHelper.scrollToSavedFrame(
+                    holder.binding.recyclerview,
+                    preferenceManager,
+                    FrameMediaType.IMAGE
+            );
 
             holder.binding.watermarkLayout.setVisibility(shouldHideWatermark() ? View.GONE : View.VISIBLE);
 
@@ -693,7 +700,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public class CustomPagerAdapter extends RecyclerView.Adapter<CustomPagerAdapter.ViewHolder> {
 
         String item_url;
-        List<Integer> list = new ArrayList<>();
+        List<FrameEntry> entries = new ArrayList<>();
         private final View contentArea;
         private final RecyclerView frameRecyclerView;
 
@@ -702,14 +709,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             this.contentArea = contentArea;
             this.frameRecyclerView = frameRecyclerView;
 
-            list.addAll(ModernFrameCatalog.imageFrameLayouts());
+            entries.addAll(ModernFrameCatalog.imageFrameEntries(context));
 
         }
 
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(context).inflate(list.get(viewType), parent, false));
+            return new ViewHolder(LayoutInflater.from(context).inflate(
+                    entries.get(viewType).getLayoutResId(), parent, false));
         }
 
         @Override
@@ -804,6 +812,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                         .format(new Date()).toUpperCase(Locale.ROOT);
                 holder.dateTv.setText(currentDate);
             }
+            tagDynamicFrameConfig(holder.itemView, position);
             applyFrameBusinessHeader(holder.itemView);
             holder.itemView.setTag(R.id.frost_blur_root, contentArea);
             FramePolishHelper.apply(holder.itemView, position);
@@ -813,12 +822,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
         @Override
         public int getItemCount() {
-            return list.size();
+            return entries.size();
         }
 
         @Override
         public int getItemViewType(int position) {
             return position;
+        }
+
+        private void tagDynamicFrameConfig(View itemView, int position) {
+            FrameEntry entry = entries.get(position);
+            if (entry.isDynamic()) {
+                itemView.setTag(R.id.frame_config, entry.getDynamicConfig());
+            }
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {
@@ -857,7 +873,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public class CustomPagerVideoAdapter extends RecyclerView.Adapter<CustomPagerVideoAdapter.ViewHolder> {
 
         String item_url;
-        List<Integer> list = new ArrayList<>();
+        List<FrameEntry> entries = new ArrayList<>();
         private final View contentArea;
         private final RecyclerView frameRecyclerView;
 
@@ -866,14 +882,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             this.contentArea = contentArea;
             this.frameRecyclerView = frameRecyclerView;
 
-            list.addAll(ModernFrameCatalog.videoFrameLayouts());
+            entries.addAll(ModernFrameCatalog.videoFrameEntries(context));
 
         }
 
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(context).inflate(list.get(viewType), parent, false));
+            return new ViewHolder(LayoutInflater.from(context).inflate(
+                    entries.get(viewType).getLayoutResId(), parent, false));
         }
 
         @Override
@@ -940,6 +957,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.dateTv.setText(currentDate);
             }
 
+            tagDynamicFrameConfig(holder.itemView, position);
             applyFrameBusinessHeader(holder.itemView);
             holder.itemView.setTag(R.id.frost_blur_root, contentArea);
             FramePolishHelper.apply(holder.itemView, position);
@@ -949,12 +967,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
         @Override
         public int getItemCount() {
-            return list.size();
+            return entries.size();
         }
 
         @Override
         public int getItemViewType(int position) {
             return position;
+        }
+
+        private void tagDynamicFrameConfig(View itemView, int position) {
+            FrameEntry entry = entries.get(position);
+            if (entry.isDynamic()) {
+                itemView.setTag(R.id.frame_config, entry.getDynamicConfig());
+            }
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {

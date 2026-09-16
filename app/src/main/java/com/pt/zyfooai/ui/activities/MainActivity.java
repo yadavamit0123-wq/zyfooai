@@ -87,7 +87,10 @@ import com.pt.zyfooai.model.PostItem;
 import com.pt.zyfooai.model.SubscriptionModel;
 import com.pt.zyfooai.ui.Functions;
 import com.pt.zyfooai.ui.adapters.CategorysAdapter;
+import com.pt.zyfooai.AppConfig;
+import com.pt.zyfooai.respository.FrameRepository;
 import com.pt.zyfooai.ui.adapters.MainAdapter;
+import com.pt.zyfooai.utils.FrameCatalogProvider;
 import com.pt.zyfooai.ui.adapters.StoryAdapter;
 import com.pt.zyfooai.ui.adapters.SubscriptionAdapter;
 import com.pt.zyfooai.ui.dialog.DownloadProgressDialog;
@@ -420,6 +423,14 @@ public class MainActivity extends AppCompatActivity {
             if (preferenceManager.getString(Constant.USER_IMAGE) != null && !preferenceManager.getString(Constant.USER_IMAGE).isEmpty()) {
                 GlideDataBinding.bindImage(binding.circularImageView, preferenceManager.getString(Constant.USER_IMAGE));
             }
+        }
+        if (AppConfig.IS_CONNECTED) {
+            FrameRepository.syncAsync(this, updated -> {
+                if (updated && adapter != null) {
+                    FrameCatalogProvider.invalidate();
+                    adapter.notifyDataSetChanged();
+                }
+            });
         }
         if (adapter != null) {
             adapter.onResumeVideo();

@@ -1,5 +1,8 @@
 package com.pt.zyfooai.utils;
 
+import android.content.Context;
+
+import com.pt.zyfooai.MyApplication;
 import com.pt.zyfooai.R;
 
 import java.util.ArrayList;
@@ -8,6 +11,7 @@ import java.util.List;
 
 /**
  * Curated modern frame pack — low-quality variants removed per product review.
+ * Image and reels catalogs are parallel but selected independently in the app.
  */
 public final class ModernFrameCatalog {
 
@@ -19,7 +23,7 @@ public final class ModernFrameCatalog {
     public static final int INDEX_GRADIENT_GOLD = 5;
 
     public static final String FRAME_CATALOG_VERSION_KEY = "frame_catalog_version";
-    public static final int FRAME_CATALOG_VERSION = 2;
+    public static final int FRAME_CATALOG_VERSION = 3;
 
     /** Maps legacy 12-frame carousel indices to the current catalog. */
     private static final int[] LEGACY_INDEX_MAP = {
@@ -38,6 +42,13 @@ public final class ModernFrameCatalog {
     };
 
     private ModernFrameCatalog() {
+    }
+
+    public static List<Integer> frameLayouts(FrameMediaType mediaType) {
+        if (mediaType == FrameMediaType.REELS) {
+            return videoFrameLayouts();
+        }
+        return imageFrameLayouts();
     }
 
     public static List<Integer> imageFrameLayouts() {
@@ -62,22 +73,56 @@ public final class ModernFrameCatalog {
         return Collections.unmodifiableList(layouts);
     }
 
+    public static List<FrameEntry> imageFrameEntries(Context context) {
+        if (context == null) {
+            context = MyApplication.getAppContext();
+        }
+        return context != null
+                ? FrameCatalogProvider.imageFrameEntries(context)
+                : Collections.emptyList();
+    }
+
+    public static List<FrameEntry> videoFrameEntries(Context context) {
+        if (context == null) {
+            context = MyApplication.getAppContext();
+        }
+        return context != null
+                ? FrameCatalogProvider.videoFrameEntries(context)
+                : Collections.emptyList();
+    }
+
     public static int frameCount() {
-        return imageFrameLayouts().size();
+        return frameCount(FrameMediaType.IMAGE);
+    }
+
+    public static int frameCount(FrameMediaType mediaType) {
+        Context context = MyApplication.getAppContext();
+        if (context != null) {
+            return FrameCatalogProvider.frameCount(context, mediaType);
+        }
+        return frameLayouts(mediaType).size() + DynamicFrameCatalog.testFrameCount();
     }
 
     public static int normalizeSavedIndex(PreferenceManager preferenceManager, int savedIndex) {
+        return normalizeSavedIndex(preferenceManager, savedIndex, FrameMediaType.IMAGE);
+    }
+
+    public static int normalizeSavedIndex(
+            PreferenceManager preferenceManager,
+            int savedIndex,
+            FrameMediaType mediaType
+    ) {
         if (savedIndex < 0) {
             return savedIndex;
         }
-        int count = frameCount();
+        int count = frameCount(mediaType);
         if (preferenceManager != null
                 && preferenceManager.getInt(FRAME_CATALOG_VERSION_KEY, 1) >= FRAME_CATALOG_VERSION) {
             return savedIndex >= count ? 0 : savedIndex;
         }
         int migrated = savedIndex < LEGACY_INDEX_MAP.length ? LEGACY_INDEX_MAP[savedIndex] : 0;
         if (preferenceManager != null) {
-            preferenceManager.setInt(FrameSelectionHelper.USER_SELECTED_FRAME_INDEX, migrated);
+            preferenceManager.setInt(FrameSelectionHelper.preferenceKeyFor(mediaType), migrated);
             preferenceManager.setInt(FRAME_CATALOG_VERSION_KEY, FRAME_CATALOG_VERSION);
         }
         return migrated >= count ? 0 : migrated;

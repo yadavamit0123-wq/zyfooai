@@ -16,5 +16,7 @@
     <item name="frost_blur_root" type="id" />
     <item name="frostBackdrop" type="id" />
     <item name="frame_selection_bound" type="id" />
+    <item name="frame_media_type" type="id" />
+    <item name="frame_config" type="id" />
     <item name="frame_programmatic_scroll" type="id" />
 </resources>

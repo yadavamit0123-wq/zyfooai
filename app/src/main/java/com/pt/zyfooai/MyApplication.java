@@ -15,6 +15,8 @@ import com.pt.zyfooai.utils.ReleaseVerifyHelper;
 import com.pt.zyfooai.utils.RemoteConfigHelper;
 import com.pt.zyfooai.utils.ThemeHelper;
 
+import com.pt.zyfooai.respository.FrameRepository;
+import com.pt.zyfooai.utils.FrameCatalogProvider;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.Util;
 import com.google.android.gms.ads.MobileAds;
@@ -81,6 +83,11 @@ public class MyApplication extends Application {
         context = this;
         if (networkConnectivity.isConnected()) {
             AppConfig.IS_CONNECTED = true;
+            FrameRepository.syncInBackground(this, updated -> {
+                if (updated) {
+                    FrameCatalogProvider.invalidate();
+                }
+            });
         } else {
             AppConfig.IS_CONNECTED = false;
         }

@@ -35,6 +35,15 @@ public final class FramePolishHelper {
         if (frameRoot == null) {
             return;
         }
+        if (DynamicFrameRenderer.isDynamicFrame(frameRoot)) {
+            Object configTag = frameRoot.getTag(R.id.frame_config);
+            if (configTag instanceof com.pt.zyfooai.model.FrameConfig) {
+                PreferenceManager pm = new PreferenceManager(frameRoot.getContext());
+                DynamicFrameRenderer.bind(frameRoot, (com.pt.zyfooai.model.FrameConfig) configTag, pm, frameIndex);
+            }
+            applyTypography(frameRoot);
+            return;
+        }
         if (FrameStickerHelper.isStickerFrame(frameRoot)) {
             applyTypography(frameRoot);
             PreferenceManager pm = new PreferenceManager(frameRoot.getContext());

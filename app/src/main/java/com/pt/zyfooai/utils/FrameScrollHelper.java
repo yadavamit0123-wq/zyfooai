@@ -9,7 +9,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.pt.zyfooai.R;
 
 /**
- * Persists the user's chosen frame across all feed posts until they pick another frame.
+ * Persists the user's chosen frame across feed posts until they pick another frame.
+ * Image and reels selections are tracked separately.
  */
 public final class FrameScrollHelper {
 
@@ -19,12 +20,14 @@ public final class FrameScrollHelper {
     public static void bindSelectionPersistence(
             RecyclerView recyclerView,
             PreferenceManager preferenceManager,
-            View contentArea
+            View contentArea,
+            FrameMediaType mediaType
     ) {
         if (recyclerView == null || recyclerView.getTag(R.id.frame_selection_bound) != null) {
             return;
         }
         recyclerView.setTag(R.id.frame_selection_bound, Boolean.TRUE);
+        recyclerView.setTag(R.id.frame_media_type, mediaType);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
@@ -38,18 +41,31 @@ public final class FrameScrollHelper {
                     return;
                 }
                 int index = FrameSelectionHelper.visibleFrameIndex(rv);
-                FrameSelectionHelper.saveUserFrameSelection(preferenceManager, index);
+                FrameMediaType type = resolveMediaType(rv, mediaType);
+                FrameSelectionHelper.saveUserFrameSelection(preferenceManager, index, type);
             }
         });
     }
 
-    public static void scrollToSavedFrame(RecyclerView recyclerView, PreferenceManager preferenceManager) {
+    public static void scrollToSavedFrame(
+            RecyclerView recyclerView,
+            PreferenceManager preferenceManager,
+            FrameMediaType mediaType
+    ) {
         if (recyclerView == null) {
             return;
         }
-        int index = FrameSelectionHelper.getActiveFeedFramePosition(preferenceManager);
+        int index = FrameSelectionHelper.getActiveFramePosition(preferenceManager, mediaType);
         recyclerView.setTag(R.id.frame_programmatic_scroll, Boolean.TRUE);
         recyclerView.scrollToPosition(index);
         recyclerView.post(() -> recyclerView.setTag(R.id.frame_programmatic_scroll, null));
+    }
+
+    private static FrameMediaType resolveMediaType(RecyclerView recyclerView, FrameMediaType fallback) {
+        Object tag = recyclerView.getTag(R.id.frame_media_type);
+        if (tag instanceof FrameMediaType) {
+            return (FrameMediaType) tag;
+        }
+        return fallback != null ? fallback : FrameMediaType.IMAGE;
     }
 }

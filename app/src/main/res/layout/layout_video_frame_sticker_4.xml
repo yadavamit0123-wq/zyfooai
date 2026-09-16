@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/framLay"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <View android:id="@+id/bottomBackView" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
     <ImageView android:id="@+id/transImg" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
@@ -21,7 +21,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
         android:layout_margin="0dp"
         android:background="@drawable/bg_frame_sticker_chip"
         android:gravity="center_vertical"

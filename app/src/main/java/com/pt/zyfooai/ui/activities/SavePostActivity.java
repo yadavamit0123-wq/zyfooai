@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,6 +34,10 @@ import com.androidnetworking.interfaces.DownloadListener;
 import com.arthenica.mobileffmpeg.ExecuteCallback;
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -50,6 +55,8 @@ import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
 import com.pt.zyfooai.utils.FrameCaptureHelper;
+import com.pt.zyfooai.utils.FrameEntry;
+import com.pt.zyfooai.utils.FrameMediaType;
 import com.pt.zyfooai.utils.FrameScrollHelper;
 import com.pt.zyfooai.utils.FrameSelectionHelper;
 import com.pt.zyfooai.utils.FrameStickerHelper;
@@ -110,13 +117,9 @@ public class SavePostActivity extends AppCompatActivity {
         }
 
         if (preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Business")) {
-            Glide.with(this).load(path).placeholder(R.drawable.placeholder).into(binding.imageB);
-            binding.imageB.setVisibility(View.VISIBLE);
-            binding.imageP.setVisibility(View.GONE);
+            loadSavePostImage(binding.imageB, binding.imageP, path);
         } else {
-            Glide.with(this).load(path).placeholder(R.drawable.placeholder).into(binding.imageP);
-            binding.imageB.setVisibility(View.GONE);
-            binding.imageP.setVisibility(View.VISIBLE);
+            loadSavePostImage(binding.imageP, binding.imageB, path);
         }
 
 
@@ -125,7 +128,7 @@ public class SavePostActivity extends AppCompatActivity {
         customPagerAdapter = new CustomPagerAdapter(path);
         binding.recyclerview.setLayoutManager(linearLayoutManager);
         binding.recyclerview.setAdapter(customPagerAdapter);
-        FrameScrollHelper.scrollToSavedFrame(binding.recyclerview, preferenceManager);
+        FrameScrollHelper.scrollToSavedFrame(binding.recyclerview, preferenceManager, FrameMediaType.IMAGE);
         binding.indicator.attachToRecyclerView(binding.recyclerview);
 
         SnapHelperOneByOne snapHelperOneByOne = new SnapHelperOneByOne();
@@ -160,10 +163,44 @@ public class SavePostActivity extends AppCompatActivity {
             playMusic(musicPath);
         }
 
-        binding.pLayoutTemp.post(() -> {
-            alignFrameOverlayToImage();
-            FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager);
-        });
+        binding.pLayoutTemp.post(this::refreshSavePostFrameLayout);
+    }
+
+    private void loadSavePostImage(ImageView target, ImageView other, String imagePath) {
+        other.setVisibility(View.GONE);
+        target.setVisibility(View.VISIBLE);
+        Glide.with(this)
+                .load(imagePath)
+                .placeholder(R.drawable.placeholder)
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(
+                            @Nullable GlideException e,
+                            Object model,
+                            Target<Drawable> targetView,
+                            boolean isFirstResource
+                    ) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(
+                            Drawable resource,
+                            Object model,
+                            Target<Drawable> targetView,
+                            DataSource dataSource,
+                            boolean isFirstResource
+                    ) {
+                        binding.pLayoutTemp.post(SavePostActivity.this::refreshSavePostFrameLayout);
+                        return false;
+                    }
+                })
+                .into(target);
+    }
+
+    private void refreshSavePostFrameLayout() {
+        alignFrameOverlayToImage();
+        FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager);
     }
 
     private void alignFrameOverlayToImage() {
@@ -191,10 +228,10 @@ public class SavePostActivity extends AppCompatActivity {
         FrameScrollHelper.bindSelectionPersistence(
                 binding.recyclerview,
                 preferenceManager,
-                binding.pLayoutTemp
+                binding.pLayoutTemp,
+                FrameMediaType.IMAGE
         );
-        binding.pLayoutTemp.post(() ->
-                FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager));
+        binding.pLayoutTemp.post(this::refreshSavePostFrameLayout);
     }
 
     ExoPlayer musicPlayer;
@@ -251,19 +288,20 @@ public class SavePostActivity extends AppCompatActivity {
     public class CustomPagerAdapter extends RecyclerView.Adapter<CustomPagerAdapter.ViewHolder> {
 
         String item_url;
-        List<Integer> list = new ArrayList<>();
+        List<FrameEntry> entries = new ArrayList<>();
 
         public CustomPagerAdapter(String str) {
             this.item_url = str;
 
-            list.addAll(ModernFrameCatalog.imageFrameLayouts());
+            entries.addAll(ModernFrameCatalog.imageFrameEntries(context));
 
         }
 
         @NonNull
         @Override
         public CustomPagerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(context).inflate(list.get(viewType), parent, false));
+            return new ViewHolder(LayoutInflater.from(context).inflate(
+                    entries.get(viewType).getLayoutResId(), parent, false));
         }
 
         @Override
@@ -362,17 +400,20 @@ public class SavePostActivity extends AppCompatActivity {
                         .format(new Date()).toUpperCase(Locale.ROOT);
                 holder.dateTv.setText(currentDate);
             }
+            FrameEntry entry = entries.get(position);
+            if (entry.isDynamic()) {
+                holder.itemView.setTag(R.id.frame_config, entry.getDynamicConfig());
+            }
             FrameStickerHelper.applyBusinessHeader(holder.itemView, preferenceManager);
             holder.itemView.setTag(R.id.frost_blur_root, binding.pLayoutTemp);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
-            holder.itemView.post(() ->
-                    FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager));
+            holder.itemView.post(SavePostActivity.this::refreshSavePostFrameLayout);
         }
 
         @Override
         public int getItemCount() {
-            return list.size();
+            return entries.size();
         }
 
         @Override

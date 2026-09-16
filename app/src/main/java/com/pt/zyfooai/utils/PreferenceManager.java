@@ -75,6 +75,10 @@ public class PreferenceManager {
         return pref.getInt(str, i);
     }
 
+    public boolean contains(String key) {
+        return pref.contains(key);
+    }
+
     public SharedPreferences getSharedPreference(Context context) {
         if (sharedPreferences == null)
             sharedPreferences = context.getSharedPreferences(PREF_NAME, MODE_PRIVATE);

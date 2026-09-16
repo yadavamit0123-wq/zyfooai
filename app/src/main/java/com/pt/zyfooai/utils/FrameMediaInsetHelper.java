@@ -35,12 +35,20 @@ public final class FrameMediaInsetHelper {
     public static final String MEDIA_FIT_IN_FRAME = "media_fit_in_frame";
 
     private static final float BLUR_RADIUS = 22f;
+    /** Top chrome taller than this fraction of the frame is treated as a layout stretch bug. */
+    private static final float MAX_TOP_CHROME_HEIGHT_RATIO = 0.22f;
 
     private FrameMediaInsetHelper() {
     }
 
     public static boolean isFitInFrame(PreferenceManager preferenceManager) {
-        return preferenceManager.getBoolean(MEDIA_FIT_IN_FRAME, false);
+        if (preferenceManager == null) {
+            return true;
+        }
+        if (!preferenceManager.contains(MEDIA_FIT_IN_FRAME)) {
+            return true;
+        }
+        return preferenceManager.getBoolean(MEDIA_FIT_IN_FRAME, true);
     }
 
     public static void apply(View contentArea, RecyclerView frameRecyclerView, PreferenceManager preferenceManager) {
@@ -51,8 +59,10 @@ public final class FrameMediaInsetHelper {
         if (mediaView == null) {
             return;
         }
-        if (!isFitInFrame(preferenceManager)) {
-            clearInset(contentArea, mediaView);
+
+        FrameMediaType mediaType = detectMediaType(contentArea, mediaView);
+        if (!shouldApplyFit(preferenceManager, mediaType)) {
+            clearInset(contentArea, mediaView, mediaType);
             return;
         }
 
@@ -62,14 +72,20 @@ public final class FrameMediaInsetHelper {
         }
 
         View measureTarget = frameRoot;
+        FrameMediaType finalMediaType = mediaType;
         Runnable applyInsets = () -> {
             int topInset = 0;
             int bottomInset = 0;
             int rootHeight = measureTarget.getHeight();
             if (rootHeight > 0) {
-                topInset = measureTopInset(measureTarget);
+                topInset = measureTopInset(measureTarget, finalMediaType, rootHeight);
                 bottomInset = measureBottomInset(measureTarget, rootHeight);
             }
+            float overlayScale = preferenceManager != null
+                    ? FrameOverlayHelper.getFrameScale(preferenceManager)
+                    : 1f;
+            topInset = Math.round(topInset * overlayScale);
+            bottomInset = Math.round(bottomInset * overlayScale);
             applyInset(mediaView, topInset, bottomInset, true);
             syncBlurBackground(contentArea, topInset, bottomInset, true);
         };
@@ -104,17 +120,41 @@ public final class FrameMediaInsetHelper {
             if (isChecked) {
                 frameRecyclerView.post(() -> frameRecyclerView.post(applyAfterLayout));
             } else {
-                clearInset(contentArea, findMediaView(contentArea));
+                clearInset(contentArea, findMediaView(contentArea), detectMediaType(contentArea, findMediaView(contentArea)));
                 contentArea.post(applyAfterLayout);
             }
         });
         apply(contentArea, frameRecyclerView, preferenceManager);
     }
 
+    private static boolean shouldApplyFit(PreferenceManager preferenceManager, FrameMediaType mediaType) {
+        if (mediaType == FrameMediaType.REELS) {
+            return true;
+        }
+        return isFitInFrame(preferenceManager);
+    }
+
+    private static FrameMediaType detectMediaType(View contentArea, View mediaView) {
+        if (mediaView instanceof PlayerView) {
+            return FrameMediaType.REELS;
+        }
+        View playerView = contentArea.findViewById(R.id.playerview);
+        if (playerView != null && playerView.getVisibility() == View.VISIBLE) {
+            return FrameMediaType.REELS;
+        }
+        return FrameMediaType.IMAGE;
+    }
+
     private static View findMediaView(View contentArea) {
         View mediaView = contentArea.findViewById(R.id.image_post);
         if (mediaView == null) {
             mediaView = contentArea.findViewById(R.id.imageP);
+        }
+        if (mediaView == null || mediaView.getVisibility() != View.VISIBLE) {
+            View imageB = contentArea.findViewById(R.id.imageB);
+            if (imageB != null && imageB.getVisibility() == View.VISIBLE) {
+                mediaView = imageB;
+            }
         }
         if (mediaView == null) {
             mediaView = contentArea.findViewById(R.id.imageB);
@@ -143,12 +183,26 @@ public final class FrameMediaInsetHelper {
         return holder != null ? holder.itemView : null;
     }
 
-    private static int measureTopInset(View frameRoot) {
+    private static int measureTopInset(View frameRoot, FrameMediaType mediaType, int rootHeight) {
+        if (mediaType == FrameMediaType.REELS) {
+            return 0;
+        }
         int topInset = 0;
-        topInset = Math.max(topInset, bottomEdge(frameRoot.findViewById(R.id.topLay)));
-        topInset = Math.max(topInset, bottomEdge(frameRoot.findViewById(R.id.glassTopPanel)));
-        topInset = Math.max(topInset, bottomEdge(frameRoot.findViewById(R.id.stickerTopPrompt)));
+        topInset = Math.max(topInset, topChromeBottom(frameRoot.findViewById(R.id.glassTopPanel), rootHeight));
+        topInset = Math.max(topInset, topChromeBottom(frameRoot.findViewById(R.id.stickerTopPrompt), rootHeight));
+        topInset = Math.max(topInset, topChromeBottom(frameRoot.findViewById(R.id.topLay), rootHeight));
         return topInset;
+    }
+
+    private static int topChromeBottom(View view, int rootHeight) {
+        if (!isVisible(view)) {
+            return 0;
+        }
+        int height = view.getHeight();
+        if (rootHeight > 0 && height > rootHeight * MAX_TOP_CHROME_HEIGHT_RATIO) {
+            return 0;
+        }
+        return Math.max(0, view.getBottom());
     }
 
     private static int measureBottomInset(View frameRoot, int rootHeight) {
@@ -158,6 +212,7 @@ public final class FrameMediaInsetHelper {
         bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.glassBottomPanel, rootHeight));
         bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.gradientBottomPanel, rootHeight));
         bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.gradientSocialRow, rootHeight));
+        bottomInset = Math.max(bottomInset, insetFromBottom(frameRoot, R.id.stickerSocialRow, rootHeight));
 
         View bottomBackView = frameRoot.findViewById(R.id.bottomBackView);
         if (isVisible(bottomBackView)) {
@@ -169,13 +224,6 @@ public final class FrameMediaInsetHelper {
             }
         }
         return bottomInset;
-    }
-
-    private static int bottomEdge(View view) {
-        if (!isVisible(view)) {
-            return 0;
-        }
-        return Math.max(0, view.getBottom());
     }
 
     private static int insetFromBottom(View frameRoot, int viewId, int rootHeight) {
@@ -208,7 +256,9 @@ public final class FrameMediaInsetHelper {
         }
 
         if (mediaView instanceof ImageView) {
-            ((ImageView) mediaView).setScaleType(
+            ImageView imageView = (ImageView) mediaView;
+            imageView.setAdjustViewBounds(false);
+            imageView.setScaleType(
                     fitMode ? ImageView.ScaleType.FIT_CENTER : ImageView.ScaleType.CENTER_CROP);
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
@@ -221,14 +271,14 @@ public final class FrameMediaInsetHelper {
         }
     }
 
-    private static void clearInset(View contentArea, View mediaView) {
+    private static void clearInset(View contentArea, View mediaView, FrameMediaType mediaType) {
         if (mediaView != null) {
-            resetMediaLayout(mediaView);
+            resetMediaLayout(mediaView, mediaType);
         }
         syncBlurBackground(contentArea, 0, 0, false);
     }
 
-    private static void resetMediaLayout(View mediaView) {
+    private static void resetMediaLayout(View mediaView, FrameMediaType mediaType) {
         ViewGroup.LayoutParams params = mediaView.getLayoutParams();
         if (params instanceof RelativeLayout.LayoutParams) {
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) params;
@@ -251,13 +301,25 @@ public final class FrameMediaInsetHelper {
             mediaView.setLayoutParams(layoutParams);
         }
         if (mediaView instanceof ImageView) {
-            ((ImageView) mediaView).setScaleType(ImageView.ScaleType.CENTER_CROP);
+            ImageView imageView = (ImageView) mediaView;
+            if (isSavePostImage(imageView)) {
+                imageView.setAdjustViewBounds(true);
+                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            } else {
+                imageView.setAdjustViewBounds(false);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
             playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
             playerView.setShutterBackgroundColor(Color.BLACK);
             playerView.setBackgroundColor(Color.BLACK);
         }
+    }
+
+    private static boolean isSavePostImage(ImageView imageView) {
+        int id = imageView.getId();
+        return id == R.id.imageP || id == R.id.imageB;
     }
 
     private static void syncBlurBackground(View contentArea, int topInset, int bottomInset, boolean show) {
