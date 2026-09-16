@@ -42,7 +42,14 @@ public final class FrameScrollHelper {
                 }
                 int index = FrameSelectionHelper.visibleFrameIndex(rv);
                 FrameMediaType type = resolveMediaType(rv, mediaType);
-                FrameSelectionHelper.saveUserFrameSelection(preferenceManager, index, type);
+                if (index >= 0) {
+                    FrameSelectionHelper.saveUserFrameSelection(preferenceManager, index, type);
+                    FrameAnalyticsHelper.trackSelection(
+                            rv.getContext().getApplicationContext(),
+                            type,
+                            index
+                    );
+                }
             }
         });
     }

@@ -59,7 +59,7 @@ public final class FrameCatalogProvider {
                     ? R.layout.layout_video_frame_dynamic
                     : R.layout.layout_frame_dynamic;
             for (FrameConfig config : remoteFrames) {
-                if (config.resolvedMediaType() == mediaType) {
+                if (config.resolvedMediaType() == mediaType && config.hasRenderableOverlay()) {
                     entries.add(FrameEntry.dynamic(dynamicLayoutResId, config));
                 }
             }

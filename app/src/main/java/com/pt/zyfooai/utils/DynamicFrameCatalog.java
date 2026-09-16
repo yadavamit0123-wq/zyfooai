@@ -12,7 +12,8 @@ import java.util.List;
  */
 public final class DynamicFrameCatalog {
 
-    public static final boolean INCLUDE_TEST_FRAMES = true;
+    /** Local dev PNG prototypes — disabled in production; use admin-published frames instead. */
+    public static final boolean INCLUDE_TEST_FRAMES = false;
 
     private static final String TEST_IMAGE_JSON = "frames/test_image.json";
     private static final String TEST_REELS_JSON = "frames/test_reels.json";

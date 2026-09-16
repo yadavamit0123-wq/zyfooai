@@ -67,7 +67,7 @@
                         android:layout_alignBottom="@id/playerview"
                         android:orientation="horizontal"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:listitem="@layout/layout_frame_1_1" />
+                        tools:listitem="@layout/layout_video_frame_sticker_1" />
 
                     <RelativeLayout
                         android:id="@+id/loader"

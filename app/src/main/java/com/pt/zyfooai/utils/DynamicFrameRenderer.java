@@ -9,7 +9,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.pt.zyfooai.R;
 import com.pt.zyfooai.model.FrameConfig;
 import com.pt.zyfooai.model.FrameFooterConfig;
@@ -32,8 +36,17 @@ public final class DynamicFrameRenderer {
         }
         root.setTag(R.id.frame_config, config);
         loadOverlay(root, config);
-        applyFooter(root, config.footer);
+        applyFooter(root, config.footer != null ? config.footer : defaultFooter());
         FrameFooterLayoutHelper.applyEdgeToEdge(root);
+    }
+
+    private static FrameFooterConfig defaultFooter() {
+        FrameFooterConfig footer = new FrameFooterConfig();
+        footer.enabled = true;
+        footer.showProfile = true;
+        footer.showName = true;
+        footer.showPhone = true;
+        return footer;
     }
 
     private static void loadOverlay(View root, FrameConfig config) {
@@ -44,10 +57,14 @@ public final class DynamicFrameRenderer {
         String source = config.overlaySource();
         if (source == null || source.isEmpty()) {
             overlay.setVisibility(View.GONE);
+            overlay.setImageDrawable(null);
             return;
         }
         overlay.setVisibility(View.VISIBLE);
         Object model;
+        RequestOptions options = new RequestOptions()
+                .fitCenter()
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
         if (source.startsWith("http://") || source.startsWith("https://")) {
             model = source;
         } else {
@@ -55,7 +72,31 @@ public final class DynamicFrameRenderer {
         }
         Glide.with(overlay)
                 .load(model)
-                .fitCenter()
+                .apply(options)
+                .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(
+                            @Nullable com.bumptech.glide.load.engine.GlideException e,
+                            Object model,
+                            com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                            boolean isFirstResource
+                    ) {
+                        overlay.setVisibility(View.GONE);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(
+                            android.graphics.drawable.Drawable resource,
+                            Object model,
+                            com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                            com.bumptech.glide.load.DataSource dataSource,
+                            boolean isFirstResource
+                    ) {
+                        overlay.setVisibility(View.VISIBLE);
+                        return false;
+                    }
+                })
                 .into(overlay);
     }
 

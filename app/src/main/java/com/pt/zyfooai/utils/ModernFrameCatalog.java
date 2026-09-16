@@ -10,8 +10,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Curated modern frame pack — low-quality variants removed per product review.
+ * Curated modern frame pack — low-quality / legacy layouts removed in Phase 5.
  * Image and reels catalogs are parallel but selected independently in the app.
+ * Admin-published PNG overlays append via {@link FrameCatalogProvider}.
  */
 public final class ModernFrameCatalog {
 
