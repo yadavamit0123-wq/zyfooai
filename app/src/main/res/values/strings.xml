@@ -100,6 +100,7 @@
     <string name="delete">Delete</string>
     <string name="add_business">+Add</string>
     <string name="business_name">Business Name</string>
+    <string name="business_detail">Business Details</string>
     <string name="business_email">Business Email</string>
     <string name="business_phone_number">Business Phone Number</string>
     <string name="business_website">Business Website</string>
