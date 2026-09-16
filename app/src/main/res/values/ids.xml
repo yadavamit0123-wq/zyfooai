@@ -19,4 +19,11 @@
     <item name="frame_media_type" type="id" />
     <item name="frame_config" type="id" />
     <item name="frame_programmatic_scroll" type="id" />
+    <!-- Retired layout view ids — kept for safe findViewById() in shared helpers -->
+    <item name="stickerNameTag" type="id" />
+    <item name="stickerGoldAccent" type="id" />
+    <item name="stickerQuoteMarker" type="id" />
+    <item name="stickerQuoteText" type="id" />
+    <item name="stickerQrCode" type="id" />
+    <item name="stickerPhotoVignette" type="id" />
 </resources>
