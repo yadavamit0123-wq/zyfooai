@@ -1508,7 +1508,10 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                Bitmap out = Bitmap.createScaledBitmap(b, width, height, false);
+                Bitmap out = com.pt.zyfooai.utils.FrameExportHelper.scaleOverlayToVideo(b, width, height);
+                if (out != b) {
+                    b.recycle();
+                }
 
                 File cacheDir = context.getExternalCacheDir(); // External cache directory
                 if (cacheDir == null) {
@@ -1522,7 +1525,9 @@ public class MainActivity extends AppCompatActivity {
                     out.compress(Bitmap.CompressFormat.PNG, 100, fOut);
                     fOut.flush();
                     fOut.close();
-                    b.recycle();
+                    if (out != b) {
+                        b.recycle();
+                    }
                     out.recycle();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();

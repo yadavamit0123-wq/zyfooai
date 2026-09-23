@@ -168,4 +168,7 @@ public interface ApiService {
             @Query("status") String status
     );
 
+    @GET("api/frames/sync-meta")
+    Call<FrameListResponse> getFramesSyncMeta();
+
 }

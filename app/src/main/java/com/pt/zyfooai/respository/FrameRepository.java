@@ -12,6 +12,7 @@ import com.pt.zyfooai.model.FrameListResponse;
 import com.pt.zyfooai.utils.FrameCache;
 import com.pt.zyfooai.utils.FrameCatalogProvider;
 import com.pt.zyfooai.utils.FrameMediaType;
+import com.pt.zyfooai.utils.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,9 @@ public final class FrameRepository {
             return false;
         }
         ApiService apiService = ApiClient.getApiDataService();
+        if (!shouldRefreshFromServer(context, apiService)) {
+            return false;
+        }
         boolean updated = false;
         updated |= syncMediaType(context, apiService, FrameMediaType.IMAGE);
         updated |= syncMediaType(context, apiService, FrameMediaType.REELS);
@@ -67,6 +71,32 @@ public final class FrameRepository {
             FrameCatalogProvider.invalidate();
         }
         return updated;
+    }
+
+    private static boolean shouldRefreshFromServer(Context context, ApiService apiService) {
+        int cachedVersion = FrameCache.cachedVersion(context);
+        if (cachedVersion <= 0) {
+            return true;
+        }
+        try {
+            Response<FrameListResponse> response = apiService.getFramesSyncMeta().execute();
+            if (!response.isSuccessful() || response.body() == null) {
+                return true;
+            }
+            FrameListResponse body = response.body();
+            if (body.version > cachedVersion) {
+                return true;
+            }
+            if (body.lastUpdated != null && !body.lastUpdated.isEmpty()) {
+                PreferenceManager preferenceManager = new PreferenceManager(context);
+                String cachedAt = preferenceManager.getString(FrameCache.PREF_FRAMES_CACHE_UPDATED_AT);
+                return cachedAt == null || !body.lastUpdated.equals(cachedAt);
+            }
+            return body.version <= 0;
+        } catch (Exception error) {
+            Log.d(TAG, "Frame sync-meta check failed: " + error.getMessage());
+            return true;
+        }
     }
 
     private static boolean syncMediaType(Context context, ApiService apiService, FrameMediaType mediaType) {

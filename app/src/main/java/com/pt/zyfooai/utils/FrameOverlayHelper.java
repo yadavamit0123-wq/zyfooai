@@ -4,6 +4,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.pt.zyfooai.R;
 
 /**
@@ -32,6 +34,13 @@ public final class FrameOverlayHelper {
 
     public static void applyFrameOverlay(View frameRecyclerView, PreferenceManager preferenceManager) {
         if (frameRecyclerView == null) {
+            return;
+        }
+        if (frameRecyclerView instanceof RecyclerView
+                && FrameCanvasHelper.isActiveServerFrame((RecyclerView) frameRecyclerView)) {
+            frameRecyclerView.setScaleX(1f);
+            frameRecyclerView.setScaleY(1f);
+            frameRecyclerView.setAlpha(getFrameAlpha(preferenceManager));
             return;
         }
         float scale = getFrameScale(preferenceManager);

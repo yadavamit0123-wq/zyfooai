@@ -14,6 +14,7 @@ import com.deishelon.roundedbottomsheet.RoundedBottomSheetDialog;
 import com.pt.zyfooai.R;
 import com.pt.zyfooai.ui.activities.EditProfileActivity;
 import com.pt.zyfooai.utils.FooterSizeHelper;
+import com.pt.zyfooai.utils.FrameCanvasHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
@@ -47,6 +48,11 @@ public final class FrameCustomizeBottomSheet {
         SeekBar frameAlphaSeekBar = sheetView.findViewById(R.id.frameAlphaSeekBar);
         CompoundButton mediaFitSwitch = sheetView.findViewById(R.id.mediaFitSwitch);
         View updateStripPhotoBtn = sheetView.findViewById(R.id.updateStripPhotoBtn);
+        boolean serverFrameActive = FrameCanvasHelper.isActiveServerFrame(frameRecyclerView);
+        if (frameSizeSeekBar != null) {
+            frameSizeSeekBar.setEnabled(!serverFrameActive);
+            frameSizeSeekBar.setAlpha(serverFrameActive ? 0.4f : 1f);
+        }
 
         Runnable refreshPreview = () -> {
             FooterSizeHelper.applyFooterScale(footer, preferenceManager);

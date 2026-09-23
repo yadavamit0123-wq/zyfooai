@@ -70,10 +70,9 @@ public final class DynamicFrameRenderer {
             return;
         }
         overlay.setVisibility(View.VISIBLE);
-        overlay.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        overlay.setScaleType(ImageView.ScaleType.FIT_XY);
         Object model;
         RequestOptions options = new RequestOptions()
-                .fitCenter()
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
         if (source.startsWith("http://") || source.startsWith("https://")) {
             model = source;

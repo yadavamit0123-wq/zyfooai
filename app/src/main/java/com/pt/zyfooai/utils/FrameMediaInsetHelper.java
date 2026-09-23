@@ -72,32 +72,61 @@ public final class FrameMediaInsetHelper {
             frameRoot = frameRecyclerView;
         }
 
-        View measureTarget = frameRoot;
         FrameMediaType finalMediaType = mediaType;
-        Runnable applyInsets = () -> {
-            int topInset = 0;
-            int bottomInset = 0;
-            int leftInset = 0;
-            int rightInset = 0;
-            int rootHeight = measureTarget.getHeight();
-            int rootWidth = measureTarget.getWidth();
-            if (rootHeight > 0) {
-                FrameConfig dynamicConfig = readDynamicConfig(measureTarget);
-                if (dynamicConfig != null) {
-                    topInset = insetFromPercent(dynamicConfig.mediaTopInsetPercent(), rootHeight);
-                    bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
-                    if (rootWidth > 0) {
-                        leftInset = insetFromPercent(dynamicConfig.mediaLeftInsetPercent(), rootWidth);
-                        rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
-                    }
-                    if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
-                        bottomInset = Math.max(bottomInset, measureBottomInset(measureTarget, rootHeight));
-                    }
-                } else {
-                    topInset = measureTopInset(measureTarget, finalMediaType, rootHeight);
-                    bottomInset = measureBottomInset(measureTarget, rootHeight);
+        Runnable applyInsets = () -> applyInsetsOnLayout(
+                contentArea,
+                frameRecyclerView,
+                mediaView,
+                preferenceManager,
+                finalMediaType
+        );
+
+        FrameCanvasHelper.apply(contentArea, frameRecyclerView);
+        View mainLayout = contentArea.findViewById(R.id.mainLayOut);
+        if (mainLayout != null) {
+            mainLayout.post(applyInsets);
+        } else if (frameRoot.getHeight() > 0) {
+            applyInsets.run();
+        } else {
+            frameRoot.post(applyInsets);
+        }
+    }
+
+    private static void applyInsetsOnLayout(
+            View contentArea,
+            RecyclerView frameRecyclerView,
+            View mediaView,
+            PreferenceManager preferenceManager,
+            FrameMediaType mediaType
+    ) {
+        View measureTarget = getVisibleFrameRoot(frameRecyclerView);
+        if (measureTarget == null) {
+            measureTarget = frameRecyclerView;
+        }
+        int topInset = 0;
+        int bottomInset = 0;
+        int leftInset = 0;
+        int rightInset = 0;
+        int rootHeight = measureTarget.getHeight();
+        int rootWidth = measureTarget.getWidth();
+        FrameConfig dynamicConfig = readDynamicConfig(measureTarget);
+        if (rootHeight > 0) {
+            if (dynamicConfig != null) {
+                topInset = insetFromPercent(dynamicConfig.mediaTopInsetPercent(), rootHeight);
+                bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
+                if (rootWidth > 0) {
+                    leftInset = insetFromPercent(dynamicConfig.mediaLeftInsetPercent(), rootWidth);
+                    rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
                 }
+                if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
+                    bottomInset = Math.max(bottomInset, measureBottomInset(measureTarget, rootHeight));
+                }
+            } else {
+                topInset = measureTopInset(measureTarget, mediaType, rootHeight);
+                bottomInset = measureBottomInset(measureTarget, rootHeight);
             }
+        }
+        if (dynamicConfig == null) {
             float overlayScale = preferenceManager != null
                     ? FrameOverlayHelper.getFrameScale(preferenceManager)
                     : 1f;
@@ -105,15 +134,10 @@ public final class FrameMediaInsetHelper {
             bottomInset = Math.round(bottomInset * overlayScale);
             leftInset = Math.round(leftInset * overlayScale);
             rightInset = Math.round(rightInset * overlayScale);
-            applyInset(mediaView, topInset, bottomInset, leftInset, rightInset, true);
-            syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, true);
-        };
-
-        if (measureTarget.getHeight() > 0) {
-            applyInsets.run();
-        } else {
-            measureTarget.post(applyInsets);
         }
+        boolean cropMedia = dynamicConfig != null || shouldApplyFit(preferenceManager, mediaType);
+        applyInset(mediaView, topInset, bottomInset, leftInset, rightInset, cropMedia, dynamicConfig != null);
+        syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, true);
     }
 
     public static void bindFitToggle(
@@ -184,7 +208,7 @@ public final class FrameMediaInsetHelper {
         return mediaView;
     }
 
-    private static View getVisibleFrameRoot(RecyclerView frameRecyclerView) {
+    public static View getVisibleFrameRoot(RecyclerView frameRecyclerView) {
         RecyclerView.LayoutManager layoutManager = frameRecyclerView.getLayoutManager();
         if (!(layoutManager instanceof LinearLayoutManager)) {
             return null;
@@ -279,7 +303,8 @@ public final class FrameMediaInsetHelper {
             int bottomInset,
             int leftInset,
             int rightInset,
-            boolean fitMode
+            boolean fitMode,
+            boolean serverSafeZone
     ) {
         ViewGroup.LayoutParams params = mediaView.getLayoutParams();
         if (params instanceof RelativeLayout.LayoutParams) {
@@ -306,16 +331,22 @@ public final class FrameMediaInsetHelper {
         if (mediaView instanceof ImageView) {
             ImageView imageView = (ImageView) mediaView;
             imageView.setAdjustViewBounds(false);
-            imageView.setScaleType(
-                    fitMode ? ImageView.ScaleType.FIT_CENTER : ImageView.ScaleType.CENTER_CROP);
+            if (serverSafeZone || !fitMode) {
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            } else {
+                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            }
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
-            playerView.setResizeMode(
-                    fitMode ? AspectRatioFrameLayout.RESIZE_MODE_FIT
-                            : AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
-            int shutterColor = fitMode ? Color.TRANSPARENT : Color.BLACK;
-            playerView.setShutterBackgroundColor(shutterColor);
-            playerView.setBackgroundColor(shutterColor);
+            if (serverSafeZone || !fitMode) {
+                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+                playerView.setShutterBackgroundColor(Color.BLACK);
+                playerView.setBackgroundColor(Color.BLACK);
+            } else {
+                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+                playerView.setShutterBackgroundColor(Color.TRANSPARENT);
+                playerView.setBackgroundColor(Color.TRANSPARENT);
+            }
         }
     }
 
@@ -398,7 +429,7 @@ public final class FrameMediaInsetHelper {
         }
 
         blurBg.setVisibility(View.VISIBLE);
-        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false);
+        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false, false);
         blurBg.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         Object loadedUrl = blurBg.getTag(R.id.media_blur_source_url);
