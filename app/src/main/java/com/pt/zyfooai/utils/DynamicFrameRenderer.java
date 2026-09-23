@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -44,9 +45,32 @@ public final class DynamicFrameRenderer {
             return;
         }
         root.setTag(R.id.frame_config, config);
-        loadOverlay(root, config);
+        loadOverlay(root, config, preferenceManager);
         applyFooter(root, config.footer != null ? config.footer : defaultFooter());
-        FrameFooterLayoutHelper.applyEdgeToEdge(root);
+        if (config.footer != null && config.footer.enabled) {
+            FrameFooterLayoutHelper.applyEdgeToEdge(root);
+        }
+        scheduleLayoutRefresh(root, preferenceManager);
+    }
+
+    private static void scheduleLayoutRefresh(View frameRoot, PreferenceManager preferenceManager) {
+        if (frameRoot == null) {
+            return;
+        }
+        Runnable refresh = () -> {
+            Object blurRoot = frameRoot.getTag(R.id.frost_blur_root);
+            if (!(blurRoot instanceof View)) {
+                return;
+            }
+            View contentArea = (View) blurRoot;
+            RecyclerView frameRecyclerView = contentArea.findViewById(R.id.recyclerview);
+            if (frameRecyclerView == null) {
+                return;
+            }
+            FrameCanvasHelper.apply(contentArea, frameRecyclerView);
+            FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager);
+        };
+        frameRoot.post(refresh);
     }
 
     private static FrameFooterConfig defaultFooter() {
@@ -58,7 +82,7 @@ public final class DynamicFrameRenderer {
         return footer;
     }
 
-    private static void loadOverlay(View root, FrameConfig config) {
+    private static void loadOverlay(View root, FrameConfig config, PreferenceManager preferenceManager) {
         ImageView overlay = root.findViewById(R.id.frameOverlayPng);
         if (overlay == null) {
             return;
@@ -103,6 +127,7 @@ public final class DynamicFrameRenderer {
                             boolean isFirstResource
                     ) {
                         overlay.setVisibility(View.VISIBLE);
+                        scheduleLayoutRefresh(root, preferenceManager);
                         return false;
                     }
                 })

@@ -53,9 +53,19 @@ public final class FrameCanvasHelper {
                 return;
             }
             if (config != null && config.aspectRatio != null && !config.aspectRatio.trim().isEmpty()) {
-                int height = heightForWidth(width, config.aspectRatio);
-                layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                layoutParams.height = height;
+                int availableHeight = contentArea.getHeight();
+                int targetWidth = width;
+                int targetHeight = heightForWidth(targetWidth, config.aspectRatio);
+                boolean heightCapped = false;
+                if (availableHeight > 0 && targetHeight > availableHeight) {
+                    targetHeight = availableHeight;
+                    targetWidth = widthForHeight(targetHeight, config.aspectRatio);
+                    heightCapped = true;
+                }
+                layoutParams.width = heightCapped
+                        ? targetWidth
+                        : ViewGroup.LayoutParams.MATCH_PARENT;
+                layoutParams.height = targetHeight;
                 if (layoutParams instanceof RelativeLayout.LayoutParams) {
                     RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
                     relative.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -80,6 +90,27 @@ public final class FrameCanvasHelper {
     }
 
     /** Height = width × (aspect height / aspect width). Supports 1:1, 4:5, 9:16. */
+    public static int widthForHeight(int height, String aspectRatio) {
+        if (height <= 0 || aspectRatio == null) {
+            return height;
+        }
+        String normalized = aspectRatio.trim().replace(" ", "");
+        String[] parts = normalized.split(":");
+        if (parts.length != 2) {
+            return height;
+        }
+        try {
+            float aspectW = Float.parseFloat(parts[0]);
+            float aspectH = Float.parseFloat(parts[1]);
+            if (aspectW <= 0f || aspectH <= 0f) {
+                return height;
+            }
+            return Math.round(height * (aspectW / aspectH));
+        } catch (NumberFormatException ignored) {
+            return height;
+        }
+    }
+
     public static int heightForWidth(int width, String aspectRatio) {
         if (width <= 0 || aspectRatio == null) {
             return width;

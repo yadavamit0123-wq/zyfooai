@@ -96,6 +96,13 @@ public final class FrameOverlayHelper {
             return;
         }
         contentArea.post(() -> {
+            RecyclerView frameRecyclerView = contentArea.findViewById(R.id.recyclerview);
+            if (frameRecyclerView != null && FrameCanvasHelper.isActiveServerFrame(frameRecyclerView)) {
+                FrameCanvasHelper.apply(contentArea, frameRecyclerView);
+                mainLayout.setAlpha(1f);
+                return;
+            }
+
             int footerHeight = footer.getHeight();
             if (footerHeight <= 0) {
                 footerHeight = contentArea.getResources().getDimensionPixelSize(R.dimen.feed_footer_fallback_height);

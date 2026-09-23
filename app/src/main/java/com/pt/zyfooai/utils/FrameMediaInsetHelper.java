@@ -137,7 +137,8 @@ public final class FrameMediaInsetHelper {
         }
         boolean cropMedia = dynamicConfig != null || shouldApplyFit(preferenceManager, mediaType);
         applyInset(mediaView, topInset, bottomInset, leftInset, rightInset, cropMedia, dynamicConfig != null);
-        syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, true);
+        boolean showBlur = dynamicConfig == null;
+        syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
     }
 
     public static void bindFitToggle(

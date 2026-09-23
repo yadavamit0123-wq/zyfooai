@@ -35,6 +35,7 @@ public final class FrameScrollHelper {
                     return;
                 }
                 if (contentArea != null) {
+                    FrameCanvasHelper.apply(contentArea, rv);
                     FrameMediaInsetHelper.apply(contentArea, rv, preferenceManager);
                 }
                 if (Boolean.TRUE.equals(rv.getTag(R.id.frame_programmatic_scroll))) {
