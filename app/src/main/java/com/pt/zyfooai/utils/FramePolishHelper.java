@@ -36,10 +36,12 @@ public final class FramePolishHelper {
             return;
         }
         if (DynamicFrameRenderer.isDynamicFrame(frameRoot)) {
-            Object configTag = frameRoot.getTag(R.id.frame_config);
-            if (configTag instanceof com.pt.zyfooai.model.FrameConfig) {
-                PreferenceManager pm = new PreferenceManager(frameRoot.getContext());
-                DynamicFrameRenderer.bind(frameRoot, (com.pt.zyfooai.model.FrameConfig) configTag, pm, frameIndex);
+            com.pt.zyfooai.model.FrameConfig config = DynamicFrameRenderer.getConfig(frameRoot);
+            PreferenceManager pm = new PreferenceManager(frameRoot.getContext());
+            if (config != null) {
+                DynamicFrameRenderer.bind(frameRoot, config, pm, frameIndex);
+            } else {
+                DynamicFrameRenderer.suppressAppFooter(frameRoot);
             }
             applyTypography(frameRoot);
             return;

@@ -66,6 +66,7 @@ import com.pt.zyfooai.ui.activities.SubscriptionActivity;
 import com.pt.zyfooai.ui.dialog.FrameCustomizeBottomSheet;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.DynamicFrameRenderer;
 import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
@@ -724,7 +725,11 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             holder.setIsRecyclable(false);
 
+            FrameEntry entry = entries.get(position);
+            boolean showAppFooter = !entry.isDynamic()
+                    || DynamicFrameRenderer.shouldShowAppFooter(entry.getDynamicConfig());
 
+            if (showAppFooter) {
             holder.userNameTv.setText(preferenceManager.getString(Constant.USER_NAME));
             holder.userDesTv.setText(preferenceManager.getString(Constant.USER_DESIGNATION));
 
@@ -806,17 +811,23 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             FrameBindHelper.setVisibilityIfEmpty(holder.businessWebsiteTv);
             FrameBindHelper.setVisibilityIfEmpty(holder.businessAddressTv);
             FrameBindHelper.setVisibilityIfEmpty(holder.userDesTv);
+            } else {
+                DynamicFrameRenderer.suppressAppFooter(holder.itemView);
+            }
 
             if (holder.dateTv != null) {
                 String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
                         .format(new Date()).toUpperCase(Locale.ROOT);
                 holder.dateTv.setText(currentDate);
             }
-            tagDynamicFrameConfig(holder.itemView, position);
+            tagDynamicFrameConfig(holder.itemView, entry);
             applyFrameBusinessHeader(holder.itemView);
             holder.itemView.setTag(R.id.frost_blur_root, contentArea);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
+            if (!showAppFooter) {
+                DynamicFrameRenderer.suppressAppFooter(holder.itemView);
+            }
             holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
         }
 
@@ -830,8 +841,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             return position;
         }
 
-        private void tagDynamicFrameConfig(View itemView, int position) {
-            FrameEntry entry = entries.get(position);
+        private void tagDynamicFrameConfig(View itemView, FrameEntry entry) {
             if (entry.isDynamic()) {
                 itemView.setTag(R.id.frame_config, entry.getDynamicConfig());
             }
@@ -897,6 +907,11 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             holder.setIsRecyclable(false);
 
+            FrameEntry entry = entries.get(position);
+            boolean showAppFooter = !entry.isDynamic()
+                    || DynamicFrameRenderer.shouldShowAppFooter(entry.getDynamicConfig());
+
+            if (showAppFooter) {
             holder.userNameTv.setText(preferenceManager.getString(Constant.USER_NAME));
             holder.userDesTv.setText(preferenceManager.getString(Constant.USER_DESIGNATION));
 
@@ -950,6 +965,9 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             FrameBindHelper.setVisibilityIfEmpty(holder.userDesTv);
             FrameBindHelper.setVisibilityIfEmpty(holder.businessWebsiteTv);
             FrameBindHelper.setVisibilityIfEmpty(holder.businessAddressTv);
+            } else {
+                DynamicFrameRenderer.suppressAppFooter(holder.itemView);
+            }
 
             if (holder.dateTv != null) {
                 String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
@@ -957,11 +975,14 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.dateTv.setText(currentDate);
             }
 
-            tagDynamicFrameConfig(holder.itemView, position);
+            tagDynamicFrameConfig(holder.itemView, entry);
             applyFrameBusinessHeader(holder.itemView);
             holder.itemView.setTag(R.id.frost_blur_root, contentArea);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
+            if (!showAppFooter) {
+                DynamicFrameRenderer.suppressAppFooter(holder.itemView);
+            }
             holder.itemView.post(() -> FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager));
         }
 
@@ -975,8 +996,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             return position;
         }
 
-        private void tagDynamicFrameConfig(View itemView, int position) {
-            FrameEntry entry = entries.get(position);
+        private void tagDynamicFrameConfig(View itemView, FrameEntry entry) {
             if (entry.isDynamic()) {
                 itemView.setTag(R.id.frame_config, entry.getDynamicConfig());
             }

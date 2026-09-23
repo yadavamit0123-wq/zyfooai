@@ -31,6 +31,25 @@ public final class DynamicFrameRenderer {
         return root != null && root.findViewById(R.id.frameOverlayPng) != null;
     }
 
+    /** When false, PNG frame owns the footer — hide {@code stickerBottomPanel} on the dynamic shell. */
+    public static boolean shouldShowAppFooter(@Nullable FrameConfig config) {
+        return config == null || config.footer == null || config.footer.enabled;
+    }
+
+    public static void suppressAppFooter(View root) {
+        if (root == null) {
+            return;
+        }
+        View panel = root.findViewById(R.id.stickerBottomPanel);
+        if (panel != null) {
+            panel.setVisibility(View.GONE);
+        }
+        View socialRow = root.findViewById(R.id.stickerSocialRow);
+        if (socialRow != null) {
+            socialRow.setVisibility(View.GONE);
+        }
+    }
+
     @Nullable
     public static FrameConfig getConfig(View root) {
         if (root == null) {
@@ -141,7 +160,7 @@ public final class DynamicFrameRenderer {
         }
         LinearLayout bottomPanel = (LinearLayout) panel;
         if (footer == null || !footer.enabled) {
-            bottomPanel.setVisibility(View.GONE);
+            suppressAppFooter(root);
             return;
         }
         bottomPanel.setVisibility(View.VISIBLE);
