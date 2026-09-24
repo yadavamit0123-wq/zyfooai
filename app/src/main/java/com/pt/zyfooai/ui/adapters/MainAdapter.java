@@ -68,6 +68,7 @@ import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.BillingHelper;
 import com.pt.zyfooai.utils.DynamicFrameRenderer;
 import com.pt.zyfooai.utils.FrameBindHelper;
+import com.pt.zyfooai.utils.FrameCanvasHelper;
 import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameOverlayHelper;
 import com.pt.zyfooai.utils.FramePolishHelper;
@@ -518,6 +519,11 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                                 currentHolder.videoLayoutBinding.relativeLayout4,
                                 currentHolder.videoLayoutBinding.swipeFrames
                         );
+                        FrameMediaInsetHelper.apply(
+                                currentHolder.videoLayoutBinding.relativeLayout4,
+                                currentHolder.videoLayoutBinding.recyclerview,
+                                preferenceManager
+                        );
                     }
                 }
             });
@@ -591,7 +597,11 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     int bottomSpace = 0;
 
     private void tryCalculateSpace(ViewHolder holder) {
-
+        if (FrameCanvasHelper.isActiveServerFrame(holder.binding.recyclerview)) {
+            holder.binding.mainLayOut.setAlpha(1f);
+            holder.binding.recyclerview.invalidateItemDecorations();
+            return;
+        }
 
         Log.d("farukh-------->layout", "tryCalculateSpace: width : " + layoutWidth + ", height : " + layoutHeight);
         Log.d("farukh-------->image", "tryCalculateSpace: width : " + imageWidth + ", height : " + imageHeight);
@@ -634,6 +644,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             @Override
             public void getItemOffsets(Rect outRect, View view,
                                        RecyclerView parent, RecyclerView.State state) {
+                if (FrameCanvasHelper.isActiveServerFrame(parent)) {
+                    outRect.setEmpty();
+                    return;
+                }
                 outRect.left = horizontalSpace;
                 outRect.right = horizontalSpace;
                 outRect.bottom = bottomSpace;

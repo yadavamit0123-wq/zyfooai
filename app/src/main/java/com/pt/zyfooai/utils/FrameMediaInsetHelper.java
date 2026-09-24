@@ -135,9 +135,19 @@ public final class FrameMediaInsetHelper {
             leftInset = Math.round(leftInset * overlayScale);
             rightInset = Math.round(rightInset * overlayScale);
         }
-        boolean cropMedia = dynamicConfig != null || shouldApplyFit(preferenceManager, mediaType);
-        applyInset(mediaView, topInset, bottomInset, leftInset, rightInset, cropMedia, dynamicConfig != null);
-        boolean showBlur = dynamicConfig == null;
+        boolean serverFrame = dynamicConfig != null;
+        boolean cropMedia = serverFrame || shouldApplyFit(preferenceManager, mediaType);
+        applyInset(
+                mediaView,
+                topInset,
+                bottomInset,
+                leftInset,
+                rightInset,
+                cropMedia,
+                serverFrame,
+                mediaType
+        );
+        boolean showBlur = !serverFrame || mediaType == FrameMediaType.IMAGE;
         syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
     }
 
@@ -305,7 +315,8 @@ public final class FrameMediaInsetHelper {
             int leftInset,
             int rightInset,
             boolean fitMode,
-            boolean serverSafeZone
+            boolean serverSafeZone,
+            FrameMediaType mediaType
     ) {
         ViewGroup.LayoutParams params = mediaView.getLayoutParams();
         if (params instanceof RelativeLayout.LayoutParams) {
@@ -332,7 +343,9 @@ public final class FrameMediaInsetHelper {
         if (mediaView instanceof ImageView) {
             ImageView imageView = (ImageView) mediaView;
             imageView.setAdjustViewBounds(false);
-            if (serverSafeZone || !fitMode) {
+            if (serverSafeZone && mediaType == FrameMediaType.IMAGE) {
+                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            } else if (serverSafeZone || !fitMode) {
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             } else {
                 imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -430,7 +443,7 @@ public final class FrameMediaInsetHelper {
         }
 
         blurBg.setVisibility(View.VISIBLE);
-        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false, false);
+        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false, false, FrameMediaType.IMAGE);
         blurBg.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         Object loadedUrl = blurBg.getTag(R.id.media_blur_source_url);

@@ -31,6 +31,22 @@ public final class FrameCanvasHelper {
         return getActiveFrameConfig(frameRecyclerView) != null;
     }
 
+    /**
+     * Largest width/height box with the given aspect ratio that fits inside maxWidth × maxHeight.
+     */
+    public static int[] fitAspectBox(int maxWidth, int maxHeight, String aspectRatio) {
+        if (maxWidth <= 0 || maxHeight <= 0) {
+            return new int[]{maxWidth, maxHeight};
+        }
+        int targetWidth = maxWidth;
+        int targetHeight = heightForWidth(targetWidth, aspectRatio);
+        if (targetHeight > maxHeight) {
+            targetHeight = maxHeight;
+            targetWidth = widthForHeight(targetHeight, aspectRatio);
+        }
+        return new int[]{targetWidth, targetHeight};
+    }
+
     public static void apply(View contentArea, RecyclerView frameRecyclerView) {
         if (contentArea == null || frameRecyclerView == null) {
             return;
@@ -39,53 +55,98 @@ public final class FrameCanvasHelper {
         if (mainLayout == null) {
             return;
         }
+        View canvasShell = mainLayout.getParent() instanceof ViewGroup
+                ? (View) mainLayout.getParent()
+                : mainLayout;
+
         Runnable applySize = () -> {
             FrameConfig config = getActiveFrameConfig(frameRecyclerView);
-            int width = contentArea.getWidth();
-            if (width <= 0) {
-                width = mainLayout.getWidth();
+            int areaWidth = contentArea.getWidth();
+            int areaHeight = contentArea.getHeight();
+            if (areaWidth <= 0) {
+                areaWidth = contentArea.getMeasuredWidth();
             }
-            if (width <= 0) {
+            if (areaHeight <= 0) {
+                areaHeight = contentArea.getMeasuredHeight();
+            }
+            if (areaWidth <= 0) {
                 return;
             }
-            ViewGroup.LayoutParams layoutParams = mainLayout.getLayoutParams();
-            if (layoutParams == null) {
+
+            int marginW = 0;
+            int marginH = 0;
+            ViewGroup.LayoutParams shellParams = canvasShell.getLayoutParams();
+            if (shellParams instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams marginParams = (ViewGroup.MarginLayoutParams) shellParams;
+                marginW = marginParams.leftMargin + marginParams.rightMargin;
+                marginH = marginParams.topMargin + marginParams.bottomMargin;
+            }
+
+            ViewGroup.LayoutParams mainParams = mainLayout.getLayoutParams();
+            if (mainParams == null || shellParams == null) {
                 return;
             }
+
             if (config != null && config.aspectRatio != null && !config.aspectRatio.trim().isEmpty()) {
-                int availableHeight = contentArea.getHeight();
-                int targetWidth = width;
-                int targetHeight = heightForWidth(targetWidth, config.aspectRatio);
-                boolean heightCapped = false;
-                if (availableHeight > 0 && targetHeight > availableHeight) {
-                    targetHeight = availableHeight;
-                    targetWidth = widthForHeight(targetHeight, config.aspectRatio);
-                    heightCapped = true;
-                }
-                layoutParams.width = heightCapped
-                        ? targetWidth
-                        : ViewGroup.LayoutParams.MATCH_PARENT;
-                layoutParams.height = targetHeight;
-                if (layoutParams instanceof RelativeLayout.LayoutParams) {
-                    RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
-                    relative.addRule(RelativeLayout.CENTER_IN_PARENT);
-                }
+                int maxW = Math.max(1, areaWidth - marginW);
+                int maxH = areaHeight > 0 ? Math.max(1, areaHeight - marginH) : maxW * 16 / 9;
+                int[] box = fitAspectBox(maxW, maxH, config.aspectRatio);
+
+                shellParams.width = box[0];
+                shellParams.height = box[1];
+                applyShellRules(shellParams, config);
+
+                mainParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                mainParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                clearMainLayoutRules(mainParams);
             } else {
-                layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                if (layoutParams instanceof RelativeLayout.LayoutParams) {
-                    RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
-                    relative.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                    relative.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
-                }
+                shellParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                shellParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                applyShellRules(shellParams, null);
+
+                mainParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                mainParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                clearMainLayoutRules(mainParams);
             }
-            mainLayout.setLayoutParams(layoutParams);
+
+            canvasShell.setLayoutParams(shellParams);
+            mainLayout.setLayoutParams(mainParams);
+            canvasShell.requestLayout();
             mainLayout.requestLayout();
         };
+
         if (contentArea.getWidth() > 0) {
             applySize.run();
         } else {
             contentArea.post(applySize);
+        }
+    }
+
+    /**
+     * Status/image frames sit under the category bar — top-align avoids a large empty band under 1:1 canvases.
+     * Reels (9:16) stay vertically centered in the content area.
+     */
+    private static void applyShellRules(ViewGroup.LayoutParams layoutParams, @Nullable FrameConfig config) {
+        if (!(layoutParams instanceof RelativeLayout.LayoutParams)) {
+            return;
+        }
+        RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
+        boolean alignTop = config == null || config.resolvedMediaType() == FrameMediaType.IMAGE;
+        if (alignTop) {
+            relative.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            relative.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            relative.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
+        } else {
+            relative.addRule(RelativeLayout.CENTER_IN_PARENT);
+            relative.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        }
+    }
+
+    private static void clearMainLayoutRules(ViewGroup.LayoutParams layoutParams) {
+        if (layoutParams instanceof RelativeLayout.LayoutParams) {
+            RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
+            relative.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
+            relative.addRule(RelativeLayout.ALIGN_PARENT_TOP);
         }
     }
 
