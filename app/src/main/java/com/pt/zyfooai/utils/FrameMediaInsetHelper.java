@@ -83,12 +83,23 @@ public final class FrameMediaInsetHelper {
 
         FrameCanvasHelper.apply(contentArea, frameRecyclerView);
         View mainLayout = contentArea.findViewById(R.id.mainLayOut);
-        if (mainLayout != null) {
-            mainLayout.post(applyInsets);
-        } else if (frameRoot.getHeight() > 0) {
+        Runnable schedule = () -> {
             applyInsets.run();
+            View frameRootNow = getVisibleFrameRoot(frameRecyclerView);
+            FrameConfig config = frameRootNow != null ? readDynamicConfig(frameRootNow) : null;
+            if (frameRootNow != null && config != null && config.footer != null && config.footer.enabled) {
+                View footerPanel = frameRootNow.findViewById(R.id.stickerBottomPanel);
+                if (footerPanel != null) {
+                    footerPanel.post(applyInsets);
+                }
+            }
+        };
+        if (mainLayout != null) {
+            mainLayout.post(schedule);
+        } else if (frameRoot.getHeight() > 0) {
+            schedule.run();
         } else {
-            frameRoot.post(applyInsets);
+            frameRoot.post(schedule);
         }
     }
 
@@ -113,13 +124,24 @@ public final class FrameMediaInsetHelper {
         if (rootHeight > 0) {
             if (dynamicConfig != null) {
                 topInset = insetFromPercent(dynamicConfig.mediaTopInsetPercent(), rootHeight);
-                bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
                 if (rootWidth > 0) {
                     leftInset = insetFromPercent(dynamicConfig.mediaLeftInsetPercent(), rootWidth);
                     rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
                 }
                 if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
-                    bottomInset = Math.max(bottomInset, measureBottomInset(measureTarget, rootHeight));
+                    int footerPercent = dynamicConfig.footer.heightPercent > 0
+                            ? dynamicConfig.footer.heightPercent
+                            : 12;
+                    bottomInset = Math.max(
+                            measureBottomInset(measureTarget, rootHeight),
+                            insetFromPercent(footerPercent, rootHeight)
+                    );
+                    bottomInset = Math.max(
+                            bottomInset,
+                            insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight)
+                    );
+                } else {
+                    bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
                 }
             } else {
                 topInset = measureTopInset(measureTarget, mediaType, rootHeight);
@@ -147,8 +169,12 @@ public final class FrameMediaInsetHelper {
                 serverFrame,
                 mediaType
         );
-        boolean showBlur = !serverFrame || mediaType == FrameMediaType.IMAGE;
-        syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
+        boolean showBlur = !serverFrame || mediaType == FrameMediaType.IMAGE || mediaType == FrameMediaType.REELS;
+        if (serverFrame && mediaType == FrameMediaType.REELS) {
+            syncBlurBackground(contentArea, 0, 0, 0, 0, showBlur);
+        } else {
+            syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
+        }
     }
 
     public static void bindFitToggle(
@@ -344,7 +370,7 @@ public final class FrameMediaInsetHelper {
             ImageView imageView = (ImageView) mediaView;
             imageView.setAdjustViewBounds(false);
             if (serverSafeZone && mediaType == FrameMediaType.IMAGE) {
-                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             } else if (serverSafeZone || !fitMode) {
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             } else {

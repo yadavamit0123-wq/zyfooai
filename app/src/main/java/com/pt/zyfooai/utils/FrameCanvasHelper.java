@@ -123,22 +123,24 @@ public final class FrameCanvasHelper {
     }
 
     /**
-     * Status/image frames sit under the category bar — top-align avoids a large empty band under 1:1 canvases.
-     * Reels (9:16) stay vertically centered in the content area.
+     * Server canvases pin to the bottom of the content area (same anchor as bundled sticker/gradient frames).
+     * Bundled XML frames keep a full-height card.
      */
     private static void applyShellRules(ViewGroup.LayoutParams layoutParams, @Nullable FrameConfig config) {
         if (!(layoutParams instanceof RelativeLayout.LayoutParams)) {
             return;
         }
         RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
-        boolean alignTop = config == null || config.resolvedMediaType() == FrameMediaType.IMAGE;
-        if (alignTop) {
+        if (config != null) {
+            relative.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            relative.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            relative.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            relative.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
+        } else {
             relative.addRule(RelativeLayout.ALIGN_PARENT_TOP);
             relative.addRule(RelativeLayout.CENTER_HORIZONTAL);
             relative.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
-        } else {
-            relative.addRule(RelativeLayout.CENTER_IN_PARENT);
-            relative.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            relative.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
         }
     }
 
