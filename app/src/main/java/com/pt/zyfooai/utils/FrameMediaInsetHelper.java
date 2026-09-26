@@ -386,19 +386,14 @@ public final class FrameMediaInsetHelper {
         if (mediaView instanceof ImageView) {
             ImageView imageView = (ImageView) mediaView;
             imageView.setAdjustViewBounds(false);
-            if (serverSafeZone && mediaType == FrameMediaType.IMAGE) {
-                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            } else if (serverSafeZone || !fitMode) {
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            } else {
-                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            }
+            // Full admin photo visible (no crop). Blur behind fills empty edges — canvas stay full-cover.
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
-            // Always cover the video slot — FIT leaves white L/R pillars on portrait reels.
-            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
-            playerView.setShutterBackgroundColor(Color.BLACK);
-            playerView.setBackgroundColor(Color.BLACK);
+            // Full admin video visible (no crop). Transparent letterbox → blurred bg shows through.
+            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+            playerView.setShutterBackgroundColor(Color.TRANSPARENT);
+            playerView.setBackgroundColor(Color.TRANSPARENT);
         }
     }
 
