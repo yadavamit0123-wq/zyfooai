@@ -88,13 +88,19 @@ public final class FrameCanvasHelper {
             }
 
             if (config != null) {
-                String aspect = config.resolvedAspectRatio();
                 int maxW = Math.max(1, areaWidth - marginW);
                 int maxH = areaHeight > 0 ? Math.max(1, areaHeight - marginH) : maxW * 16 / 9;
-                int[] box = fitAspectBox(maxW, maxH, aspect);
-
-                shellParams.width = box[0];
-                shellParams.height = box[1];
+                if (config.resolvedMediaType() == FrameMediaType.REELS) {
+                    // Reels: fill the whole preview slot (no L/R/footer white pillars).
+                    // 9:16 is preserved for export/safeZone math; preview covers like Crafto cards.
+                    shellParams.width = maxW;
+                    shellParams.height = maxH;
+                } else {
+                    String aspect = config.resolvedAspectRatio();
+                    int[] box = fitAspectBox(maxW, maxH, aspect);
+                    shellParams.width = box[0];
+                    shellParams.height = box[1];
+                }
                 applyShellRules(shellParams, config);
 
                 mainParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -132,7 +138,12 @@ public final class FrameCanvasHelper {
             return;
         }
         RelativeLayout.LayoutParams relative = (RelativeLayout.LayoutParams) layoutParams;
-        if (config != null) {
+        if (config != null && config.resolvedMediaType() == FrameMediaType.REELS) {
+            relative.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            relative.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            relative.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            relative.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
+        } else if (config != null) {
             relative.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
             relative.addRule(RelativeLayout.CENTER_HORIZONTAL);
             relative.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);

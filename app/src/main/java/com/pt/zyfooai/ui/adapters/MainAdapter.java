@@ -515,6 +515,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                     if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
                         currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
+                        currentHolder.videoLayoutBinding.playerview.setResizeMode(
+                                com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
                         FooterSizeHelper.fitContentAboveFooter(
                                 currentHolder.videoLayoutBinding.relativeLayout4,
                                 currentHolder.videoLayoutBinding.swipeFrames
@@ -913,8 +915,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(context).inflate(
-                    entries.get(viewType).getLayoutResId(), parent, false));
+            View itemView = LayoutInflater.from(context).inflate(
+                    entries.get(viewType).getLayoutResId(), parent, false);
+            // Horizontal pager items must match RV size or video sits in a narrow white box.
+            itemView.setLayoutParams(new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            return new ViewHolder(itemView);
         }
 
         @Override

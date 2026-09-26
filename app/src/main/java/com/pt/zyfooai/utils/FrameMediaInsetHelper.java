@@ -161,9 +161,18 @@ public final class FrameMediaInsetHelper {
                 serverFrame,
                 mediaType
         );
-        boolean showBlur = !serverFrame || mediaType == FrameMediaType.IMAGE || mediaType == FrameMediaType.REELS;
-        if (serverFrame && mediaType == FrameMediaType.REELS) {
-            syncBlurBackground(contentArea, 0, 0, 0, 0, showBlur);
+        boolean showBlur = mediaType == FrameMediaType.REELS
+                || !serverFrame
+                || mediaType == FrameMediaType.IMAGE;
+        if (mediaType == FrameMediaType.REELS) {
+            View mainLayout = contentArea.findViewById(R.id.mainLayOut);
+            if (mainLayout != null) {
+                mainLayout.setBackgroundColor(Color.BLACK);
+                if (mainLayout.getParent() instanceof View) {
+                    ((View) mainLayout.getParent()).setBackgroundColor(Color.BLACK);
+                }
+            }
+            syncBlurBackground(contentArea, 0, 0, 0, 0, true);
         } else {
             syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
         }
@@ -370,16 +379,10 @@ public final class FrameMediaInsetHelper {
             }
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
-            // Spec: reels inside safe zone = CENTER_CROP (ZOOM). Bundled/XML fit toggle may use FIT.
-            if (serverSafeZone || !fitMode) {
-                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
-                playerView.setShutterBackgroundColor(Color.BLACK);
-                playerView.setBackgroundColor(Color.BLACK);
-            } else {
-                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-                playerView.setShutterBackgroundColor(Color.TRANSPARENT);
-                playerView.setBackgroundColor(Color.TRANSPARENT);
-            }
+            // Always cover the video slot — FIT leaves white L/R pillars on portrait reels.
+            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+            playerView.setShutterBackgroundColor(Color.BLACK);
+            playerView.setBackgroundColor(Color.BLACK);
         }
     }
 
