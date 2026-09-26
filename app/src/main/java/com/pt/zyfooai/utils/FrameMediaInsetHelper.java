@@ -176,13 +176,8 @@ public final class FrameMediaInsetHelper {
                 || !serverFrame
                 || mediaType == FrameMediaType.IMAGE;
         if (mediaType == FrameMediaType.REELS) {
-            View mainLayout = contentArea.findViewById(R.id.mainLayOut);
-            if (mainLayout != null) {
-                mainLayout.setBackgroundColor(Color.BLACK);
-                if (mainLayout.getParent() instanceof View) {
-                    ((View) mainLayout.getParent()).setBackgroundColor(Color.BLACK);
-                }
-            }
+            // Prefer video-related fill (not hard black) behind FIT letterbox + blur.
+            applyCachedAmbientFill(contentArea);
             syncBlurBackground(contentArea, 0, 0, 0, 0, true);
         } else {
             syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
@@ -482,6 +477,7 @@ public final class FrameMediaInsetHelper {
         Object loadedUrl = blurBg.getTag(R.id.media_blur_source_url);
         if (mediaUrl.equals(loadedUrl)) {
             applyBlurEffect(blurBg);
+            applyAmbientFillFromDrawable(contentArea, blurBg.getDrawable());
             return;
         }
         blurBg.setTag(R.id.media_blur_source_url, mediaUrl);
@@ -502,6 +498,7 @@ public final class FrameMediaInsetHelper {
                                                 @Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
                         blurBg.setImageDrawable(resource);
                         applyBlurEffect(blurBg);
+                        applyAmbientFillFromDrawable(contentArea, resource);
                     }
 
                     @Override
@@ -509,6 +506,110 @@ public final class FrameMediaInsetHelper {
                         blurBg.setImageDrawable(placeholder);
                     }
                 });
+    }
+
+    /** Re-apply last known video-related fill so letterbox never flashes hard black. */
+    private static void applyCachedAmbientFill(View contentArea) {
+        Object cached = contentArea.getTag(R.id.media_ambient_color);
+        if (cached instanceof Integer) {
+            paintAmbientFill(contentArea, (Integer) cached);
+        }
+    }
+
+    private static void applyAmbientFillFromDrawable(View contentArea, @Nullable Drawable drawable) {
+        Bitmap bitmap = drawableToBitmap(drawable);
+        if (bitmap == null || bitmap.isRecycled()) {
+            return;
+        }
+        int color = sampleAmbientColor(bitmap);
+        contentArea.setTag(R.id.media_ambient_color, color);
+        paintAmbientFill(contentArea, color);
+    }
+
+    private static void paintAmbientFill(View contentArea, int color) {
+        View mainLayout = contentArea.findViewById(R.id.mainLayOut);
+        if (mainLayout != null) {
+            mainLayout.setBackgroundColor(color);
+            if (mainLayout.getParent() instanceof View) {
+                ((View) mainLayout.getParent()).setBackgroundColor(color);
+            }
+        }
+        ImageView blurBg = contentArea.findViewById(R.id.media_blur_bg);
+        if (blurBg != null) {
+            blurBg.setBackgroundColor(color);
+        }
+        View playerView = contentArea.findViewById(R.id.playerview);
+        if (playerView instanceof PlayerView) {
+            // Keep surface letterbox transparent so blur/ambient show through — never paint black.
+            ((PlayerView) playerView).setShutterBackgroundColor(Color.TRANSPARENT);
+            playerView.setBackgroundColor(Color.TRANSPARENT);
+        }
+    }
+
+    @Nullable
+    private static Bitmap drawableToBitmap(@Nullable Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable) drawable).getBitmap();
+        }
+        if (drawable == null) {
+            return null;
+        }
+        int width = Math.max(1, drawable.getIntrinsicWidth());
+        int height = Math.max(1, drawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        drawable.setBounds(0, 0, width, height);
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
+    /**
+     * Average color biased to left/right/top edges — matches FIT letterbox regions.
+     */
+    private static int sampleAmbientColor(@NonNull Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        if (width <= 0 || height <= 0) {
+            return Color.DKGRAY;
+        }
+        int stripW = Math.max(1, width / 10);
+        int stripH = Math.max(1, height / 10);
+        long r = 0;
+        long g = 0;
+        long b = 0;
+        int count = 0;
+        int stepX = Math.max(1, width / 48);
+        int stepY = Math.max(1, height / 48);
+
+        for (int y = 0; y < height; y += stepY) {
+            for (int x = 0; x < stripW; x += stepX) {
+                int c = bitmap.getPixel(x, y);
+                r += Color.red(c);
+                g += Color.green(c);
+                b += Color.blue(c);
+                count++;
+            }
+            for (int x = Math.max(0, width - stripW); x < width; x += stepX) {
+                int c = bitmap.getPixel(x, y);
+                r += Color.red(c);
+                g += Color.green(c);
+                b += Color.blue(c);
+                count++;
+            }
+        }
+        for (int y = 0; y < stripH; y += stepY) {
+            for (int x = stripW; x < width - stripW; x += stepX) {
+                int c = bitmap.getPixel(x, y);
+                r += Color.red(c);
+                g += Color.green(c);
+                b += Color.blue(c);
+                count++;
+            }
+        }
+        if (count == 0) {
+            return Color.DKGRAY;
+        }
+        return Color.rgb((int) (r / count), (int) (g / count), (int) (b / count));
     }
 
     private static void applyBlurEffect(ImageView imageView) {

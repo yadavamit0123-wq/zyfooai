@@ -11,6 +11,7 @@
     <item name="gradientGoldAccent" type="id" />
     <item name="frame_media_inset_listener" type="id" />
     <item name="media_blur_source_url" type="id" />
+    <item name="media_ambient_color" type="id" />
     <item name="customize_frame_btn_bound" type="id" />
     <item name="frost_backdrop_bound" type="id" />
     <item name="frost_blur_root" type="id" />
