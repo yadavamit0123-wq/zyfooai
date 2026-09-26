@@ -15,4 +15,6 @@ public class FrameFooterConfig {
     public String phoneColor = "#CCCCCC";
     public String bgColor = "#CC000000";
     public String fontSize = "medium";
+    /** small | medium | large — avatar size in app-drawn footer (e.g. profile clear reels). */
+    public String profileSize = "medium";
 }

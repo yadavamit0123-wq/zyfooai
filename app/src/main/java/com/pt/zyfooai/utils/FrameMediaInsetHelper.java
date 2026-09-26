@@ -124,24 +124,16 @@ public final class FrameMediaInsetHelper {
         if (rootHeight > 0) {
             if (dynamicConfig != null) {
                 topInset = insetFromPercent(dynamicConfig.mediaTopInsetPercent(), rootHeight);
+                bottomInset = insetFromPercent(dynamicConfig.reservedMediaBottomPercent(), rootHeight);
                 if (rootWidth > 0) {
                     leftInset = insetFromPercent(dynamicConfig.mediaLeftInsetPercent(), rootWidth);
                     rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
                 }
                 if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
-                    int footerPercent = dynamicConfig.footer.heightPercent > 0
-                            ? dynamicConfig.footer.heightPercent
-                            : 12;
-                    bottomInset = Math.max(
-                            measureBottomInset(measureTarget, rootHeight),
-                            insetFromPercent(footerPercent, rootHeight)
-                    );
-                    bottomInset = Math.max(
-                            bottomInset,
-                            insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight)
-                    );
-                } else {
-                    bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
+                    View footerPanel = measureTarget.findViewById(R.id.stickerBottomPanel);
+                    if (isVisible(footerPanel)) {
+                        bottomInset = Math.max(bottomInset, Math.max(0, rootHeight - footerPanel.getTop()));
+                    }
                 }
             } else {
                 topInset = measureTopInset(measureTarget, mediaType, rootHeight);
@@ -378,6 +370,7 @@ public final class FrameMediaInsetHelper {
             }
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
+            // Spec: reels inside safe zone = CENTER_CROP (ZOOM). Bundled/XML fit toggle may use FIT.
             if (serverSafeZone || !fitMode) {
                 playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
                 playerView.setShutterBackgroundColor(Color.BLACK);

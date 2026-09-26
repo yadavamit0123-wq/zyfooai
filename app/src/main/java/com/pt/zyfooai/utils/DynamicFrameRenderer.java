@@ -5,6 +5,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,9 +32,12 @@ public final class DynamicFrameRenderer {
         return root != null && root.findViewById(R.id.frameOverlayPng) != null;
     }
 
-    /** When false, PNG frame owns the footer — hide {@code stickerBottomPanel} on the dynamic shell. */
+    /**
+     * App-drawn footer only when API sends {@code footer.enabled: true}.
+     * Missing footer or {@code enabled: false} → PNG owns branding (Tiranga rule).
+     */
     public static boolean shouldShowAppFooter(@Nullable FrameConfig config) {
-        return config == null || config.footer == null || config.footer.enabled;
+        return config != null && config.footer != null && config.footer.enabled;
     }
 
     public static void suppressAppFooter(View root) {
@@ -65,9 +69,11 @@ public final class DynamicFrameRenderer {
         }
         root.setTag(R.id.frame_config, config);
         loadOverlay(root, config, preferenceManager);
-        applyFooter(root, config.footer != null ? config.footer : defaultFooter());
-        if (config.footer != null && config.footer.enabled) {
+        if (shouldShowAppFooter(config)) {
+            applyFooter(root, config.footer);
             FrameFooterLayoutHelper.applyEdgeToEdge(root);
+        } else {
+            suppressAppFooter(root);
         }
         scheduleLayoutRefresh(root, preferenceManager);
     }
@@ -90,15 +96,6 @@ public final class DynamicFrameRenderer {
             FrameMediaInsetHelper.apply(contentArea, frameRecyclerView, preferenceManager);
         };
         frameRoot.post(refresh);
-    }
-
-    private static FrameFooterConfig defaultFooter() {
-        FrameFooterConfig footer = new FrameFooterConfig();
-        footer.enabled = true;
-        footer.showProfile = true;
-        footer.showName = true;
-        footer.showPhone = true;
-        return footer;
     }
 
     private static void loadOverlay(View root, FrameConfig config, PreferenceManager preferenceManager) {
@@ -166,6 +163,7 @@ public final class DynamicFrameRenderer {
         bottomPanel.setVisibility(View.VISIBLE);
         bottomPanel.setBackground(buildFooterBackground(footer.bgColor));
         applyFooterHeight(root, bottomPanel, footer.heightPercent);
+        applyProfileSize(root, footer);
 
         applyTextSize(root.findViewById(R.id.userNameTv), footer.fontSize, 13f, 11f, 15f);
         applyTextSize(root.findViewById(R.id.userDesTv), footer.fontSize, 9f, 8f, 10f);
@@ -192,6 +190,50 @@ public final class DynamicFrameRenderer {
         View socialRow = root.findViewById(R.id.stickerSocialRow);
         if (socialRow != null) {
             socialRow.setVisibility(footer.showPhone || footer.showWebsite ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private static void applyProfileSize(View root, FrameFooterConfig footer) {
+        if (footer == null || !footer.showProfile) {
+            return;
+        }
+        View profileLay = root.findViewById(R.id.profileLay);
+        View profileImg = root.findViewById(R.id.profileImg);
+        if (profileLay == null) {
+            return;
+        }
+        String size = footer.profileSize != null ? footer.profileSize.trim() : "medium";
+        int outerRes;
+        int imgRes;
+        if ("large".equalsIgnoreCase(size)) {
+            outerRes = R.dimen.frame_footer_profile_outer_wide;
+            imgRes = R.dimen.frame_footer_profile_img_wide;
+        } else if ("small".equalsIgnoreCase(size)) {
+            outerRes = R.dimen.frame_footer_profile_outer;
+            imgRes = R.dimen.frame_footer_profile_img;
+        } else {
+            outerRes = R.dimen.frame_footer_profile_outer;
+            imgRes = R.dimen.frame_footer_profile_img;
+        }
+        int outerPx = root.getResources().getDimensionPixelSize(outerRes);
+        int imgPx = root.getResources().getDimensionPixelSize(imgRes);
+        if ("small".equalsIgnoreCase(size)) {
+            outerPx = Math.round(outerPx * 0.85f);
+            imgPx = Math.round(imgPx * 0.85f);
+        }
+        ViewGroup.LayoutParams outerParams = profileLay.getLayoutParams();
+        if (outerParams != null) {
+            outerParams.width = outerPx;
+            outerParams.height = outerPx;
+            profileLay.setLayoutParams(outerParams);
+        }
+        if (profileImg != null) {
+            ViewGroup.LayoutParams imgParams = profileImg.getLayoutParams();
+            if (imgParams != null) {
+                imgParams.width = imgPx;
+                imgParams.height = imgPx;
+                profileImg.setLayoutParams(imgParams);
+            }
         }
     }
 

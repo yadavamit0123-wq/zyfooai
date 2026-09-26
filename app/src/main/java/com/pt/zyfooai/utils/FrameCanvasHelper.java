@@ -87,10 +87,11 @@ public final class FrameCanvasHelper {
                 return;
             }
 
-            if (config != null && config.aspectRatio != null && !config.aspectRatio.trim().isEmpty()) {
+            if (config != null) {
+                String aspect = config.resolvedAspectRatio();
                 int maxW = Math.max(1, areaWidth - marginW);
                 int maxH = areaHeight > 0 ? Math.max(1, areaHeight - marginH) : maxW * 16 / 9;
-                int[] box = fitAspectBox(maxW, maxH, config.aspectRatio);
+                int[] box = fitAspectBox(maxW, maxH, aspect);
 
                 shellParams.width = box[0];
                 shellParams.height = box[1];

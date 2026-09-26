@@ -42,40 +42,43 @@ public class FrameConfig {
         return !overlaySource().isEmpty();
     }
 
-    /** Top inset for photo/video inside the PNG window. */
-    public int mediaTopInsetPercent() {
-        if (safeZone != null && safeZone.topPercent > 0) {
-            return safeZone.topPercent;
+    /**
+     * Canvas aspect from API, with interim defaults: image → 1:1, reels → 9:16.
+     */
+    public String resolvedAspectRatio() {
+        if (aspectRatio != null && !aspectRatio.trim().isEmpty()) {
+            return aspectRatio.trim();
         }
-        if (footer != null && !footer.enabled) {
-            return resolvedMediaType() == FrameMediaType.REELS ? 5 : 16;
-        }
-        return resolvedMediaType() == FrameMediaType.REELS ? 0 : 0;
+        return resolvedMediaType() == FrameMediaType.REELS ? "9:16" : "1:1";
     }
 
-    /** Bottom inset for photo/video inside the PNG window. */
+    /** Top inset from API {@link #safeZone} only (percent of frame height). */
+    public int mediaTopInsetPercent() {
+        return safeZone != null ? Math.max(0, safeZone.topPercent) : 0;
+    }
+
+    /** Bottom inset from API safe zone only — use {@link #reservedMediaBottomPercent()} for layout. */
     public int mediaBottomInsetPercent() {
-        if (safeZone != null && safeZone.bottomPercent > 0) {
-            return safeZone.bottomPercent;
-        }
-        if (footer != null && footer.enabled) {
-            return footer.heightPercent > 0 ? footer.heightPercent : 12;
-        }
-        return resolvedMediaType() == FrameMediaType.REELS ? 12 : 20;
+        return safeZone != null ? Math.max(0, safeZone.bottomPercent) : 0;
     }
 
     public int mediaLeftInsetPercent() {
-        if (safeZone != null && safeZone.leftPercent > 0) {
-            return safeZone.leftPercent;
-        }
-        return 0;
+        return safeZone != null ? Math.max(0, safeZone.leftPercent) : 0;
     }
 
     public int mediaRightInsetPercent() {
-        if (safeZone != null && safeZone.rightPercent > 0) {
-            return safeZone.rightPercent;
+        return safeZone != null ? Math.max(0, safeZone.rightPercent) : 0;
+    }
+
+    /**
+     * Single bottom reserve for user media: max(safeZone.bottom, footer.heightPercent when enabled).
+     * Avoids stacking safe zone and footer strip separately.
+     */
+    public int reservedMediaBottomPercent() {
+        int bottom = mediaBottomInsetPercent();
+        if (footer != null && footer.enabled && footer.heightPercent > 0) {
+            bottom = Math.max(bottom, footer.heightPercent);
         }
-        return 0;
+        return bottom;
     }
 }
-
