@@ -53,8 +53,14 @@ android {
         buildConfig true
     }
 
-    packagingOptions {
-        pickFirst '**/core-for-system-modules.jar'
+    packaging {
+        jniLibs {
+            // Keep .so files compressed the legacy way — helps install on some OEMs with FFmpeg/native libs.
+            useLegacyPackaging = true
+        }
+        resources {
+            pickFirsts += ['**/core-for-system-modules.jar']
+        }
     }
 
     kotlinOptions {

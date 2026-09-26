@@ -109,23 +109,65 @@ jobs:
           FAST2SMS_KEY: ${{ secrets.FAST2SMS_KEY }}
         run: ./gradlew assembleRelease bundleRelease --stacktrace --no-daemon
 
+      - name: Validate Release APK
+        run: |
+          set -euo pipefail
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
+          echo "Validating: $APK"
+          ls -lh "$APK"
+          # Reject tiny / truncated downloads (HTML error pages sometimes saved as .apk).
+          SIZE=$(stat -c%s "$APK")
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "::error::APK is suspiciously small (${SIZE} bytes) — likely corrupt"
+            exit 1
+          fi
+          unzip -t "$APK" >/dev/null
+          AAPT=""
+          for candidate in \
+            "$ANDROID_HOME/build-tools/36.0.0/aapt" \
+            "$ANDROID_HOME/build-tools/35.0.0/aapt" \
+            "$ANDROID_HOME/build-tools/"*/aapt; do
+            if [ -x "$candidate" ]; then
+              AAPT="$candidate"
+              break
+            fi
+          done
+          if [ -n "$AAPT" ]; then
+            "$AAPT" dump badging "$APK" | head -n 5
+          else
+            echo "aapt not found; skipped badging (zip test passed)"
+          fi
+          cp "$APK" app/build/outputs/apk/release/zyfooai-release.apk
+
+      - name: Validate Debug APK
+        run: |
+          set -euo pipefail
+          APK=$(ls app/build/outputs/apk/debug/*.apk | head -n 1)
+          echo "Validating: $APK"
+          ls -lh "$APK"
+          unzip -t "$APK" >/dev/null
+          cp "$APK" app/build/outputs/apk/debug/zyfooai-debug.apk
+
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: zyfooai-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/zyfooai-debug.apk
           retention-days: 30
+          if-no-files-found: error
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: zyfooai-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/zyfooai-release.apk
           retention-days: 30
+          if-no-files-found: error
 
-      - name: Upload Release AAB
+      - name: Upload Release AAB (Play Store only — do NOT install on phone)
         uses: actions/upload-artifact@v4
         with:
-          name: zyfooai-release-aab
+          name: zyfooai-release-aab-playstore-only
           path: app/build/outputs/bundle/release/*.aab
           retention-days: 30
+          if-no-files-found: warn

@@ -124,23 +124,34 @@ public final class FrameMediaInsetHelper {
         if (rootHeight > 0) {
             if (dynamicConfig != null) {
                 topInset = insetFromPercent(dynamicConfig.mediaTopInsetPercent(), rootHeight);
-                bottomInset = insetFromPercent(dynamicConfig.reservedMediaBottomPercent(), rootHeight);
                 if (rootWidth > 0) {
                     leftInset = insetFromPercent(dynamicConfig.mediaLeftInsetPercent(), rootWidth);
                     rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
                 }
-                if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
-                    View footerPanel = measureTarget.findViewById(R.id.stickerBottomPanel);
-                    if (isVisible(footerPanel)) {
-                        bottomInset = Math.max(bottomInset, Math.max(0, rootHeight - footerPanel.getTop()));
+                if (mediaType == FrameMediaType.REELS) {
+                    // Reels: video fills full canvas (Crafto/image-like). Footer overlays on top —
+                    // bottom inset left a black band under the video.
+                    bottomInset = 0;
+                } else {
+                    bottomInset = insetFromPercent(dynamicConfig.reservedMediaBottomPercent(), rootHeight);
+                    if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
+                        View footerPanel = measureTarget.findViewById(R.id.stickerBottomPanel);
+                        if (isVisible(footerPanel)) {
+                            bottomInset = Math.max(bottomInset, Math.max(0, rootHeight - footerPanel.getTop()));
+                        }
                     }
                 }
+            } else if (mediaType == FrameMediaType.REELS) {
+                topInset = 0;
+                bottomInset = 0;
+                leftInset = 0;
+                rightInset = 0;
             } else {
                 topInset = measureTopInset(measureTarget, mediaType, rootHeight);
                 bottomInset = measureBottomInset(measureTarget, rootHeight);
             }
         }
-        if (dynamicConfig == null) {
+        if (dynamicConfig == null && mediaType != FrameMediaType.REELS) {
             float overlayScale = preferenceManager != null
                     ? FrameOverlayHelper.getFrameScale(preferenceManager)
                     : 1f;
@@ -354,7 +365,12 @@ public final class FrameMediaInsetHelper {
             layoutParams.rightMargin = rightInset;
             layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
+            // Keep bottom edge pinned so reels fill under the footer overlay (no black band).
+            if (bottomInset == 0) {
+                layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            } else {
+                layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
+            }
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END);
             mediaView.setLayoutParams(layoutParams);
