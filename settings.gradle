@@ -23,16 +23,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        jcenter()
+        // jcenter() removed — dead / redirects and triggers extra metadata fetches (CI 429).
         maven { url "https://jitpack.io" }
-        maven {url 'https://developer.huawei.com/repo/'
-            allowInsecureProtocol = true
-        }
-        maven { url "https://indapps.in/maven-repo/"}
         maven {
-            url "https://s3-ap-southeast-1.amazonaws.com/godel-release/godel/"
+            url 'https://developer.huawei.com/repo/'
             allowInsecureProtocol = true
         }
+        maven { url "https://indapps.in/maven-repo/" }
     }
 
 }

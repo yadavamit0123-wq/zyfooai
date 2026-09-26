@@ -177,8 +177,8 @@ dependencies {
     implementation 'com.squareup:otto:1.3.8'
     implementation 'com.squareup.picasso:picasso:2.71828'
 
-    //noinspection GradleDependency
-    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+    // Pin exact version — dynamic range forces maven-metadata list and fails CI on Maven 429.
+    implementation 'com.onesignal:OneSignal:4.8.8'
 
    // implementation 'com.google.android.exoplayer:exoplayer:2.10.5'
     implementation 'org.apache.commons:commons-lang3:3.12.0'
