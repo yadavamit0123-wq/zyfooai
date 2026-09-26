@@ -43,7 +43,7 @@ public final class FramePolishHelper {
             } else {
                 DynamicFrameRenderer.suppressAppFooter(frameRoot);
             }
-            applyTypography(frameRoot);
+            // Skip default Inter typography — DynamicFrameRenderer applies footer.fontFamily.
             return;
         }
         if (FrameStickerHelper.isStickerFrame(frameRoot)) {

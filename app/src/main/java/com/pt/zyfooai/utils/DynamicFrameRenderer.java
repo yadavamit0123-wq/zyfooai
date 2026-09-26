@@ -1,8 +1,10 @@
 package com.pt.zyfooai.utils;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,19 +13,26 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.makeramen.roundedimageview.RoundedImageView;
 import com.pt.zyfooai.R;
 import com.pt.zyfooai.model.FrameConfig;
 import com.pt.zyfooai.model.FrameFooterConfig;
+import com.pt.zyfooai.model.FrameFooterContentInset;
 
 /**
  * Renders admin/server PNG overlay frames with a configurable dynamic footer.
  */
 public final class DynamicFrameRenderer {
+
+    private static final float ABOVE_FOOTER_OVERLAP_FRACTION = 0.45f;
+    private static final int RING_GOLD = 0xFFE8D59A;
+    private static final int RING_WHITE = 0xFFFFFFFF;
 
     private DynamicFrameRenderer() {
     }
@@ -161,9 +170,22 @@ public final class DynamicFrameRenderer {
             return;
         }
         bottomPanel.setVisibility(View.VISIBLE);
+        bottomPanel.setClipChildren(false);
+        bottomPanel.setClipToPadding(false);
+        if (root instanceof ViewGroup) {
+            ((ViewGroup) root).setClipChildren(false);
+            ((ViewGroup) root).setClipToPadding(false);
+        }
+        if (bottomPanel.getParent() instanceof ViewGroup) {
+            ViewGroup parent = (ViewGroup) bottomPanel.getParent();
+            parent.setClipChildren(false);
+            parent.setClipToPadding(false);
+        }
+
         bottomPanel.setBackground(buildFooterBackground(footer.bgColor));
-        applyFooterHeight(root, bottomPanel, footer.heightPercent);
-        applyProfileSize(root, footer);
+        applyFooterHeight(root, bottomPanel, footer);
+        applyContentInset(root, bottomPanel, footer);
+        applyProfile(root, bottomPanel, footer);
 
         applyTextSize(root.findViewById(R.id.userNameTv), footer.fontSize, 13f, 11f, 15f);
         applyTextSize(root.findViewById(R.id.userDesTv), footer.fontSize, 9f, 8f, 10f);
@@ -172,12 +194,23 @@ public final class DynamicFrameRenderer {
         applyTextSize(root.findViewById(R.id.businessDesTv), footer.fontSize, 9f, 8f, 10f);
         applyTextSize(root.findViewById(R.id.businessNumberTv), footer.fontSize, 9f, 8f, 10f);
 
+        applyFontFamily(root, footer.fontFamily, true,
+                R.id.userNameTv, R.id.businessNameTv);
+        applyFontFamily(root, footer.fontFamily, false,
+                R.id.userDesTv, R.id.businessDesTv, R.id.businessAddressTv,
+                R.id.businessNumberTv, R.id.businessWebsiteTv);
+
         setTextColor(root.findViewById(R.id.userNameTv), footer.nameColor);
         setTextColor(root.findViewById(R.id.businessNameTv), footer.nameColor);
         setTextColor(root.findViewById(R.id.userDesTv), footer.phoneColor);
         setTextColor(root.findViewById(R.id.businessDesTv), footer.phoneColor);
         setTextColor(root.findViewById(R.id.businessAddressTv), footer.phoneColor);
         setTextColor(root.findViewById(R.id.businessNumberTv), footer.phoneColor);
+
+        applyClipOverflow(root, footer.clipOverflow,
+                R.id.userNameTv, R.id.userDesTv, R.id.businessNameTv,
+                R.id.businessDesTv, R.id.businessAddressTv, R.id.businessNumberTv,
+                R.id.businessWebsiteTv);
 
         setVisibility(root.findViewById(R.id.profileLay), footer.showProfile);
         setVisibility(root.findViewById(R.id.userNameTv), footer.showName);
@@ -193,7 +226,67 @@ public final class DynamicFrameRenderer {
         }
     }
 
-    private static void applyProfileSize(View root, FrameFooterConfig footer) {
+    private static void applyFooterHeight(View root, LinearLayout bottomPanel, FrameFooterConfig footer) {
+        int heightPercent = footer != null ? footer.heightPercent : 0;
+        Runnable apply = () -> {
+            int frameHeight = root.getHeight();
+            if (frameHeight <= 0 || heightPercent <= 0) {
+                ViewGroup.LayoutParams params = bottomPanel.getLayoutParams();
+                if (params != null && heightPercent <= 0) {
+                    params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    bottomPanel.setLayoutParams(params);
+                }
+                bottomPanel.setMinimumHeight(0);
+                return;
+            }
+            int barHeight = Math.round(frameHeight * (heightPercent / 100f));
+            ViewGroup.LayoutParams params = bottomPanel.getLayoutParams();
+            if (params != null) {
+                // Fixed bar height — independent of profile size (thin footer + large avatar).
+                params.height = barHeight;
+                bottomPanel.setLayoutParams(params);
+            }
+            bottomPanel.setMinimumHeight(barHeight);
+        };
+        if (root.getHeight() > 0) {
+            apply.run();
+        } else {
+            root.post(apply);
+        }
+    }
+
+    private static void applyContentInset(View root, LinearLayout bottomPanel, FrameFooterConfig footer) {
+        FrameFooterContentInset inset = footer != null ? footer.contentInset : null;
+        Runnable apply = () -> {
+            int barH = bottomPanel.getHeight();
+            int barW = bottomPanel.getWidth();
+            if (barH <= 0) {
+                barH = bottomPanel.getMinimumHeight();
+            }
+            if (barH <= 0 && root.getHeight() > 0 && footer != null && footer.heightPercent > 0) {
+                barH = Math.round(root.getHeight() * (footer.heightPercent / 100f));
+            }
+            if (barW <= 0) {
+                barW = root.getWidth();
+            }
+            if (inset == null || barH <= 0) {
+                return;
+            }
+            int top = Math.round(barH * (Math.max(0, inset.topPercent) / 100f));
+            int bottom = Math.round(barH * (Math.max(0, inset.bottomPercent) / 100f));
+            int left = Math.round(barW * (Math.max(0, inset.leftPercent) / 100f));
+            int right = Math.round(barW * (Math.max(0, inset.rightPercent) / 100f));
+            bottomPanel.setPadding(left, top, right, bottom);
+        };
+        if (root.getWidth() > 0) {
+            apply.run();
+            bottomPanel.post(apply);
+        } else {
+            root.post(apply);
+        }
+    }
+
+    private static void applyProfile(View root, LinearLayout bottomPanel, FrameFooterConfig footer) {
         if (footer == null || !footer.showProfile) {
             return;
         }
@@ -202,58 +295,198 @@ public final class DynamicFrameRenderer {
         if (profileLay == null) {
             return;
         }
-        String size = footer.profileSize != null ? footer.profileSize.trim() : "medium";
+        if (profileLay.getParent() instanceof ViewGroup) {
+            ((ViewGroup) profileLay.getParent()).setClipChildren(false);
+            ((ViewGroup) profileLay.getParent()).setClipToPadding(false);
+        }
+
+        Runnable apply = () -> {
+            int canvasW = root.getWidth();
+            int canvasH = root.getHeight();
+            int barH = bottomPanel.getHeight();
+            if (barH <= 0) {
+                barH = bottomPanel.getMinimumHeight();
+            }
+            if (barH <= 0 && canvasH > 0 && footer.heightPercent > 0) {
+                barH = Math.round(canvasH * (footer.heightPercent / 100f));
+            }
+
+            int outerPx;
+            int imgPx;
+            if (footer.hasProfileScale() && canvasW > 0) {
+                outerPx = Math.round(canvasW * (footer.profileScalePercent / 100f));
+                imgPx = Math.max(1, Math.round(outerPx * 0.88f));
+            } else {
+                int[] legacy = legacyProfilePx(root, footer.profileSize);
+                outerPx = legacy[0];
+                imgPx = legacy[1];
+            }
+
+            // in_footer + max height: avatar cannot exceed % of footer bar.
+            if (!footer.isAboveFooter()
+                    && footer.profileMaxHeightPercent != null
+                    && footer.profileMaxHeightPercent > 0
+                    && barH > 0) {
+                int maxOuter = Math.round(barH * (footer.profileMaxHeightPercent / 100f));
+                if (outerPx > maxOuter) {
+                    float scale = maxOuter / (float) outerPx;
+                    outerPx = maxOuter;
+                    imgPx = Math.max(1, Math.round(imgPx * scale));
+                }
+            }
+
+            ViewGroup.LayoutParams outerParams = profileLay.getLayoutParams();
+            if (outerParams != null) {
+                outerParams.width = outerPx;
+                outerParams.height = outerPx;
+                if (outerParams instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams marginParams = (ViewGroup.MarginLayoutParams) outerParams;
+                    if (footer.isAboveFooter()) {
+                        // ~45% of avatar floats above the footer bar top edge (Crafto).
+                        marginParams.topMargin = -Math.round(outerPx * ABOVE_FOOTER_OVERLAP_FRACTION);
+                        marginParams.bottomMargin = 0;
+                    } else {
+                        marginParams.topMargin = 0;
+                        marginParams.bottomMargin = 0;
+                    }
+                }
+                profileLay.setLayoutParams(outerParams);
+            }
+
+            if (profileImg != null) {
+                ViewGroup.LayoutParams imgParams = profileImg.getLayoutParams();
+                if (imgParams != null) {
+                    imgParams.width = imgPx;
+                    imgParams.height = imgPx;
+                    profileImg.setLayoutParams(imgParams);
+                }
+                applyProfileStyle(profileImg, footer.profileStyle, imgPx);
+            }
+        };
+
+        if (root.getWidth() > 0) {
+            apply.run();
+        } else {
+            root.post(apply);
+        }
+        bottomPanel.post(apply);
+    }
+
+    private static int[] legacyProfilePx(View root, String size) {
+        String normalized = size != null ? size.trim() : "medium";
         int outerRes;
         int imgRes;
-        if ("large".equalsIgnoreCase(size)) {
+        if ("large".equalsIgnoreCase(normalized)) {
             outerRes = R.dimen.frame_footer_profile_outer_wide;
             imgRes = R.dimen.frame_footer_profile_img_wide;
-        } else if ("small".equalsIgnoreCase(size)) {
-            outerRes = R.dimen.frame_footer_profile_outer;
-            imgRes = R.dimen.frame_footer_profile_img;
         } else {
             outerRes = R.dimen.frame_footer_profile_outer;
             imgRes = R.dimen.frame_footer_profile_img;
         }
         int outerPx = root.getResources().getDimensionPixelSize(outerRes);
         int imgPx = root.getResources().getDimensionPixelSize(imgRes);
-        if ("small".equalsIgnoreCase(size)) {
+        if ("small".equalsIgnoreCase(normalized)) {
             outerPx = Math.round(outerPx * 0.85f);
             imgPx = Math.round(imgPx * 0.85f);
         }
-        ViewGroup.LayoutParams outerParams = profileLay.getLayoutParams();
-        if (outerParams != null) {
-            outerParams.width = outerPx;
-            outerParams.height = outerPx;
-            profileLay.setLayoutParams(outerParams);
+        return new int[]{outerPx, imgPx};
+    }
+
+    private static void applyProfileStyle(View profileImg, String style, int imgPx) {
+        if (!(profileImg instanceof RoundedImageView)) {
+            return;
         }
-        if (profileImg != null) {
-            ViewGroup.LayoutParams imgParams = profileImg.getLayoutParams();
-            if (imgParams != null) {
-                imgParams.width = imgPx;
-                imgParams.height = imgPx;
-                profileImg.setLayoutParams(imgParams);
+        RoundedImageView riv = (RoundedImageView) profileImg;
+        String normalized = style != null ? style.trim().toLowerCase() : "circle";
+        float circleRadius = imgPx / 2f;
+        float border = profileImg.getResources().getDimensionPixelSize(R.dimen._2sdp);
+        riv.setBorderWidth(0f);
+        riv.setElevation(0f);
+
+        switch (normalized) {
+            case "ring_gold":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 1.25f);
+                riv.setBorderColor(RING_GOLD);
+                break;
+            case "ring_white":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border);
+                riv.setBorderColor(RING_WHITE);
+                break;
+            case "rounded":
+                riv.setCornerRadius(imgPx * 0.22f);
+                riv.setBorderWidth(border * 0.75f);
+                riv.setBorderColor(RING_WHITE);
+                break;
+            case "soft_shadow":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 0.5f);
+                riv.setBorderColor(0x66FFFFFF);
+                riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation));
+                break;
+            case "circle":
+            default:
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border);
+                riv.setBorderColor(RING_WHITE);
+                break;
+        }
+    }
+
+    private static void applyClipOverflow(View root, boolean clipOverflow, int... viewIds) {
+        for (int id : viewIds) {
+            View view = root.findViewById(id);
+            if (!(view instanceof TextView)) {
+                continue;
+            }
+            TextView textView = (TextView) view;
+            textView.setMaxLines(1);
+            textView.setSingleLine(true);
+            if (clipOverflow) {
+                textView.setEllipsize(TextUtils.TruncateAt.END);
+            } else {
+                textView.setEllipsize(null);
             }
         }
     }
 
-    private static void applyFooterHeight(View root, LinearLayout bottomPanel, int heightPercent) {
-        if (heightPercent <= 0) {
-            bottomPanel.setMinimumHeight(0);
+    private static void applyFontFamily(View root, String fontFamily, boolean bold, int... viewIds) {
+        Typeface typeface = resolveFont(root, fontFamily, bold);
+        if (typeface == null) {
             return;
         }
-        Runnable apply = () -> {
-            int frameHeight = root.getHeight();
-            if (frameHeight <= 0) {
-                return;
+        for (int id : viewIds) {
+            View view = root.findViewById(id);
+            if (view instanceof TextView) {
+                ((TextView) view).setTypeface(typeface);
             }
-            int minHeight = Math.round(frameHeight * (heightPercent / 100f));
-            bottomPanel.setMinimumHeight(minHeight);
-        };
-        if (root.getHeight() > 0) {
-            apply.run();
-        } else {
-            root.post(apply);
+        }
+    }
+
+    @Nullable
+    private static Typeface resolveFont(View root, String fontFamily, boolean bold) {
+        String family = fontFamily != null ? fontFamily.trim().toLowerCase() : "";
+        try {
+            switch (family) {
+                case "bebas":
+                    return Typeface.createFromAsset(root.getContext().getAssets(), "fonts/Teko-SemiBold.ttf");
+                case "playfair":
+                    return Typeface.createFromAsset(root.getContext().getAssets(), "fonts/Laila-SemiBold.ttf");
+                case "montserrat":
+                case "raleway":
+                case "poppins":
+                default:
+                    int res = bold ? R.font.inter_semi_bold : R.font.inter_regular;
+                    return ResourcesCompat.getFont(root.getContext(), res);
+            }
+        } catch (RuntimeException ignored) {
+            try {
+                int res = bold ? R.font.inter_semi_bold : R.font.inter_regular;
+                return ResourcesCompat.getFont(root.getContext(), res);
+            } catch (RuntimeException ignored2) {
+                return null;
+            }
         }
     }
 

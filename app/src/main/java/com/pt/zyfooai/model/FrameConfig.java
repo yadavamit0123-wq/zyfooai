@@ -15,6 +15,11 @@ public class FrameConfig {
     public String aspectRatio;
     public String overlayAsset;
     public String overlayUrl;
+    /**
+     * cover = fill/crop (legacy) · blur_sides = contain + side blur (Crafto reels).
+     * Null / unknown → cover (safe default).
+     */
+    public String fitMode;
     public FrameFooterConfig footer;
     public FrameSafeZoneConfig safeZone;
     public String status;
@@ -40,6 +45,11 @@ public class FrameConfig {
 
     public boolean hasRenderableOverlay() {
         return !overlaySource().isEmpty();
+    }
+
+    /** True when media should contain + show blurred letterbox (Crafto). */
+    public boolean usesBlurSides() {
+        return "blur_sides".equalsIgnoreCase(fitMode);
     }
 
     /**

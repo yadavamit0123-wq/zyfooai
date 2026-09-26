@@ -129,9 +129,13 @@ public final class FrameMediaInsetHelper {
                     rightInset = insetFromPercent(dynamicConfig.mediaRightInsetPercent(), rootWidth);
                 }
                 if (mediaType == FrameMediaType.REELS) {
-                    // Reels: video fills full canvas (Crafto/image-like). Footer overlays on top —
-                    // bottom inset left a black band under the video.
-                    bottomInset = 0;
+                    if (dynamicConfig.usesBlurSides()) {
+                        // Crafto: honor safeZone (often L/R/T=0, bottom ≈ footer height).
+                        bottomInset = insetFromPercent(dynamicConfig.mediaBottomInsetPercent(), rootHeight);
+                    } else {
+                        // cover (legacy Gold): fill under footer overlay — no black band.
+                        bottomInset = 0;
+                    }
                 } else {
                     bottomInset = insetFromPercent(dynamicConfig.reservedMediaBottomPercent(), rootHeight);
                     if (dynamicConfig.footer != null && dynamicConfig.footer.enabled) {
@@ -161,25 +165,35 @@ public final class FrameMediaInsetHelper {
             rightInset = Math.round(rightInset * overlayScale);
         }
         boolean serverFrame = dynamicConfig != null;
-        boolean cropMedia = serverFrame || shouldApplyFit(preferenceManager, mediaType);
+        boolean blurSides = dynamicConfig != null && dynamicConfig.usesBlurSides();
+        // Contain (FIT): blur_sides OR no server config. Cover (ZOOM): server fitMode=cover / null.
+        boolean useContain = dynamicConfig == null || blurSides;
         applyInset(
                 mediaView,
                 topInset,
                 bottomInset,
                 leftInset,
                 rightInset,
-                cropMedia,
-                serverFrame,
-                mediaType
+                useContain
         );
-        boolean showBlur = mediaType == FrameMediaType.REELS
-                || !serverFrame
-                || mediaType == FrameMediaType.IMAGE;
-        if (mediaType == FrameMediaType.REELS) {
-            // Prefer video-related fill (not hard black) behind FIT letterbox + blur.
+        if (blurSides) {
+            // Crafto: contain media + blurred letterbox of same video.
             applyCachedAmbientFill(contentArea);
-            syncBlurBackground(contentArea, 0, 0, 0, 0, true);
+            syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, true);
+        } else if (mediaType == FrameMediaType.REELS && serverFrame) {
+            // cover: fill/crop — no side blur (legacy Gold / Tiranga path).
+            syncBlurBackground(contentArea, 0, 0, 0, 0, false);
+            View mainLayout = contentArea.findViewById(R.id.mainLayOut);
+            if (mainLayout != null) {
+                mainLayout.setBackgroundColor(Color.BLACK);
+                if (mainLayout.getParent() instanceof View) {
+                    ((View) mainLayout.getParent()).setBackgroundColor(Color.BLACK);
+                }
+            }
         } else {
+            boolean showBlur = mediaType == FrameMediaType.REELS
+                    || !serverFrame
+                    || mediaType == FrameMediaType.IMAGE;
             syncBlurBackground(contentArea, topInset, bottomInset, leftInset, rightInset, showBlur);
         }
     }
@@ -347,9 +361,7 @@ public final class FrameMediaInsetHelper {
             int bottomInset,
             int leftInset,
             int rightInset,
-            boolean fitMode,
-            boolean serverSafeZone,
-            FrameMediaType mediaType
+            boolean useContain
     ) {
         ViewGroup.LayoutParams params = mediaView.getLayoutParams();
         if (params instanceof RelativeLayout.LayoutParams) {
@@ -381,14 +393,24 @@ public final class FrameMediaInsetHelper {
         if (mediaView instanceof ImageView) {
             ImageView imageView = (ImageView) mediaView;
             imageView.setAdjustViewBounds(false);
-            // Full admin photo visible (no crop). Blur behind fills empty edges — canvas stay full-cover.
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            if (useContain) {
+                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            } else {
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
-            // Full admin video visible (no crop). Transparent letterbox → blurred bg shows through.
-            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-            playerView.setShutterBackgroundColor(Color.TRANSPARENT);
-            playerView.setBackgroundColor(Color.TRANSPARENT);
+            if (useContain) {
+                // blur_sides / non-server: full video visible; transparent letterbox → blur.
+                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+                playerView.setShutterBackgroundColor(Color.TRANSPARENT);
+                playerView.setBackgroundColor(Color.TRANSPARENT);
+            } else {
+                // server cover: fill/crop (legacy Gold).
+                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+                playerView.setShutterBackgroundColor(Color.BLACK);
+                playerView.setBackgroundColor(Color.BLACK);
+            }
         }
     }
 
@@ -471,7 +493,7 @@ public final class FrameMediaInsetHelper {
         }
 
         blurBg.setVisibility(View.VISIBLE);
-        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false, false, FrameMediaType.IMAGE);
+        applyInset(blurBg, topInset, bottomInset, leftInset, rightInset, false);
         blurBg.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         Object loadedUrl = blurBg.getTag(R.id.media_blur_source_url);

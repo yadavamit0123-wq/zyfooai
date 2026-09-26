@@ -515,12 +515,6 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                     if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
                         currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
-                        currentHolder.videoLayoutBinding.playerview.setResizeMode(
-                                com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT);
-                        currentHolder.videoLayoutBinding.playerview.setShutterBackgroundColor(
-                                android.graphics.Color.TRANSPARENT);
-                        currentHolder.videoLayoutBinding.playerview.setBackgroundColor(
-                                android.graphics.Color.TRANSPARENT);
                         FooterSizeHelper.fitContentAboveFooter(
                                 currentHolder.videoLayoutBinding.relativeLayout4,
                                 currentHolder.videoLayoutBinding.swipeFrames
