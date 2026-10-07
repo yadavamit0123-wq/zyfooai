@@ -202,34 +202,37 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/rl_toolbar"
                         android:orientation="vertical"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         app:layout_scrollFlags="scroll|enterAlways">
 
-
+                        <!-- User Stories (24h) — separate from festival getFestival -->
                         <LinearLayout
                             android:id="@+id/ll_story"
                             android:layout_width="match_parent"
-                            android:layout_height="@dimen/_60sdp"
+                            android:layout_height="wrap_content"
                             android:layout_gravity="center"
-                            android:gravity="center"
-                            android:orientation="horizontal">
-
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="@dimen/_6sdp"
+                            android:visibility="visible">
 
                             <ImageView
+                                android:id="@+id/festivalSpecialIcon"
                                 android:layout_width="@dimen/_60sdp"
                                 android:layout_height="wrap_content"
                                 android:adjustViewBounds="true"
-                                android:src="@drawable/ic_todays_special" />
+                                android:src="@drawable/ic_todays_special"
+                                android:visibility="gone" />
 
                             <androidx.recyclerview.widget.RecyclerView
                                 android:id="@+id/rv_story"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
+                                android:layout_height="wrap_content"
+                                android:clipToPadding="false"
                                 android:orientation="horizontal"
+                                android:paddingHorizontal="@dimen/_8sdp"
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintStart_toStartOf="parent"
-                                tools:listitem="@layout/item_story" />
+                                tools:listitem="@layout/item_user_story_ring" />
 
                         </LinearLayout>
 

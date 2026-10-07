@@ -93,6 +93,8 @@ import com.pt.zyfooai.ui.adapters.MainAdapter;
 import com.pt.zyfooai.utils.FrameCatalogProvider;
 import com.pt.zyfooai.ui.adapters.StoryAdapter;
 import com.pt.zyfooai.ui.adapters.SubscriptionAdapter;
+import com.pt.zyfooai.ui.adapters.UserStoryRingAdapter;
+import com.pt.zyfooai.respository.UserStoryRepository;
 import com.pt.zyfooai.ui.dialog.DownloadProgressDialog;
 import com.pt.zyfooai.ui.fragments.SelectBusinessFragment;
 import com.pt.zyfooai.ui.fragments.SelectMusicFragment;
@@ -126,6 +128,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     StoryAdapter festivalAdapter;
+    private UserStoryRingAdapter userStoryRingAdapter;
+    private final UserStoryRepository userStoryRepository = new UserStoryRepository();
+    private static final int REQ_ADD_USER_STORY = 4101;
     Activity context;
     private InterstitialsAdsManager interstitialsAdsManager;
     private String selectedLanguage = "";
@@ -246,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
 
         setUpRecyclerView();
         ensureAdapter();
+        setupUserStories();
 
         binding.getRoot().post(() -> {
             if (Build.VERSION.SDK_INT >= 33) {
@@ -407,6 +413,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_ADD_USER_STORY && resultCode == RESULT_OK) {
+            loadUserStories();
+        }
         AppUpdateHelper.handleActivityResult(this, requestCode, resultCode);
     }
 
@@ -415,6 +424,9 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         isVisible = true;
         AppUpdateHelper.checkForUpdate(this);
+        if (userStoryRingAdapter != null) {
+            loadUserStories();
+        }
         if (preferenceManager.getString("DataType").equals("Business")) {
             if (preferenceManager.getString(Constant.BUSINESS_IMAGE) != null && !preferenceManager.getString(Constant.BUSINESS_IMAGE).isEmpty()) {
                 GlideDataBinding.bindImage(binding.circularImageView, preferenceManager.getString(Constant.BUSINESS_IMAGE));
@@ -779,7 +791,70 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //load festival
+    /**
+     * User Stories (24h, all logged-in users) under toolbar.
+     * Keeps legacy {@link #festival()} intact — do not mix with getFestival.
+     */
+    private void setupUserStories() {
+        if (binding.mainConstraint != null) {
+            binding.mainConstraint.setVisibility(VISIBLE);
+        }
+        if (binding.llStory != null) {
+            binding.llStory.setVisibility(VISIBLE);
+        }
+        if (binding.festivalSpecialIcon != null) {
+            binding.festivalSpecialIcon.setVisibility(GONE);
+        }
+        if (userStoryRingAdapter == null) {
+            userStoryRingAdapter = new UserStoryRingAdapter(new UserStoryRingAdapter.Listener() {
+                @Override
+                public void onAddStory() {
+                    startActivityForResult(
+                            new Intent(MainActivity.this, AddUserStoryActivity.class),
+                            REQ_ADD_USER_STORY
+                    );
+                }
+
+                @Override
+                public void onOpenStory(com.pt.zyfooai.model.UserStoryFeedItem item) {
+                    if (item == null || item.storyId == null) {
+                        return;
+                    }
+                    Intent intent = new Intent(MainActivity.this, ViewUserStoryActivity.class);
+                    intent.putExtra(ViewUserStoryActivity.EXTRA_STORY_ID, item.storyId);
+                    startActivity(intent);
+                }
+            });
+            binding.rvStory.setLayoutManager(
+                    new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            binding.rvStory.setAdapter(userStoryRingAdapter);
+            userStoryRepository.observeFeed().observe(this, feed -> {
+                String avatar = preferenceManager.getString(Constant.USER_IMAGE);
+                if ("Business".equals(preferenceManager.getString(Constant.DEFAULT_TYPE))
+                        || "Business".equals(preferenceManager.getString("DataType"))) {
+                    String businessImage = preferenceManager.getString(Constant.BUSINESS_IMAGE);
+                    if (businessImage != null && !businessImage.isEmpty()) {
+                        avatar = businessImage;
+                    }
+                }
+                userStoryRingAdapter.submit(
+                        feed,
+                        preferenceManager.getString(Constant.USER_ID),
+                        avatar
+                );
+                if (binding.llStory != null) {
+                    binding.llStory.setVisibility(VISIBLE);
+                }
+            });
+        }
+        loadUserStories();
+    }
+
+    private void loadUserStories() {
+        userStoryRepository.refreshFeed();
+    }
+
+    //load festival (legacy — unchanged; not used by user stories row)
     private void festival() {
 
         Constant.getHomeViewModel(this).getFestival().observe(this, featureItems -> {

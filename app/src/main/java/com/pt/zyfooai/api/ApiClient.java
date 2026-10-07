@@ -34,12 +34,15 @@ public class ApiClient {
                     if (apiKey.equals("")){
                         apiKey = "1234567";
                     }
-                    Request request = original.newBuilder()
+                    Request.Builder requestBuilder = original.newBuilder()
                             .header("Accept", "application/json")
                             .header("Authorization", apiKey)
-                            .header("Content-Type", "text/plain")
-                            .method(original.method(), original.body())
-                            .build();
+                            .method(original.method(), original.body());
+                    // Multipart must keep its own boundary Content-Type (profile/story uploads).
+                    if (!(original.body() instanceof okhttp3.MultipartBody)) {
+                        requestBuilder.header("Content-Type", "text/plain");
+                    }
+                    Request request = requestBuilder.build();
 
                     Response response = chain.proceed(request);
 

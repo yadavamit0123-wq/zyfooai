@@ -12,18 +12,22 @@ import com.pt.zyfooai.model.PostItem;
 import com.pt.zyfooai.model.StoryItem;
 import com.pt.zyfooai.model.SubscriptionModel;
 import com.pt.zyfooai.model.UserItem;
+import com.pt.zyfooai.model.UserStoryDetailResponse;
+import com.pt.zyfooai.model.UserStoryListResponse;
 
 import java.util.List;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ApiService {
@@ -170,5 +174,23 @@ public interface ApiService {
 
     @GET("api/frames/sync-meta")
     Call<FrameListResponse> getFramesSyncMeta();
+
+    // --- User Stories (24h, all logged-in users) — separate from getFestival ---
+
+    @GET("api/user-stories")
+    Call<UserStoryListResponse> getUserStories();
+
+    @GET("api/user-stories/{storyId}")
+    Call<UserStoryDetailResponse> getUserStory(@Path("storyId") String storyId);
+
+    @Multipart
+    @POST("api/user-stories")
+    Call<UserStoryDetailResponse> createUserStory(@Part List<MultipartBody.Part> images);
+
+    @POST("api/user-stories/{storyId}/view")
+    Call<UserStoryDetailResponse> markUserStorySeen(@Path("storyId") String storyId);
+
+    @DELETE("api/user-stories/{storyId}")
+    Call<UserStoryDetailResponse> deleteUserStory(@Path("storyId") String storyId);
 
 }

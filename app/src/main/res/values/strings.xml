@@ -440,6 +440,16 @@
     <string name="marthi">मराठी</string>
     <string name="hindi">हिंदी</string>
     <string name="add_photo">Add Photo</string>
+    <string name="add_story_title">Add Story</string>
+    <string name="add_story_post">Post</string>
+    <string name="add_story_pick">Select photos</string>
+    <string name="add_story_hint">Select up to 10 photos. Your story is visible to all logged-in users for 24 hours.</string>
+    <string name="add_story_empty">Select at least one photo</string>
+    <string name="add_story_uploading">Uploading…</string>
+    <string name="add_story_success">Story posted</string>
+    <string name="add_story_failed">Could not post story</string>
+    <string name="view_story_expired">Story expired</string>
+    <string name="view_story_error">Could not load story</string>
     <string name="tems_condiation">Term &amp; Conditions</string>
     <string name="privacy_police">Privacy Policy</string>
     <string name="rate_us">Rate Us on Googleplay</string>
