@@ -1,6 +1,8 @@
 package com.pt.zyfooai.respository;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 
@@ -13,12 +15,16 @@ import com.pt.zyfooai.api.ApiService;
 import com.pt.zyfooai.model.UserStoryDetailResponse;
 import com.pt.zyfooai.model.UserStoryFeedItem;
 import com.pt.zyfooai.model.UserStoryListResponse;
+import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.PreferenceManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -34,6 +40,9 @@ public final class UserStoryRepository {
 
     private static final String TAG = "UserStoryRepository";
     private static final int MAX_IMAGES = 10;
+    private static final int MAX_EDGE_PX = 1280;
+    private static final int JPEG_QUALITY = 78;
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     private final ApiService apiService = ApiClient.getApiDataService();
     private final MutableLiveData<List<UserStoryFeedItem>> feedLiveData = new MutableLiveData<>();
@@ -105,42 +114,66 @@ public final class UserStoryRepository {
             return liveData;
         }
 
-        List<MultipartBody.Part> parts = new ArrayList<>();
-        int count = Math.min(imageUris.size(), MAX_IMAGES);
-        for (int i = 0; i < count; i++) {
-            MultipartBody.Part part = uriToPart(context, imageUris.get(i), i);
-            if (part != null) {
-                parts.add(part);
-            }
-        }
-        if (parts.isEmpty()) {
-            UserStoryDetailResponse error = new UserStoryDetailResponse();
-            error.success = false;
-            error.message = "Could not read images";
-            liveData.setValue(error);
-            return liveData;
-        }
-
-        apiService.createUserStory(parts).enqueue(new Callback<UserStoryDetailResponse>() {
-            @Override
-            public void onResponse(Call<UserStoryDetailResponse> call, Response<UserStoryDetailResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    liveData.setValue(response.body());
-                } else {
-                    UserStoryDetailResponse error = new UserStoryDetailResponse();
-                    error.success = false;
-                    error.message = "Upload failed (" + response.code() + ")";
-                    liveData.setValue(error);
+        Context appContext = context.getApplicationContext();
+        EXECUTOR.execute(() -> {
+            List<MultipartBody.Part> parts = new ArrayList<>();
+            int count = Math.min(imageUris.size(), MAX_IMAGES);
+            for (int i = 0; i < count; i++) {
+                MultipartBody.Part part = uriToCompressedPart(appContext, imageUris.get(i), i);
+                if (part != null) {
+                    parts.add(part);
                 }
             }
-
-            @Override
-            public void onFailure(Call<UserStoryDetailResponse> call, Throwable t) {
+            if (parts.isEmpty()) {
                 UserStoryDetailResponse error = new UserStoryDetailResponse();
                 error.success = false;
-                error.message = t.getMessage();
-                liveData.setValue(error);
+                error.message = "Could not read images";
+                liveData.postValue(error);
+                return;
             }
+
+            String userId = new PreferenceManager(appContext).getString(Constant.USER_ID);
+            if (userId == null) {
+                userId = "";
+            }
+            RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
+
+            apiService.createUserStory(userIdBody, parts).enqueue(new Callback<UserStoryDetailResponse>() {
+                @Override
+                public void onResponse(Call<UserStoryDetailResponse> call, Response<UserStoryDetailResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        liveData.postValue(response.body());
+                        return;
+                    }
+                    UserStoryDetailResponse error = new UserStoryDetailResponse();
+                    error.success = false;
+                    String bodyHint = "";
+                    try {
+                        if (response.errorBody() != null) {
+                            bodyHint = response.errorBody().string();
+                            if (bodyHint.length() > 180) {
+                                bodyHint = bodyHint.substring(0, 180);
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                    Log.e(TAG, "createStory HTTP " + response.code() + " " + bodyHint);
+                    if (response.code() == 401) {
+                        error.message = "Auth failed (401). Backend ko same API key / Bearer allow karna hoga.";
+                    } else {
+                        error.message = "Upload failed (" + response.code() + ")";
+                    }
+                    liveData.postValue(error);
+                }
+
+                @Override
+                public void onFailure(Call<UserStoryDetailResponse> call, Throwable t) {
+                    UserStoryDetailResponse error = new UserStoryDetailResponse();
+                    error.success = false;
+                    error.message = t.getMessage();
+                    liveData.postValue(error);
+                }
+            });
         });
         return liveData;
     }
@@ -162,28 +195,73 @@ public final class UserStoryRepository {
         });
     }
 
+    /**
+     * Compress to JPEG ≤1280px for faster upload (stories don't need full camera resolution).
+     * Part name {@code images[]} per API contract; also works with Laravel array uploads.
+     */
     @Nullable
-    private static MultipartBody.Part uriToPart(Context context, Uri uri, int index) {
+    private static MultipartBody.Part uriToCompressedPart(Context context, Uri uri, int index) {
         if (uri == null) {
             return null;
         }
         try {
-            File cacheFile = new File(context.getCacheDir(), "story_upload_" + index + "_" + System.currentTimeMillis() + ".jpg");
-            try (InputStream in = context.getContentResolver().openInputStream(uri);
-                 FileOutputStream out = new FileOutputStream(cacheFile)) {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            try (InputStream in = context.getContentResolver().openInputStream(uri)) {
                 if (in == null) {
                     return null;
                 }
-                byte[] buffer = new byte[8192];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, read);
+                BitmapFactory.decodeStream(in, null, bounds);
+            }
+
+            int sample = 1;
+            int maxDim = Math.max(bounds.outWidth, bounds.outHeight);
+            while (maxDim / sample > MAX_EDGE_PX * 2) {
+                sample *= 2;
+            }
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = Math.max(1, sample);
+            Bitmap bitmap;
+            try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+                if (in == null) {
+                    return null;
+                }
+                bitmap = BitmapFactory.decodeStream(in, null, opts);
+            }
+            if (bitmap == null) {
+                return null;
+            }
+
+            int w = bitmap.getWidth();
+            int h = bitmap.getHeight();
+            float scale = Math.min(1f, MAX_EDGE_PX / (float) Math.max(w, h));
+            if (scale < 1f) {
+                Bitmap scaled = Bitmap.createScaledBitmap(
+                        bitmap,
+                        Math.max(1, Math.round(w * scale)),
+                        Math.max(1, Math.round(h * scale)),
+                        true
+                );
+                if (scaled != bitmap) {
+                    bitmap.recycle();
+                    bitmap = scaled;
                 }
             }
-            RequestBody body = RequestBody.create(MediaType.parse("image/*"), cacheFile);
+
+            File cacheFile = new File(
+                    context.getCacheDir(),
+                    "story_upload_" + index + "_" + System.currentTimeMillis() + ".jpg"
+            );
+            try (FileOutputStream out = new FileOutputStream(cacheFile)) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out);
+            }
+            bitmap.recycle();
+
+            RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"), cacheFile);
             return MultipartBody.Part.createFormData("images[]", cacheFile.getName(), body);
         } catch (Exception e) {
-            Log.d(TAG, "uriToPart failed: " + e.getMessage());
+            Log.d(TAG, "uriToCompressedPart failed: " + e.getMessage());
             return null;
         }
     }

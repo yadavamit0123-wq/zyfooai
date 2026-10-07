@@ -26,14 +26,17 @@ public class ApiClient {
                 .create();
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
                 .writeTimeout(120, TimeUnit.SECONDS)
                 .addInterceptor(chain -> {
                     Request original = chain.request();
 
                     String apiKey = new PreferenceManager(MyApplication.getAppContext()).getString(Constant.API_KEY);
-                    if (apiKey.equals("")){
+                    if (apiKey == null || apiKey.equals("")) {
                         apiKey = "1234567";
                     }
+                    // Same Authorization as frames/legacy (raw API key from prefs).
                     Request.Builder requestBuilder = original.newBuilder()
                             .header("Accept", "application/json")
                             .header("Authorization", apiKey)
@@ -46,16 +49,16 @@ public class ApiClient {
 
                     Response response = chain.proceed(request);
 
+                    // Do NOT retry auth failures — and always retry with headers (not bare original).
                     int tryCount = 0;
-                    while (!response.isSuccessful() && tryCount < 3) {
-
-                        Log.d("intercept", "Request is not successful - " + tryCount);
-
+                    while (!response.isSuccessful()
+                            && response.code() != 401
+                            && response.code() != 403
+                            && tryCount < 2) {
+                        Log.d("intercept", "Retry " + tryCount + " HTTP " + response.code());
                         tryCount++;
-
-                        // retry the request
                         response.close();
-                        response = chain.proceed(original);
+                        response = chain.proceed(request);
                     }
 
                     return response;

@@ -185,7 +185,10 @@ public interface ApiService {
 
     @Multipart
     @POST("api/user-stories")
-    Call<UserStoryDetailResponse> createUserStory(@Part List<MultipartBody.Part> images);
+    Call<UserStoryDetailResponse> createUserStory(
+            @Part("user_id") RequestBody userId,
+            @Part List<MultipartBody.Part> images
+    );
 
     @POST("api/user-stories/{storyId}/view")
     Call<UserStoryDetailResponse> markUserStorySeen(@Path("storyId") String storyId);
