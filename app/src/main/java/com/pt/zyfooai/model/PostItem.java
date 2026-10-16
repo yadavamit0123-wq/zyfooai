@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class PostItem implements Serializable {
 
     @NonNull
-    @SerializedName("postId")
+    @SerializedName(value = "postId", alternate = {"post_id"})
     public String postId;
 
     @SerializedName("id")
@@ -20,6 +20,9 @@ public class PostItem implements Serializable {
 
     @SerializedName("type")
     public String type;
+
+    @SerializedName(value = "category_id", alternate = {"catId", "cat_id"})
+    public String categoryId;
 
     @SerializedName("thumbnail")
     public String thumbnail;
@@ -32,6 +35,7 @@ public class PostItem implements Serializable {
     @SerializedName("is_paid")
     public boolean is_premium;
 
+    @SerializedName(value = "is_trending", alternate = {"trending"})
     public boolean is_trending;
 
     @SerializedName("is_video")

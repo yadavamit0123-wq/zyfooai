@@ -587,6 +587,10 @@
     <string name="sticker_scan_to_connect">Scan to connect</string>
     <string name="download_in_progress">Download in progress</string>
     <string name="download_already_complete">Already downloaded — tap to open</string>
+    <string name="downloading_title">Downloading…</string>
+    <string name="download_successful">Download successful</string>
+    <string name="download_open">Open</string>
+    <string name="download_share">Share</string>
     <string name="watermark_product_unavailable">Purchase unavailable. Check Play Console product setup.</string>
     <string name="watch_ad_loading">Loading ad…</string>
     <string name="frame_glass_light">Glass — Light</string>

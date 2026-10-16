@@ -1,47 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_download_progress_card"
+    android:elevation="8dp"
     android:orientation="vertical"
-    android:padding="@dimen/_20sdp">
+    android:paddingHorizontal="@dimen/_16sdp"
+    android:paddingTop="@dimen/_12sdp"
+    android:paddingBottom="@dimen/_14sdp">
 
-    <TextView
-        android:id="@+id/tvDownloadTitle"
+    <!-- Progress phase -->
+    <LinearLayout
+        android:id="@+id/downloadProgressPhase"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/inter_semi_bold"
-        android:text="Downloading..."
-        android:textColor="@color/black"
-        android:textSize="@dimen/_14sdp" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvDownloadMessage"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvDownloadTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/inter_semi_bold"
+                android:text="@string/downloading_title"
+                android:textColor="#1A1A1A"
+                android:textSize="@dimen/_12sdp" />
+
+            <TextView
+                android:id="@+id/tvDownloadPercent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_bold"
+                android:text="0%"
+                android:textColor="@color/green_A700"
+                android:textSize="@dimen/_12sdp"
+                tools:text="42%" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDownloadMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:fontFamily="@font/inter_regular"
+            android:textColor="#888888"
+            android:textSize="@dimen/_10sdp"
+            android:visibility="gone"
+            tools:text="Please wait"
+            tools:visibility="visible" />
+
+        <!-- Thin green bar -->
+        <ProgressBar
+            android:id="@+id/downloadProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_4sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/bg_download_progress_green" />
+    </LinearLayout>
+
+    <!-- Success phase: Download successful + Open / Share -->
+    <LinearLayout
+        android:id="@+id/downloadSuccessPhase"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_8sdp"
-        android:fontFamily="@font/inter_regular"
-        android:text="Please wait"
-        android:textColor="@color/dialog_muted_text"
-        android:textSize="@dimen/_11sdp" />
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="gone">
 
-    <ProgressBar
-        android:id="@+id/downloadProgressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_12sdp"
-        android:max="100"
-        android:progress="0" />
+        <TextView
+            android:id="@+id/tvDownloadSuccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_semi_bold"
+            android:gravity="center"
+            android:text="@string/download_successful"
+            android:textColor="@color/green_A700"
+            android:textSize="@dimen/_13sdp" />
 
-    <TextView
-        android:id="@+id/tvDownloadPercent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_6sdp"
-        android:fontFamily="@font/inter_bold"
-        android:gravity="end"
-        android:text="0%"
-        android:textColor="@color/g3"
-        android:textSize="@dimen/_12sdp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:gravity="center"
+            android:orientation="horizontal">
 
+            <TextView
+                android:id="@+id/btnDownloadOpen"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_6sdp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_download_open_btn"
+                android:fontFamily="@font/inter_semi_bold"
+                android:gravity="center"
+                android:paddingVertical="@dimen/_10sdp"
+                android:text="@string/download_open"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/_12sdp" />
+
+            <TextView
+                android:id="@+id/btnDownloadShare"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_download_share_btn"
+                android:fontFamily="@font/inter_semi_bold"
+                android:gravity="center"
+                android:paddingVertical="@dimen/_10sdp"
+                android:text="@string/download_share"
+                android:textColor="@color/green_A700"
+                android:textSize="@dimen/_12sdp" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

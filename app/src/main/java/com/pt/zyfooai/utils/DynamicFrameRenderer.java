@@ -33,6 +33,11 @@ public final class DynamicFrameRenderer {
     private static final float ABOVE_FOOTER_OVERLAP_FRACTION = 0.45f;
     private static final int RING_GOLD = 0xFFE8D59A;
     private static final int RING_WHITE = 0xFFFFFFFF;
+    private static final int RING_3D_GOLD = 0xFFFFD54F;
+    private static final int RING_3D_CHROME = 0xFFCFD8DC;
+    private static final int RING_3D_NEON = 0xFF00E5FF;
+    private static final int RING_3D_GLASS = 0xAAFFFFFF;
+    private static final int RING_3D_ROSE = 0xFFFF8A80;
 
     private DynamicFrameRenderer() {
     }
@@ -53,6 +58,7 @@ public final class DynamicFrameRenderer {
         if (root == null) {
             return;
         }
+        FrameProfileMotionHelper.clear(root.findViewById(R.id.profileLay));
         View panel = root.findViewById(R.id.stickerBottomPanel);
         if (panel != null) {
             panel.setVisibility(View.GONE);
@@ -335,6 +341,8 @@ public final class DynamicFrameRenderer {
                 }
             }
 
+            applyProfileAnchor(profileLay, footer.resolvedAnchor());
+
             ViewGroup.LayoutParams outerParams = profileLay.getLayoutParams();
             if (outerParams != null) {
                 outerParams.width = outerPx;
@@ -362,6 +370,23 @@ public final class DynamicFrameRenderer {
                 }
                 applyProfileStyle(profileImg, footer.profileStyle, imgPx);
             }
+
+            // Center resting X on canvas when anchored middle; motion preserves this base offset.
+            if ("footer_center".equals(footer.resolvedAnchor()) && canvasW > 0) {
+                final int size = outerPx;
+                profileLay.post(() -> {
+                    int[] rootLoc = new int[2];
+                    int[] profileLoc = new int[2];
+                    root.getLocationOnScreen(rootLoc);
+                    profileLay.getLocationOnScreen(profileLoc);
+                    float currentCenter = (profileLoc[0] - rootLoc[0]) + size / 2f;
+                    float targetCenter = canvasW / 2f;
+                    float baseTx = targetCenter - currentCenter;
+                    FrameProfileMotionHelper.apply(root, profileLay, footer, baseTx);
+                });
+            } else {
+                FrameProfileMotionHelper.apply(root, profileLay, footer, 0f);
+            }
         };
 
         if (root.getWidth() > 0) {
@@ -370,6 +395,59 @@ public final class DynamicFrameRenderer {
             root.post(apply);
         }
         bottomPanel.post(apply);
+    }
+
+    /**
+     * Resting position of profile in the footer row: left / center / right.
+     */
+    private static void applyProfileAnchor(View profileLay, String anchor) {
+        if (profileLay == null || !(profileLay.getParent() instanceof LinearLayout)) {
+            return;
+        }
+        LinearLayout row = (LinearLayout) profileLay.getParent();
+        if (row.getOrientation() != LinearLayout.HORIZONTAL) {
+            return;
+        }
+        int index = row.indexOfChild(profileLay);
+        if (index < 0) {
+            return;
+        }
+        String resolved = anchor != null ? anchor : "footer_left";
+        int targetIndex;
+        switch (resolved) {
+            case "footer_right":
+                targetIndex = row.getChildCount() - 1;
+                break;
+            case "footer_center": {
+                // Keep profile before text block but center the row content.
+                targetIndex = Math.min(1, row.getChildCount() - 1);
+                row.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.CENTER_HORIZONTAL);
+                break;
+            }
+            case "footer_left":
+            default:
+                targetIndex = 0;
+                row.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
+                break;
+        }
+        if (index != targetIndex) {
+            row.removeView(profileLay);
+            int insertAt = Math.max(0, Math.min(targetIndex, row.getChildCount()));
+            row.addView(profileLay, insertAt);
+        }
+        // Extra nudge for center: margin auto-feel via equal side margins on profile when alone-ish.
+        ViewGroup.LayoutParams lp = profileLay.getLayoutParams();
+        if (lp instanceof LinearLayout.LayoutParams) {
+            LinearLayout.LayoutParams llp = (LinearLayout.LayoutParams) lp;
+            if ("footer_center".equals(resolved)) {
+                llp.gravity = android.view.Gravity.CENTER_VERTICAL;
+            } else if ("footer_right".equals(resolved)) {
+                llp.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END;
+            } else {
+                llp.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START;
+            }
+            profileLay.setLayoutParams(llp);
+        }
     }
 
     private static int[] legacyProfilePx(View root, String size) {
@@ -424,6 +502,36 @@ public final class DynamicFrameRenderer {
                 riv.setBorderWidth(border * 0.5f);
                 riv.setBorderColor(0x66FFFFFF);
                 riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation));
+                break;
+            case "ring_3d_gold":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 2.1f);
+                riv.setBorderColor(RING_3D_GOLD);
+                riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation) * 1.4f);
+                break;
+            case "ring_3d_chrome":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 2f);
+                riv.setBorderColor(RING_3D_CHROME);
+                riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation) * 1.3f);
+                break;
+            case "ring_3d_neon":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 2.2f);
+                riv.setBorderColor(RING_3D_NEON);
+                riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation) * 1.6f);
+                break;
+            case "ring_3d_glass":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 1.6f);
+                riv.setBorderColor(RING_3D_GLASS);
+                riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation));
+                break;
+            case "ring_3d_rose":
+                riv.setCornerRadius(circleRadius);
+                riv.setBorderWidth(border * 2f);
+                riv.setBorderColor(RING_3D_ROSE);
+                riv.setElevation(profileImg.getResources().getDimension(R.dimen.frame_profile_elevation) * 1.35f);
                 break;
             case "circle":
             default:

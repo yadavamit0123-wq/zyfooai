@@ -47,6 +47,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
@@ -111,6 +112,9 @@ import com.pt.zyfooai.utils.PostDownloadTracker;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.RemoteConfigHelper;
 import com.pt.zyfooai.utils.Util;
+import com.pt.zyfooai.utils.FeedOrderHelper;
+import com.pt.zyfooai.utils.TimeOfDayFeedHelper;
+import com.pt.zyfooai.utils.VideoPreloadHelper;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.onesignal.OneSignal;
@@ -131,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
     private UserStoryRingAdapter userStoryRingAdapter;
     private final UserStoryRepository userStoryRepository = new UserStoryRepository();
     private static final int REQ_ADD_USER_STORY = 4101;
+    /** Bumps on each All-feed refresh so stale greeting merges are ignored. */
+    private int timeOfDayEnrichGen = 0;
     Activity context;
     private InterstitialsAdsManager interstitialsAdsManager;
     private String selectedLanguage = "";
@@ -579,8 +585,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             if (PostDownloadTracker.isComplete(postKey)) {
-                Toast.makeText(context, getString(R.string.download_already_complete), Toast.LENGTH_SHORT).show();
-                openDownloadResult(PostDownloadTracker.getCurrent().outputPath);
+                String donePath = PostDownloadTracker.getCurrent().outputPath;
+                showDownloadSuccess(donePath);
                 return;
             }
             if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
@@ -731,34 +737,111 @@ public class MainActivity extends AppCompatActivity {
         return feed;
     }
 
+    /**
+     * First page / cold open: images first (≈3), then videos — feels faster;
+     * meanwhile {@link VideoPreloadHelper} warms the next reels/images into cache.
+     */
+    private List<PostItem> prepareOpenFeed(List<PostItem> postItems) {
+        List<PostItem> ordered = FeedOrderHelper.imagesFirst(postItems, FeedOrderHelper.LEADING_IMAGE_COUNT);
+        return buildFeedWithAds(ordered);
+    }
+
+    private void applyFirstPageFeed(List<PostItem> orderedWithAds, List<PostItem> rawForCache) {
+        dailyPost.clear();
+        dailyPost.addAll(orderedWithAds);
+        if (rawForCache != null && !rawForCache.isEmpty()) {
+            OfflinePostsCache.save(context, rawForCache);
+        }
+        VideoPreloadHelper.preloadUpcoming(context, dailyPost);
+
+        ensureAdapter();
+        adapter.replaceData(dailyPost);
+        binding.shimmerViewContainer.setVisibility(GONE);
+        binding.main.setVisibility(VISIBLE);
+        binding.switchProfile.clRoot.setVisibility(GONE);
+        binding.noDataLayout.setVisibility(GONE);
+        binding.noInternetLayout.setVisibility(GONE);
+        binding.swipeRefresh.setRefreshing(false);
+        binding.allVideo.post(() -> {
+            playVisibleVideo(binding.allVideo);
+            scrollToDeepLinkPost();
+        });
+        if (!preloaderAdded) {
+            setUpRecyclerView();
+        }
+        idleRunnable = () -> showHandAnimation();
+    }
+
     private void handleFirstPagePosts(List<PostItem> postItems) {
         if (postItems != null && !postItems.isEmpty()) {
-            dailyPost.clear();
-            dailyPost.addAll(buildFeedWithAds(postItems));
-            OfflinePostsCache.save(context, postItems);
-
-            ensureAdapter();
-            adapter.replaceData(dailyPost);
-            binding.shimmerViewContainer.setVisibility(GONE);
-            binding.main.setVisibility(VISIBLE);
-            binding.switchProfile.clRoot.setVisibility(GONE);
-            binding.noDataLayout.setVisibility(GONE);
-            binding.noInternetLayout.setVisibility(GONE);
-            binding.swipeRefresh.setRefreshing(false);
-            binding.allVideo.post(() -> {
-                playVisibleVideo(binding.allVideo);
-                scrollToDeepLinkPost();
-            });
-            if (!preloaderAdded) {
-                setUpRecyclerView();
+            // Show All feed immediately (fast), then enrich with time-of-day + date posts.
+            applyFirstPageFeed(prepareOpenFeed(postItems), postItems);
+            if ("-1".equals(selectedCat)) {
+                enrichFeedWithTimeOfDay(postItems);
             }
-            idleRunnable = () -> showHandAnimation();
         } else {
             binding.shimmerViewContainer.setVisibility(GONE);
             binding.main.setVisibility(VISIBLE);
             binding.switchProfile.clRoot.setVisibility(GONE);
             binding.noDataLayout.setVisibility(VISIBLE);
             binding.swipeRefresh.setRefreshing(false);
+        }
+    }
+
+    /**
+     * Greeting (Good Morning / Afternoon / Evening-Night) + Days Special / आज के दर्शन,
+     * then remaining All / trending posts. Only for home "All" first page.
+     */
+    private void enrichFeedWithTimeOfDay(List<PostItem> allPosts) {
+        if (homeViewModel == null || allPosts == null) {
+            return;
+        }
+        final int gen = ++timeOfDayEnrichGen;
+        String language = selectedLanguage != null ? selectedLanguage : "";
+        String businessId = preferenceManager.getString(Constant.BUSINESS_ID);
+        String politicalId = preferenceManager.getString(Constant.POLITICAL_ID);
+
+        String greetingCatId = TimeOfDayFeedHelper.findGreetingCategoryId(categoryItemList);
+        List<String> dateCatIds = TimeOfDayFeedHelper.findDateCategoryIds(categoryItemList);
+
+        final List<PostItem> greetingBucket = new ArrayList<>();
+        final List<PostItem> dateBucket = new ArrayList<>();
+        final int[] pending = {1 + Math.max(1, dateCatIds.size())};
+
+        Runnable maybeMerge = () -> {
+            pending[0]--;
+            if (pending[0] > 0 || gen != timeOfDayEnrichGen) {
+                return;
+            }
+            List<PostItem> merged = TimeOfDayFeedHelper.merge(
+                    greetingBucket,
+                    dateBucket,
+                    allPosts,
+                    FeedOrderHelper.LEADING_IMAGE_COUNT
+            );
+            if (merged.isEmpty()) {
+                return;
+            }
+            applyFirstPageFeed(buildFeedWithAds(merged), merged);
+        };
+
+        homeViewModel.getDailyPosts(1, greetingCatId, language, businessId, politicalId)
+                .observe(this, posts -> {
+                    if (posts != null) {
+                        greetingBucket.clear();
+                        greetingBucket.addAll(posts);
+                    }
+                    maybeMerge.run();
+                });
+
+        for (String dateCatId : dateCatIds) {
+            homeViewModel.getDailyPosts(1, dateCatId, language, businessId, politicalId)
+                    .observe(this, posts -> {
+                        if (posts != null) {
+                            dateBucket.addAll(posts);
+                        }
+                        maybeMerge.run();
+                    });
         }
     }
 
@@ -777,7 +860,8 @@ public class MainActivity extends AppCompatActivity {
         pageCount = 1;
         showingOfflineCache = true;
         dailyPost.clear();
-        dailyPost.addAll(buildFeedWithAds(cachedPosts));
+        dailyPost.addAll(prepareOpenFeed(cachedPosts));
+        VideoPreloadHelper.preloadUpcoming(context, dailyPost);
         ensureAdapter();
         adapter.replaceData(dailyPost);
         binding.noInternetLayout.setVisibility(GONE);
@@ -980,6 +1064,12 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
         if (lm == null) {
             return;
+        }
+
+        int firstVisible = lm.findFirstVisibleItemPosition();
+        if (firstVisible != RecyclerView.NO_POSITION) {
+            // While still on leading images, keep warming the next reel(s).
+            VideoPreloadHelper.preloadNextAfter(context, dailyPost, firstVisible);
         }
 
         int targetPos = findMostVisibleVideoPosition(lm, recyclerView);
@@ -1329,10 +1419,9 @@ public class MainActivity extends AppCompatActivity {
                         }else {
                             if (type.equals("download")) {
                                 PostDownloadTracker.complete(filePath);
-                                getDownloadProgressDialog().updateProgress(100, "");
-                                getDownloadProgressDialog().dismiss();
-                                openDownloadResult(filePath);
+                                showDownloadSuccess(filePath);
                             } else {
+                                getDownloadProgressDialog().dismiss();
                                 shareFileImageUri(getImageContentUri(new File(filePath)), type);
                             }
                         }
@@ -1431,10 +1520,11 @@ public class MainActivity extends AppCompatActivity {
                     FFmpeg.executeAsync(cmd, new ExecuteCallback() {
                         @Override
                         public void apply(long executionId, int returnCode) {
-                            getDownloadProgressDialog().dismiss();
                             if (returnCode == 1) {
+                                getDownloadProgressDialog().dismiss();
                                 FFmpeg.cancel(executionId);
                                 Toast.makeText(MainActivity.this, "Try Again Later", Toast.LENGTH_SHORT).show();
+                                return;
                             }
                             if (returnCode == 0) {
                                 MediaScannerConnection.scanFile(context, new String[]{musicFramePath},
@@ -1448,16 +1538,17 @@ public class MainActivity extends AppCompatActivity {
                                         });
 
                                 if (type.equals("download")) {
-                                    Util.showToast(context, getString(R.string.video_saved));
-                                    Intent intent = new Intent(context, ShareImageActivity.class);
-                                    intent.putExtra("uri", musicFramePath);
-                                    startActivity(intent);
+                                    PostDownloadTracker.complete(musicFramePath);
+                                    showDownloadSuccess(musicFramePath);
                                 } else {
+                                    getDownloadProgressDialog().dismiss();
                                     shareFileImageUri(getImageContentUri(new File(musicFramePath)), type);
                                 }
                             } else if (returnCode == 255) {
+                                getDownloadProgressDialog().dismiss();
                                 Log.e("applyMp3__", "Command execution cancelled by user.");
                             } else {
+                                getDownloadProgressDialog().dismiss();
                                 String str = String.format("Command execution failed with rc=%d and the output below.", Arrays.copyOf(new Object[]{Integer.valueOf(returnCode)}, 1));
                                 Log.i("applyMp3__", str);
                             }
@@ -1465,13 +1556,11 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                 } else {
-                    getDownloadProgressDialog().dismiss();
                     if (type.equals("download")) {
-                        Util.showToast(context, getString(R.string.video_saved));
-                        Intent intent = new Intent(context, ShareImageActivity.class);
-                        intent.putExtra("uri", musicFramePath);
-                        startActivity(intent);
+                        PostDownloadTracker.complete(musicFramePath);
+                        showDownloadSuccess(musicFramePath);
                     } else {
+                        getDownloadProgressDialog().dismiss();
                         shareFileImageUri(getImageContentUri(new File(musicFramePath)), type);
                     }
 
@@ -1490,6 +1579,40 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(context, ShareImageActivity.class);
         intent.putExtra("uri", path);
         startActivity(intent);
+    }
+
+    /** Thin green bar reaches 100% → "Download successful" + Open / Share on screen. */
+    private void showDownloadSuccess(String path) {
+        if (path == null || path.isEmpty()) {
+            getDownloadProgressDialog().dismiss();
+            return;
+        }
+        getDownloadProgressDialog().updateProgress(100, "");
+        getDownloadProgressDialog().showSuccess(
+                path,
+                () -> openDownloadResult(path),
+                () -> shareDownloadedFile(path)
+        );
+    }
+
+    private void shareDownloadedFile(String path) {
+        try {
+            File file = new File(path);
+            Uri uri = FileProvider.getUriForFile(
+                    context,
+                    context.getPackageName() + ".provider",
+                    file
+            );
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            String mimeType = path.toLowerCase().endsWith(".mp4") ? "video/*" : "image/*";
+            shareIntent.setType(mimeType);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_txt) + getPackageName());
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_txt) + getPackageName()));
+        } catch (Exception e) {
+            shareFileImageUri(getImageContentUri(new File(path)), "Share");
+        }
     }
 
     private void downloadVideo(String framePath, String videoUrl, String type) {
@@ -1541,8 +1664,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applyFrameOnVideo(String videoath, String framePath, String type) {
-        getDownloadProgressDialog().updateProgress(75, "");
-        PostDownloadTracker.updateProgress(75);
+        getDownloadProgressDialog().updateProgress(78, "");
+        PostDownloadTracker.updateProgress(78);
         updateNotification("Making video...");
         runOnUiThread(new Runnable() {
             @Override
@@ -1610,6 +1733,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
+                getDownloadProgressDialog().updateProgress(88, "");
+                PostDownloadTracker.updateProgress(88);
                 FFmpeg.executeAsync(new String[]{"-i", videoath, "-i", file.getAbsolutePath(),
                         "-filter_complex",
                         "overlay", "-r", "150",
@@ -1617,11 +1742,12 @@ public class MainActivity extends AppCompatActivity {
                         "-y", outputDir}, new ExecuteCallback() {
                     @Override
                     public void apply(long executionId, int returnCode) {
-                        getDownloadProgressDialog().dismiss();
                         if (returnCode == 1) {
                             PostDownloadTracker.fail();
+                            getDownloadProgressDialog().dismiss();
                             FFmpeg.cancel(executionId);
                             Toast.makeText(context, "Try Again", Toast.LENGTH_SHORT).show();
+                            return;
                         }
                         if (returnCode == 0) {
                             FFmpeg.cancel(executionId);
@@ -1631,14 +1757,17 @@ public class MainActivity extends AppCompatActivity {
 
                             if (type.equals("download")) {
                                 PostDownloadTracker.complete(outputDir);
-                                openDownloadResult(outputDir);
                                 updateNotification("Download complete");
+                                showDownloadSuccess(outputDir);
                             } else {
+                                getDownloadProgressDialog().dismiss();
                                 shareFileImageUri(getImageContentUri(new File(outputDir)), type);
                             }
                         } else if (returnCode == 255) {
+                            getDownloadProgressDialog().dismiss();
                             Log.e("finalProcess__", "Command execution cancelled by user.");
                         } else {
+                            getDownloadProgressDialog().dismiss();
                             String str = String.format("Command execution failed with rc=%d and the output below.",
                                     Arrays.copyOf(new Object[]{Integer.valueOf(returnCode)}, 1));
                             Log.i("finalProcess__", str);

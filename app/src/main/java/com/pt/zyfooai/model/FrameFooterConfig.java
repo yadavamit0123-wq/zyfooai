@@ -28,8 +28,19 @@ public class FrameFooterConfig {
     public Integer profileScalePercent;
     /** in_footer | above_footer (Crafto float) */
     public String profilePlacement = "in_footer";
-    /** circle | ring_gold | ring_white | rounded | soft_shadow */
+    /**
+     * circle | ring_gold | ring_white | rounded | soft_shadow |
+     * ring_3d_gold | ring_3d_chrome | ring_3d_neon | ring_3d_glass | ring_3d_rose
+     */
     public String profileStyle = "circle";
+    /**
+     * none | spin_3d | slide_ltr | slide_rtl | slide_ttb | slide_btt |
+     * orbit_3d | float_3d | flip_3d | bounce_in | glow_spin
+     * Missing / none → static (legacy safe).
+     */
+    public String profileAnimation = "none";
+    /** footer_left | footer_center | footer_right — resting position after motion. */
+    public String profileAnchor = "footer_left";
     /** When in_footer: avatar ≤ this % of footer bar height. */
     public Integer profileMaxHeightPercent;
     public boolean clipOverflow = true;
@@ -41,5 +52,23 @@ public class FrameFooterConfig {
 
     public boolean hasProfileScale() {
         return profileScalePercent != null && profileScalePercent > 0;
+    }
+
+    public boolean hasProfileMotion() {
+        if (profileAnimation == null || profileAnimation.trim().isEmpty()) {
+            return false;
+        }
+        return !"none".equalsIgnoreCase(profileAnimation.trim());
+    }
+
+    public String resolvedAnimation() {
+        return profileAnimation != null ? profileAnimation.trim().toLowerCase() : "none";
+    }
+
+    public String resolvedAnchor() {
+        if (profileAnchor == null || profileAnchor.trim().isEmpty()) {
+            return "footer_left";
+        }
+        return profileAnchor.trim().toLowerCase();
     }
 }
