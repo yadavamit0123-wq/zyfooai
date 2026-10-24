@@ -69,6 +69,7 @@ import com.pt.zyfooai.utils.AiPrefs;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.ContentReportHelper;
 import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.ExoPlayerVolumeHelper;
 import com.pt.zyfooai.utils.DynamicFrameRenderer;
 import com.pt.zyfooai.utils.FrameBindHelper;
 import com.pt.zyfooai.utils.FrameCanvasHelper;
@@ -200,7 +201,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public void pauseAndDetachPlayer() {
         if (sharedPlayer != null) {
             sharedPlayer.setPlayWhenReady(false);
-            sharedPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
         }
         if (currentHolder != null && currentHolder.videoLayoutBinding != null) {
             currentHolder.videoLayoutBinding.playerview.setPlayer(null);
@@ -213,10 +214,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public void silencePlaybackForNonVideo() {
         if (sharedPlayer != null) {
             sharedPlayer.setPlayWhenReady(false);
-            sharedPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
         } else if (currentPlayer != null) {
             currentPlayer.setPlayWhenReady(false);
-            currentPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(currentPlayer, 0f);
         }
         if (currentHolder != null && currentHolder.videoLayoutBinding != null) {
             currentHolder.videoLayoutBinding.playerview.setPlayer(null);
@@ -558,7 +559,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         if (currentHolder != null && currentHolder != holder) {
             if (sharedPlayer != null) {
                 sharedPlayer.setPlayWhenReady(false);
-                sharedPlayer.setVolume(0f);
+                ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
             }
             currentHolder.videoLayoutBinding.playerview.setPlayer(null);
         }
@@ -573,7 +574,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                     if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
                         currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
                         if (sharedPlayer != null) {
-                            sharedPlayer.setVolume(1f);
+                            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
                         }
                         FooterSizeHelper.fitContentAboveFooter(
                                 currentHolder.videoLayoutBinding.relativeLayout4,
@@ -602,7 +603,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                     VideoCacheHelper.buildCacheDataSourceFactory(context))
                     .createMediaSource(Uri.parse(newUrl));
             sharedPlayer.setPlayWhenReady(false);
-            sharedPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
             sharedPlayer.stop(true);
             sharedPlayer.prepare(mediaSource);
         }
@@ -610,7 +611,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         if (holder.videoLayoutBinding.playerview.getPlayer() != sharedPlayer) {
             holder.videoLayoutBinding.playerview.setPlayer(sharedPlayer);
         }
-        sharedPlayer.setVolume(1f);
+        ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
         sharedPlayer.setPlayWhenReady(true);
         holder.exoplayer = sharedPlayer;
         currentPlayer = sharedPlayer;
@@ -640,19 +641,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public void onPauseVideo() {
         if (sharedPlayer != null) {
             sharedPlayer.setPlayWhenReady(false);
-            sharedPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
         } else if (currentPlayer != null) {
             currentPlayer.setPlayWhenReady(false);
-            currentPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(currentPlayer, 0f);
         }
     }
 
     public void onResumeVideo() {
         if (sharedPlayer != null && currentHolder != null) {
-            sharedPlayer.setVolume(1f);
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
             sharedPlayer.setPlayWhenReady(true);
         } else if (currentPlayer != null && currentHolder != null) {
-            currentPlayer.setVolume(1f);
+            ExoPlayerVolumeHelper.setVolume(currentPlayer, 1f);
             currentPlayer.setPlayWhenReady(true);
         }
     }

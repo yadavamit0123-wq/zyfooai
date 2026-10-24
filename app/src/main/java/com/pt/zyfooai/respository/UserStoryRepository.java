@@ -181,10 +181,8 @@ public final class UserStoryRepository {
                 return;
             }
 
-            String userId = new PreferenceManager(appContext).getString(Constant.USER_ID);
-            if (userId == null) {
-                userId = "";
-            }
+            String rawUserId = new PreferenceManager(appContext).getString(Constant.USER_ID);
+            final String userId = rawUserId != null ? rawUserId : "";
             RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
 
             apiService.createUserStory(userIdBody, parts).enqueue(new Callback<UserStoryDetailResponse>() {

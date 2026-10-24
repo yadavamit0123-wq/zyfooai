@@ -32,6 +32,7 @@ import com.pt.zyfooai.respository.ReferralRepository;
 import com.pt.zyfooai.ui.adapters.ReferralFaqAdapter;
 import com.pt.zyfooai.ui.adapters.ReferralListAdapter;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.ExoPlayerVolumeHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.ReferEarnPrefs;
 import com.pt.zyfooai.utils.VideoCacheHelper;
@@ -258,7 +259,7 @@ public class ReferralProgramActivity extends AppCompatActivity {
         if (bannerPlayer == null) {
             bannerPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultTrackSelector());
             bannerPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
-            bannerPlayer.setVolume(0f);
+            ExoPlayerVolumeHelper.setVolume(bannerPlayer, 0f);
             bannerPlayer.addListener(new Player.EventListener() {
                 @Override
                 public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
