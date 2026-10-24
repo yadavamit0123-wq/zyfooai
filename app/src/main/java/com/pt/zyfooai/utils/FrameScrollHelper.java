@@ -2,6 +2,7 @@ package com.pt.zyfooai.utils;
 
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewParent;
 
 import androidx.annotation.NonNull;
@@ -103,26 +104,56 @@ public final class FrameScrollHelper {
         recyclerView.post(() -> recyclerView.post(apply));
     }
 
-    /** While user swipes frames horizontally, stop the vertical feed from intercepting. */
+    /**
+     * Horizontal frame swipe: block vertical feed only when gesture is clearly sideways.
+     * Vertical finger scroll must still move image/reels feed (PagerSnap).
+     */
     public static void blockParentInterceptWhileSwiping(RecyclerView frameRecyclerView) {
         if (frameRecyclerView == null
                 || frameRecyclerView.getTag(R.id.frame_parent_intercept_bound) != null) {
             return;
         }
         frameRecyclerView.setTag(R.id.frame_parent_intercept_bound, Boolean.TRUE);
+        final int touchSlop = ViewConfiguration.get(frameRecyclerView.getContext()).getScaledTouchSlop();
         frameRecyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+            private float downX;
+            private float downY;
+            private boolean lockedHorizontal;
+
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
                 ViewParent parent = rv.getParent();
                 switch (e.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_MOVE:
+                        downX = e.getX();
+                        downY = e.getY();
+                        lockedHorizontal = false;
+                        // Do NOT lock parent yet — allow vertical feed scroll until direction is clear.
                         if (parent != null) {
+                            parent.requestDisallowInterceptTouchEvent(false);
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (parent == null) {
+                            break;
+                        }
+                        float dx = Math.abs(e.getX() - downX);
+                        float dy = Math.abs(e.getY() - downY);
+                        if (!lockedHorizontal && (dx > touchSlop || dy > touchSlop)) {
+                            if (dx > dy) {
+                                lockedHorizontal = true;
+                                parent.requestDisallowInterceptTouchEvent(true);
+                            } else {
+                                // Vertical scroll → let feed RV take over (next image/reel).
+                                parent.requestDisallowInterceptTouchEvent(false);
+                            }
+                        } else if (lockedHorizontal) {
                             parent.requestDisallowInterceptTouchEvent(true);
                         }
                         break;
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
+                        lockedHorizontal = false;
                         if (parent != null) {
                             parent.requestDisallowInterceptTouchEvent(false);
                         }
