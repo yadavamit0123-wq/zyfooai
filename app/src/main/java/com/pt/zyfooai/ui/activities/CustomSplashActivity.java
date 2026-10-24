@@ -107,6 +107,8 @@ public class CustomSplashActivity extends AppCompatActivity {
                     preferenceManager.setString(Constant.CONTACT_WHATSAPP, appInfos.getAppInfo().whatsappNumber);
                     preferenceManager.setString(Constant.CURRENCY, appInfos.getAppInfo().currency);
                 }
+                com.pt.zyfooai.utils.ReferEarnPrefs.saveFromAppInfo(CustomSplashActivity.this, appInfos);
+                com.pt.zyfooai.utils.AiPrefs.saveFromAppInfo(CustomSplashActivity.this, appInfos);
 
                 if (appInfos.getAdsModel() != null) {
                     preferenceManager.setString(Constant.PUBLISHER_ID, appInfos.getAdsModel().getAdmobAppId());

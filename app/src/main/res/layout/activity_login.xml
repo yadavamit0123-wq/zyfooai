@@ -112,6 +112,23 @@ android:visibility="gone"
         </LinearLayout>
         <!-- OTP Input -->
 
+        <!-- Optional referral code (applied after loginUser via POST apply-reffer) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_referral_code"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="@string/referral_code_optional">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_referral_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Send OTP Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_send_otp"

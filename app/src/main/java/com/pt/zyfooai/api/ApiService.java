@@ -2,13 +2,24 @@ package com.pt.zyfooai.api;
 
 
 import com.pt.zyfooai.model.AppInfos;
-
+import com.pt.zyfooai.model.ApplyReferralRequest;
+import com.pt.zyfooai.model.ApplyReferralResponse;
 import com.pt.zyfooai.model.CategoryItem;
+import com.pt.zyfooai.model.AiChatResponse;
+import com.pt.zyfooai.model.AiConfigResponse;
+import com.pt.zyfooai.model.AiConversationDetailResponse;
+import com.pt.zyfooai.model.AiConversationListResponse;
+import com.pt.zyfooai.model.AiImageResponse;
+import com.pt.zyfooai.model.AiProcessResponse;
+import com.pt.zyfooai.model.CheckReferralResponse;
+import com.pt.zyfooai.model.ContentReportRequest;
+import com.pt.zyfooai.model.ContentReportResponse;
+import com.pt.zyfooai.model.FaqListResponse;
 import com.pt.zyfooai.model.FrameListResponse;
-
 import com.pt.zyfooai.model.LanguageItem;
 import com.pt.zyfooai.model.PostItem;
-
+import com.pt.zyfooai.model.ReferralListResponse;
+import com.pt.zyfooai.model.ReferralMeResponse;
 import com.pt.zyfooai.model.StoryItem;
 import com.pt.zyfooai.model.SubscriptionModel;
 import com.pt.zyfooai.model.UserItem;
@@ -16,17 +27,18 @@ import com.pt.zyfooai.model.UserStoryDetailResponse;
 import com.pt.zyfooai.model.UserStoryListResponse;
 
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.DELETE;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.PartMap;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -178,7 +190,7 @@ public interface ApiService {
     // --- User Stories (24h, all logged-in users) — separate from getFestival ---
 
     @GET("api/user-stories")
-    Call<UserStoryListResponse> getUserStories();
+    Call<UserStoryListResponse> getUserStories(@Query("user_id") String userId);
 
     @GET("api/user-stories/{storyId}")
     Call<UserStoryDetailResponse> getUserStory(@Path("storyId") String storyId);
@@ -195,5 +207,78 @@ public interface ApiService {
 
     @DELETE("api/user-stories/{storyId}")
     Call<UserStoryDetailResponse> deleteUserStory(@Path("storyId") String storyId);
+
+    // --- Refer & Earn (server is source of truth) ---
+
+    @GET("api/check-reffercode/{code}")
+    Call<CheckReferralResponse> checkReferralCode(
+            @Path("code") String code,
+            @Query("user_id") String userId
+    );
+
+    @POST("api/apply-reffer")
+    Call<ApplyReferralResponse> applyReferral(@Body ApplyReferralRequest body);
+
+    @GET("api/referral/me")
+    Call<ReferralMeResponse> getReferralMe(@Query("user_id") String userId);
+
+    @GET("api/referral/list")
+    Call<ReferralListResponse> getReferralList(
+            @Query("user_id") String userId,
+            @Query("page") int page
+    );
+
+    @GET("api/faq/{category}")
+    Call<FaqListResponse> getFaq(@Path("category") String category);
+
+    // --- Content Report (admin Content Reports panel) ---
+
+    @POST("api/content-report")
+    Call<ContentReportResponse> submitContentReport(@Body ContentReportRequest body);
+
+    // --- AI (admin AI Settings) ---
+
+    @GET("api/ai/config")
+    Call<AiConfigResponse> getAiConfig(@Query("user_id") String userId);
+
+    @Multipart
+    @POST("api/ai/chat")
+    Call<AiChatResponse> aiChat(@PartMap Map<String, RequestBody> fields);
+
+    @Multipart
+    @POST("api/ai/chat")
+    Call<AiChatResponse> aiChatWithImage(
+            @PartMap Map<String, RequestBody> fields,
+            @Part MultipartBody.Part image
+    );
+
+    @POST("api/ai/image")
+    Call<AiImageResponse> aiCreateImage(@Body Map<String, String> body);
+
+    @Multipart
+    @POST("api/ai/process")
+    Call<AiProcessResponse> aiProcess(@PartMap Map<String, RequestBody> fields);
+
+    @Multipart
+    @POST("api/ai/process")
+    Call<AiProcessResponse> aiProcessWithImage(
+            @PartMap Map<String, RequestBody> fields,
+            @Part MultipartBody.Part image
+    );
+
+    @GET("api/ai/conversations")
+    Call<AiConversationListResponse> aiConversations(@Query("user_id") String userId);
+
+    @GET("api/ai/conversations/{id}")
+    Call<AiConversationDetailResponse> aiConversation(
+            @Path("id") String id,
+            @Query("user_id") String userId
+    );
+
+    @DELETE("api/ai/conversations/{id}")
+    Call<AiChatResponse> deleteAiConversation(
+            @Path("id") String id,
+            @Query("user_id") String userId
+    );
 
 }

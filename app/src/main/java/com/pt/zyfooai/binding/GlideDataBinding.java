@@ -58,11 +58,19 @@ public class GlideDataBinding {
     }
 
     public static Bitmap viewToBitmap(View view) {
+        if (view == null) {
+            return null;
+        }
+        int width = view.getWidth();
+        int height = view.getHeight();
+        if (width <= 0 || height <= 0) {
+            return null;
+        }
         Bitmap createBitmap = null;
         view.setDrawingCacheEnabled(true);
         view.setDrawingCacheQuality(DRAWING_CACHE_QUALITY_HIGH);
         try {
-            createBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+            createBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             view.draw(new Canvas(createBitmap));
             return createBitmap;
         } catch (Exception e) {

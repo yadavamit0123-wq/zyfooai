@@ -3,6 +3,10 @@ package com.pt.zyfooai.utils;
 import android.content.Context;
 import android.content.Intent;
 
+/**
+ * Legacy local referral helpers (watermark perk only).
+ * Refer & Earn source of truth is server — see {@link ReferEarnPrefs} + ReferralProgramActivity.
+ */
 public final class ReferralHelper {
 
     public static final String REFERRAL_CODE = "referral_code";
@@ -12,6 +16,7 @@ public final class ReferralHelper {
     private ReferralHelper() {
     }
 
+    /** @deprecated Prefer server code from {@link Constant#REFER_SERVER_CODE} / referral/me. */
     public static String getOrCreateReferralCode(Context context) {
         PreferenceManager prefs = new PreferenceManager(context);
         String code = prefs.getString(REFERRAL_CODE);

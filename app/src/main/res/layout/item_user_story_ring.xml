@@ -6,12 +6,12 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/_6sdp"
-    android:paddingVertical="@dimen/_4sdp">
+    android:paddingHorizontal="@dimen/_4sdp"
+    android:paddingVertical="@dimen/_1sdp">
 
     <FrameLayout
-        android:layout_width="@dimen/_56sdp"
-        android:layout_height="@dimen/_56sdp">
+        android:layout_width="@dimen/_44sdp"
+        android:layout_height="@dimen/_44sdp">
 
         <View
             android:id="@+id/ringBorder"
@@ -21,8 +21,8 @@
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/avatar"
-            android:layout_width="@dimen/_48sdp"
-            android:layout_height="@dimen/_48sdp"
+            android:layout_width="@dimen/_38sdp"
+            android:layout_height="@dimen/_38sdp"
             android:layout_gravity="center"
             android:src="@drawable/ic_profile"
             app:civ_border="true"
@@ -31,11 +31,11 @@
 
         <ImageView
             android:id="@+id/addBadge"
-            android:layout_width="@dimen/_18sdp"
-            android:layout_height="@dimen/_18sdp"
+            android:layout_width="@dimen/_14sdp"
+            android:layout_height="@dimen/_14sdp"
             android:layout_gravity="bottom|end"
             android:background="@drawable/bg_user_story_add_badge"
-            android:padding="@dimen/_2sdp"
+            android:padding="@dimen/_1sdp"
             android:src="@android:drawable/ic_input_add"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -43,14 +43,14 @@
 
     <TextView
         android:id="@+id/nameTv"
-        android:layout_width="@dimen/_56sdp"
+        android:layout_width="@dimen/_44sdp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_4sdp"
+        android:layout_marginTop="@dimen/_2sdp"
         android:ellipsize="end"
         android:fontFamily="@font/inter_regular"
         android:gravity="center"
         android:maxLines="1"
         android:textColor="@color/post_meta_text_secondary"
-        android:textSize="@dimen/_9sdp"
+        android:textSize="@dimen/_8sdp"
         tools:text="Your story" />
 </LinearLayout>

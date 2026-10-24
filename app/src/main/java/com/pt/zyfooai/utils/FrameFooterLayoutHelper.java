@@ -33,12 +33,20 @@ public final class FrameFooterLayoutHelper {
         }
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) params;
         layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        // Clear rules that can pull the footer upward on some frames.
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, 0);
+        layoutParams.addRule(RelativeLayout.ABOVE, 0);
+        layoutParams.addRule(RelativeLayout.BELOW, 0);
         layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START);
         layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END);
         layoutParams.leftMargin = 0;
         layoutParams.rightMargin = 0;
+        layoutParams.topMargin = 0;
         layoutParams.bottomMargin = 0;
         panel.setLayoutParams(layoutParams);
+        panel.setTranslationY(0f);
     }
 }

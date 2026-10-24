@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/_8sdp">
+
+    <LinearLayout
+        android:id="@+id/faqHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="@dimen/_6sdp">
+
+        <TextView
+            android:id="@+id/tvFaqQuestion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/inter_semi_bold"
+            android:textColor="#222222"
+            android:textSize="@dimen/_12sdp"
+            tools:text="How do I earn?" />
+
+        <ImageView
+            android:id="@+id/ivFaqArrow"
+            android:layout_width="@dimen/_18sdp"
+            android:layout_height="@dimen/_18sdp"
+            android:contentDescription="@null"
+            android:src="@drawable/ep_arrow_down_img" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvFaqAnswer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/inter_regular"
+        android:paddingBottom="@dimen/_4sdp"
+        android:textColor="#666666"
+        android:textSize="@dimen/_11sdp"
+        android:visibility="gone"
+        tools:text="Invite friends and earn when they register."
+        tools:visibility="visible" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+</LinearLayout>

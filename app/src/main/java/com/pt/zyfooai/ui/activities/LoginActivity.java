@@ -40,6 +40,7 @@ import com.pt.zyfooai.ui.Functions;
 import com.pt.zyfooai.utils.AnalyticsHelper;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.PreferenceManager;
+import com.pt.zyfooai.utils.ReferralApplyHelper;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
 
 import org.json.JSONException;
@@ -58,8 +59,9 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient googleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
-    private EditText etName, etPhoneNumber, etOtp;
+    private EditText etName, etPhoneNumber, etOtp, etReferralCode;
     private Button btnSendOtp, btnVerifyOtp, btnGoogleSignIn;
+    private View tilReferralCode;
     LinearLayout otpLayout;
 
     ProgressDialog progressDialog;
@@ -89,10 +91,17 @@ public class LoginActivity extends AppCompatActivity {
         etName = findViewById(R.id.et_name);
         etPhoneNumber = findViewById(R.id.et_phone_number);
         etOtp = findViewById(R.id.et_otp);
+        etReferralCode = findViewById(R.id.et_referral_code);
+        tilReferralCode = findViewById(R.id.til_referral_code);
         otpLayout = findViewById(R.id.otpLayout);
         btnSendOtp = findViewById(R.id.btn_send_otp);
         btnVerifyOtp = findViewById(R.id.btn_verify_otp);
         btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
+
+        // Optional field always available; feature-off / invalid handled by server on apply.
+        if (tilReferralCode != null) {
+            tilReferralCode.setVisibility(View.VISIBLE);
+        }
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.google_web_client_id))
@@ -387,13 +396,17 @@ public class LoginActivity extends AppCompatActivity {
 
     private void saveServerData(String loginType, String displayName, String email, String photoUrl, String phoneNumber) {
         Log.d(TAG, "saveServerData: " + loginType + " " + displayName + " " + email + " " + phoneNumber);
+        if (etReferralCode != null) {
+            ReferralApplyHelper.savePendingCode(this, etReferralCode.getText() != null
+                    ? etReferralCode.getText().toString() : "");
+        }
         progressDialog.show();
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         homeViewModel.login(loginType, displayName, email, photoUrl, phoneNumber).observe(this, userItem -> {
-            progressDialog.dismiss();
             if (userItem != null && userItem.status == 200) {
                 saveUserData(userItem);
             } else {
+                progressDialog.dismiss();
                 String message = userItem != null && userItem.message != null && !userItem.message.isEmpty()
                         ? userItem.message
                         : "Login failed. Please try again.";
@@ -411,6 +424,14 @@ public class LoginActivity extends AppCompatActivity {
         boolean isSubscribed = isPlanActive(userItem.planEndDate);
         preferenceManager.setBoolean(Constant.IS_SUBSCRIBE, isSubscribed);
 
+        // Source of truth = server: apply referral after user_id is available.
+        ReferralApplyHelper.applyPendingIfAny(this, this, userItem.userId, () -> {
+            progressDialog.dismiss();
+            goAfterLogin();
+        });
+    }
+
+    private void goAfterLogin() {
         if (preferenceManager.getString(Constant.USER_LANGUAGE).isEmpty()) {
             startActivity(new Intent(LoginActivity.this, LanguageActivity.class).putExtra("from", "login"));
         } else {

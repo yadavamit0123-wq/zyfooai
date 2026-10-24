@@ -1293,17 +1293,22 @@ public class EditorActivity extends AppCompatActivity implements AutofitTextRel.
 
 
     private void saveImage(Bitmap bitmap) {
-
+        if (bitmap == null || bitmap.isRecycled() || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
+            Util.showToast(context, getString(R.string.error));
+            return;
+        }
 
         String fileName = System.currentTimeMillis() + ".png";
 
-        // Get the cache directory for your app
-        File cacheDir = context.getExternalCacheDir(); // External cache directory
+        File cacheDir = context.getExternalCacheDir();
         if (cacheDir == null) {
-            cacheDir = context.getCacheDir(); // Fallback to internal cache directory if external is not available
+            cacheDir = context.getCacheDir();
+        }
+        if (cacheDir != null && !cacheDir.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            cacheDir.mkdirs();
         }
 
-        // Create the file in the cache directory
         File file = new File(cacheDir, fileName);
         boolean success;
 

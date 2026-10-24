@@ -41,8 +41,15 @@ public class ApiClient {
                             .header("Accept", "application/json")
                             .header("Authorization", apiKey)
                             .method(original.method(), original.body());
-                    // Multipart must keep its own boundary Content-Type (profile/story uploads).
-                    if (!(original.body() instanceof okhttp3.MultipartBody)) {
+                    // Multipart keeps boundary Content-Type; JSON body keeps application/json.
+                    // Legacy GETs / form calls still get text/plain for older PHP endpoints.
+                    okhttp3.RequestBody body = original.body();
+                    if (body instanceof okhttp3.MultipartBody) {
+                        // leave multipart Content-Type
+                    } else if (body != null && body.contentType() != null
+                            && body.contentType().toString().toLowerCase().contains("json")) {
+                        // leave application/json
+                    } else if (body == null || !(body instanceof okhttp3.MultipartBody)) {
                         requestBuilder.header("Content-Type", "text/plain");
                     }
                     Request request = requestBuilder.build();

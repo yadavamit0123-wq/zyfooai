@@ -30,7 +30,7 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:layout_margin="@dimen/_8sdp"
+                android:layout_margin="@dimen/feed_card_margin"
                 app:cardCornerRadius="@dimen/_5sdp">
 
                 <RelativeLayout
@@ -132,12 +132,11 @@
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:layout_alignTop="@id/playerview"
-                        android:layout_alignEnd="@id/playerview"
                         android:id="@+id/watermarkLayout"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
+                        android:layout_alignEnd="@id/playerview"
+                        android:layout_centerVertical="true"
                         android:layout_marginEnd="5dp">
 
                         <ImageView
@@ -156,6 +155,20 @@
                             android:src="@drawable/remove" />
 
                     </RelativeLayout>
+
+                    <ImageView
+                        android:id="@+id/btnReportMenu"
+                        android:layout_width="@dimen/_28sdp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_marginStart="@dimen/_8sdp"
+                        android:layout_marginTop="@dimen/_8sdp"
+                        android:background="@drawable/bg_report_menu_btn"
+                        android:contentDescription="@string/report_content_title"
+                        android:elevation="6dp"
+                        android:padding="@dimen/_4sdp"
+                        android:src="@drawable/ic_more_vert_white" />
 
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
@@ -180,23 +193,23 @@
                 android:background="@drawable/bg_ripple_round"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/_8sdp"
-                android:paddingVertical="@dimen/_3sdp">
+                android:paddingHorizontal="@dimen/_6sdp"
+                android:paddingVertical="@dimen/_1sdp">
 
                 <ImageView
-                    android:layout_width="@dimen/_16sdp"
-                    android:layout_height="@dimen/_16sdp"
+                    android:layout_width="@dimen/_14sdp"
+                    android:layout_height="@dimen/_14sdp"
                     android:src="@drawable/ic_edit_"
                     app:tint="@color/g3" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_6sdp"
+                    android:layout_marginStart="@dimen/_4sdp"
                     android:fontFamily="@font/inter_semi_bold"
                     android:text="@string/customize_frame"
                     android:textColor="@color/g3"
-                    android:textSize="@dimen/_10sdp" />
+                    android:textSize="@dimen/_9sdp" />
             </LinearLayout>
 
             <LinearLayout
@@ -273,9 +286,9 @@
                 android:id="@+id/btnLay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_marginTop="@dimen/_1sdp"
                 android:orientation="horizontal"
-                android:paddingTop="@dimen/_3sdp">
+                android:paddingTop="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -284,51 +297,77 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
-                        android:paddingHorizontal="@dimen/_8sdp"
+                        android:paddingHorizontal="@dimen/_6sdp"
                         android:background="@drawable/gradintround_shape_three"
                         android:id="@+id/edit_Btn"
                         android:layout_weight="1"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="@dimen/feed_footer_btn_height"
                         android:gravity="center"
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_marginStart="@dimen/_10sdp"
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
-                            android:padding="@dimen/_2sdp"
+                            android:layout_width="@dimen/_16sdp"
+                            android:layout_height="@dimen/_16sdp"
+                            android:padding="@dimen/_1sdp"
                             android:src="@drawable/ic_pen_regular"
                             app:tint="@color/white" />
 
                         <com.pt.zyfooai.View.AutoResizeTextView
                             android:maxLines="1"
-                            android:layout_marginEnd="@dimen/_10sdp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/_3sdp"
+                            android:layout_marginStart="@dimen/_2sdp"
                             android:fontFamily="@font/inter_bold"
                             android:text="Edit"
                             android:textColor="@color/white"
-                            android:textSize="@dimen/_10sdp" />
+                            android:textSize="@dimen/_9sdp" />
 
                     </LinearLayout>
 
                     <LinearLayout
-                        android:paddingHorizontal="@dimen/_8sdp"
+                        android:id="@+id/aiBtn"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/feed_footer_btn_height"
+                        android:layout_marginStart="@dimen/_4sdp"
+                        android:layout_weight="0.7"
+                        android:background="@drawable/gradintround_shape_two"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/_4sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_14sdp"
+                            android:layout_height="@dimen/_14sdp"
+                            android:src="@drawable/ic_ai_spark"
+                            app:tint="@color/white" />
+
+                        <com.pt.zyfooai.View.AutoResizeTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/_2sdp"
+                            android:fontFamily="@font/inter_bold"
+                            android:maxLines="1"
+                            android:text="@string/ai_button_label"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_9sdp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:paddingHorizontal="@dimen/_6sdp"
                         android:background="@drawable/gradintround_shape"
                         android:id="@+id/downloadBtn"
-                        android:layout_weight="0.8"
-                        android:layout_width="match_parent"
+                        android:layout_weight="0.9"
+                        android:layout_width="0dp"
                         android:layout_height="@dimen/feed_footer_btn_height"
-                        android:layout_marginHorizontal="@dimen/_10sdp"
+                        android:layout_marginHorizontal="@dimen/_4sdp"
                         android:gravity="center"
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="@dimen/_24sdp"
-                            android:layout_height="@dimen/_24sdp"
-                            android:padding="@dimen/_3sdp"
+                            android:layout_width="@dimen/_18sdp"
+                            android:layout_height="@dimen/_18sdp"
+                            android:padding="@dimen/_2sdp"
                             android:src="@drawable/ic_download_regular_color"
                             app:tint="@color/white" />
 
@@ -336,29 +375,28 @@
                             android:maxLines="1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/_3sdp"
+                            android:layout_marginStart="@dimen/_2sdp"
                             android:fontFamily="@font/inter_bold"
                             android:text="Download"
                             android:textColor="@color/white"
-                            android:textSize="@dimen/_10sdp" />
+                            android:textSize="@dimen/_9sdp" />
 
                     </LinearLayout>
 
                     <LinearLayout
-                        android:paddingHorizontal="@dimen/_10sdp"
+                        android:paddingHorizontal="@dimen/_6sdp"
                         android:background="@drawable/gradintround_shape_two"
                         android:id="@+id/shareBtn"
                         android:layout_weight="1"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="@dimen/feed_footer_btn_height"
                         android:gravity="center"
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_marginStart="@dimen/_5sdp"
-                            android:layout_width="@dimen/_22sdp"
-                            android:layout_height="@dimen/_22sdp"
-                            android:padding="@dimen/_3sdp"
+                            android:layout_width="@dimen/_18sdp"
+                            android:layout_height="@dimen/_18sdp"
+                            android:padding="@dimen/_2sdp"
                             android:src="@drawable/ic_whatsapp"
                             app:tint="@color/white" />
 
@@ -366,12 +404,11 @@
                             android:maxLines="1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/_5sdp"
-                            android:layout_marginStart="@dimen/_3sdp"
+                            android:layout_marginStart="@dimen/_2sdp"
                             android:fontFamily="@font/inter_bold"
                             android:text="Share"
                             android:textColor="@color/white"
-                            android:textSize="@dimen/_10sdp" />
+                            android:textSize="@dimen/_9sdp" />
 
                     </LinearLayout>
 

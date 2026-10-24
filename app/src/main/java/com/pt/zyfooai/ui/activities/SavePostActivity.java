@@ -50,15 +50,16 @@ import com.pt.zyfooai.R;
 import com.pt.zyfooai.binding.GlideDataBinding;
 import com.pt.zyfooai.databinding.ActivitySavePostBinding;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.DynamicFrameRenderer;
 import com.pt.zyfooai.utils.FrameBindHelper;
-import com.pt.zyfooai.utils.FrameMediaInsetHelper;
-import com.pt.zyfooai.utils.FrameOverlayHelper;
-import com.pt.zyfooai.utils.FramePolishHelper;
 import com.pt.zyfooai.utils.FrameCaptureHelper;
 import com.pt.zyfooai.utils.FrameEntry;
+import com.pt.zyfooai.utils.FrameFooterLayoutHelper;
+import com.pt.zyfooai.utils.FrameMediaInsetHelper;
 import com.pt.zyfooai.utils.FrameMediaType;
+import com.pt.zyfooai.utils.FrameOverlayHelper;
+import com.pt.zyfooai.utils.FramePolishHelper;
 import com.pt.zyfooai.utils.FrameScrollHelper;
-import com.pt.zyfooai.utils.FrameSelectionHelper;
 import com.pt.zyfooai.utils.FrameStickerHelper;
 import com.pt.zyfooai.utils.ModernFrameCatalog;
 import com.pt.zyfooai.utils.PreferenceManager;
@@ -128,7 +129,13 @@ public class SavePostActivity extends AppCompatActivity {
         customPagerAdapter = new CustomPagerAdapter(path);
         binding.recyclerview.setLayoutManager(linearLayoutManager);
         binding.recyclerview.setAdapter(customPagerAdapter);
-        FrameScrollHelper.scrollToSavedFrame(binding.recyclerview, preferenceManager, FrameMediaType.IMAGE);
+        FrameScrollHelper.enableFramePrefetch(binding.recyclerview);
+        FrameScrollHelper.scrollToSavedFrameAndApplyFit(
+                binding.pLayoutTemp,
+                binding.recyclerview,
+                preferenceManager,
+                FrameMediaType.IMAGE
+        );
         binding.indicator.attachToRecyclerView(binding.recyclerview);
 
         SnapHelperOneByOne snapHelperOneByOne = new SnapHelperOneByOne();
@@ -200,6 +207,18 @@ public class SavePostActivity extends AppCompatActivity {
 
     private void refreshSavePostFrameLayout() {
         alignFrameOverlayToImage();
+        FrameOverlayHelper.applyFrameOverlay(binding.recyclerview, preferenceManager);
+        // Keep visible frame footer on bottom edge after scale/inset.
+        RecyclerView.LayoutManager lm = binding.recyclerview.getLayoutManager();
+        if (lm instanceof LinearLayoutManager) {
+            int pos = ((LinearLayoutManager) lm).findFirstVisibleItemPosition();
+            if (pos >= 0) {
+                RecyclerView.ViewHolder vh = binding.recyclerview.findViewHolderForAdapterPosition(pos);
+                if (vh != null) {
+                    FrameFooterLayoutHelper.applyEdgeToEdge(vh.itemView);
+                }
+            }
+        }
         FrameMediaInsetHelper.apply(binding.pLayoutTemp, binding.recyclerview, preferenceManager);
     }
 
@@ -308,99 +327,85 @@ public class SavePostActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull CustomPagerAdapter.ViewHolder holder, int position) {
             holder.setIsRecyclable(false);
 
-            holder.userNameTv.setText(preferenceManager.getString(Constant.USER_NAME));
-            holder.userDesTv.setText(preferenceManager.getString(Constant.USER_DESIGNATION));
+            FrameEntry entry = entries.get(position);
+            boolean showAppFooter = !entry.isDynamic()
+                    || DynamicFrameRenderer.shouldShowAppFooter(entry.getDynamicConfig());
 
-            if (preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal")) {
-                holder.facebookTv.setText(preferenceManager.getString(Constant.USER_FACEBOOK));
-                holder.instagramTv.setText(preferenceManager.getString(Constant.USER_INSTAGRAM));
+            if (showAppFooter) {
+                FrameBindHelper.setTextIfPresent(holder.userNameTv, preferenceManager.getString(Constant.USER_NAME));
+                FrameBindHelper.setTextIfPresent(holder.userDesTv, preferenceManager.getString(Constant.USER_DESIGNATION));
 
-                holder.businessAddressTv.setText(preferenceManager.getString(Constant.USER_PHONE));
-                Drawable[] drawables = holder.businessAddressTv.getCompoundDrawables();
-                Drawable leftDrawable = drawables[0]; // Left position
-                Drawable rightDrawable = drawables[2]; // Right position
-                if (leftDrawable != null) {
-                    holder.businessAddressTv.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(R.drawable.ic_phone_number), null, null, null);
-                } else if (rightDrawable != null) {
-                    holder.businessAddressTv.setCompoundDrawableTintList(null);
-                    holder.businessAddressTv.setCompoundDrawablesWithIntrinsicBounds(null, null, context.getDrawable(R.drawable.frame_6_call_icon), null);
+                if ("Personal".equals(preferenceManager.getString(Constant.DEFAULT_TYPE))) {
+                    FrameBindHelper.setTextIfPresent(holder.facebookTv, preferenceManager.getString(Constant.USER_FACEBOOK));
+                    FrameBindHelper.setTextIfPresent(holder.instagramTv, preferenceManager.getString(Constant.USER_INSTAGRAM));
+                    FrameBindHelper.setTextIfPresent(holder.businessAddressTv, preferenceManager.getString(Constant.USER_PHONE));
+                    if (holder.businessAddressTv != null) {
+                        Drawable[] drawables = holder.businessAddressTv.getCompoundDrawables();
+                        Drawable leftDrawable = drawables[0];
+                        Drawable rightDrawable = drawables[2];
+                        if (leftDrawable != null) {
+                            holder.businessAddressTv.setCompoundDrawablesWithIntrinsicBounds(
+                                    context.getDrawable(R.drawable.ic_phone_number), null, null, null);
+                        } else if (rightDrawable != null) {
+                            holder.businessAddressTv.setCompoundDrawableTintList(null);
+                            holder.businessAddressTv.setCompoundDrawablesWithIntrinsicBounds(
+                                    null, null, context.getDrawable(R.drawable.frame_6_call_icon), null);
+                        }
+                    }
+
+                    FrameBindHelper.hideIfPresent(holder.itemView, R.id.topLay);
+                    FrameBindHelper.hideIfPresent(holder.itemView, R.id.whatsappLay);
+
+                    if (holder.userImgView != null) {
+                        Glide.with(context)
+                                .load(preferenceManager.getString(Constant.USER_IMAGE))
+                                .placeholder(R.drawable.ic_add_images)
+                                .into(holder.userImgView);
+                    }
+                } else {
+                    FrameBindHelper.setTextIfPresent(holder.businessNameTv, preferenceManager.getString(Constant.BUSINESS_NAME));
+                    FrameBindHelper.setTextIfPresent(holder.businessDesTv, preferenceManager.getString(Constant.BUSINESS_DETAIL));
+                    FrameBindHelper.setTextIfPresent(holder.businessNumberTv, preferenceManager.getString(Constant.BUSINESS_NUMBER));
+                    FrameBindHelper.setTextIfPresent(holder.businessWebsiteTv, preferenceManager.getString(Constant.BUSINESS_WEBSITE));
+                    FrameBindHelper.setTextIfPresent(holder.businessAddressTv, preferenceManager.getString(Constant.BUSINESS_ADDRESS));
+                    FrameBindHelper.setTextIfPresent(holder.whatsapptv, preferenceManager.getString(Constant.BUSINESS_WHATSAPP));
+                    FrameBindHelper.setTextIfPresent(holder.facebookTv, preferenceManager.getString(Constant.BUSINESS_FACEBOOK));
+                    FrameBindHelper.setTextIfPresent(holder.instagramTv, preferenceManager.getString(Constant.BUSINESS_INSTAGRAM));
+
+                    if (holder.userImgView != null) {
+                        Glide.with(context)
+                                .load(preferenceManager.getString(Constant.USER_IMAGE))
+                                .placeholder(R.drawable.ic_add_images)
+                                .into(holder.userImgView);
+                    }
+                    if (holder.businessImgView != null) {
+                        GlideDataBinding.bindImage(holder.businessImgView, preferenceManager.getString(Constant.BUSINESS_IMAGE));
+                    }
                 }
 
-                FrameBindHelper.hideIfPresent(holder.itemView, R.id.topLay);
-                FrameBindHelper.hideIfPresent(holder.itemView, R.id.whatsappLay);
+                if (holder.userImgView != null) {
+                    holder.userImgView.setOnClickListener(view ->
+                            context.startActivity(new Intent(context, EditProfileActivity.class)));
+                }
 
-                Glide.with(context)
-                        .load(preferenceManager.getString(Constant.USER_IMAGE))
-                        .placeholder(R.drawable.ic_add_images)
-                        .into(holder.userImgView);
-
+                FrameBindHelper.setVisibilityIfEmpty(holder.facebookTv, holder.itemView.findViewById(R.id.facebookLay));
+                FrameBindHelper.setVisibilityIfEmpty(holder.instagramTv, holder.itemView.findViewById(R.id.instagramLay));
+                FrameBindHelper.setVisibilityIfEmpty(holder.whatsapptv, holder.itemView.findViewById(R.id.whatsappLay));
+                FrameBindHelper.setVisibilityIfEmpty(holder.userDesTv);
+                FrameBindHelper.setVisibilityIfEmpty(holder.businessNameTv);
+                FrameBindHelper.setVisibilityIfEmpty(holder.businessDesTv);
+                FrameBindHelper.setVisibilityIfEmpty(holder.businessNumberTv);
+                FrameBindHelper.setVisibilityIfEmpty(holder.businessWebsiteTv);
+                FrameBindHelper.setVisibilityIfEmpty(holder.businessAddressTv);
             } else {
-                holder.businessNameTv.setText(preferenceManager.getString(Constant.BUSINESS_NAME));
-                holder.businessDesTv.setText(preferenceManager.getString(Constant.BUSINESS_DETAIL));
-                holder.businessNumberTv.setText(preferenceManager.getString(Constant.BUSINESS_NUMBER));
-                holder.businessWebsiteTv.setText(preferenceManager.getString(Constant.BUSINESS_WEBSITE));
-                holder.businessAddressTv.setText(preferenceManager.getString(Constant.BUSINESS_ADDRESS));
-                holder.whatsapptv.setText(preferenceManager.getString(Constant.BUSINESS_WHATSAPP));
-                holder.facebookTv.setText(preferenceManager.getString(Constant.BUSINESS_FACEBOOK));
-                holder.instagramTv.setText(preferenceManager.getString(Constant.BUSINESS_INSTAGRAM));
-
-                // Load business image
-                Glide.with(context)
-                        .load(preferenceManager.getString(Constant.USER_IMAGE))
-                        .placeholder(R.drawable.ic_add_images)
-                        .into(holder.userImgView);
-                GlideDataBinding.bindImage(holder.businessImgView, preferenceManager.getString(Constant.BUSINESS_IMAGE));
+                DynamicFrameRenderer.suppressAppFooter(holder.itemView);
             }
-
-            holder.userImgView.setOnClickListener(view -> {
-                context.startActivity(new Intent(context, EditProfileActivity.class));
-            });
-//            if (!preferenceManager.getString(Constant.DEFAULT_TYPE).equals("Personal")) {
-//                int textSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, holder.itemView.getResources().getDisplayMetrics());
-//
-//                ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.userDesTv.getLayoutParams();
-//                int topMarginInPx = (int) TypedValue.applyDimension(
-//                        TypedValue.COMPLEX_UNIT_DIP,
-//                        2,
-//                        holder.itemView.getResources().getDisplayMetrics()
-//                );
-//                layoutParams.topMargin = topMarginInPx;
-//                holder.userDesTv.setLayoutParams(layoutParams);
-//                holder.userDesTv.setMaxLines(2);
-//                holder.userNameTv.setTextSize(textSize);
-//            }
-//
-//            if (holder.businessAddressTv.getText().toString().isEmpty()){
-//                int textSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, holder.itemView.getResources().getDisplayMetrics());
-//                ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.userDesTv.getLayoutParams();
-//                int topMarginInPx = (int) TypedValue.applyDimension(
-//                        TypedValue.COMPLEX_UNIT_DIP,
-//                        2,
-//                        holder.itemView.getResources().getDisplayMetrics()
-//                );
-//                layoutParams.topMargin = topMarginInPx;
-//                holder.userDesTv.setLayoutParams(layoutParams);
-//                holder.userDesTv.setMaxLines(2);
-//                holder.userNameTv.setTextSize(textSize);
-//            }
-
-            FrameBindHelper.setVisibilityIfEmpty(holder.facebookTv, holder.itemView.findViewById(R.id.facebookLay));
-            FrameBindHelper.setVisibilityIfEmpty(holder.instagramTv, holder.itemView.findViewById(R.id.instagramLay));
-            FrameBindHelper.setVisibilityIfEmpty(holder.whatsapptv, holder.itemView.findViewById(R.id.whatsappLay));
-
-            FrameBindHelper.setVisibilityIfEmpty(holder.userDesTv);
-            FrameBindHelper.setVisibilityIfEmpty(holder.businessNameTv);
-            FrameBindHelper.setVisibilityIfEmpty(holder.businessDesTv);
-            FrameBindHelper.setVisibilityIfEmpty(holder.businessNumberTv);
-            FrameBindHelper.setVisibilityIfEmpty(holder.businessWebsiteTv);
-            FrameBindHelper.setVisibilityIfEmpty(holder.businessAddressTv);
 
             if (holder.dateTv != null) {
                 String currentDate = new SimpleDateFormat("dd MMM", Locale.getDefault())
                         .format(new Date()).toUpperCase(Locale.ROOT);
                 holder.dateTv.setText(currentDate);
             }
-            FrameEntry entry = entries.get(position);
             if (entry.isDynamic()) {
                 holder.itemView.setTag(R.id.frame_config, entry.getDynamicConfig());
             }
@@ -408,6 +413,10 @@ public class SavePostActivity extends AppCompatActivity {
             holder.itemView.setTag(R.id.frost_blur_root, binding.pLayoutTemp);
             FramePolishHelper.apply(holder.itemView, position);
             FrameStickerHelper.bindDynamicContent(holder.itemView, preferenceManager);
+            if (!showAppFooter) {
+                DynamicFrameRenderer.suppressAppFooter(holder.itemView);
+            }
+            FrameFooterLayoutHelper.applyEdgeToEdge(holder.itemView);
             holder.itemView.post(SavePostActivity.this::refreshSavePostFrameLayout);
         }
 
@@ -454,81 +463,57 @@ public class SavePostActivity extends AppCompatActivity {
 
 
     private void saveImage(Bitmap bitmap, boolean save) {
-
-        String fileName = System.currentTimeMillis() + ".png";
-        String filePath = Environment.getExternalStorageDirectory() + File.separator
-                + Environment.DIRECTORY_PICTURES + File.separator + getResources().getString(R.string.app_name)
-                + File.separator + fileName;
-
-        boolean success = false;
-
-        if (!new File(filePath).exists()) {
-            try {
-                File file = new File(Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES
-                ), "/" + getResources().getString(R.string.app_name));
-                if (!file.exists()) {
-                    if (!file.mkdirs()) {
-                        Toast.makeText(context,
-                                getResources().getString(R.string.create_dir_err),
-                                Toast.LENGTH_LONG).show();
-                        success = false;
-                    }
-                }
-                File file2 = new File(filePath);
-
-                try {
-                    FileOutputStream fileOutputStream = new FileOutputStream(file2);
-                    Bitmap.Config config = bitmap.getConfig() != null
-                            ? bitmap.getConfig()
-                            : Bitmap.Config.ARGB_8888;
-                    Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(),
-                            bitmap.getHeight(), config);
-                    Canvas canvas = new Canvas(createBitmap);
-                    canvas.drawColor(-1);
-                    canvas.drawBitmap(bitmap, 0.0f, 0.0f, (Paint) null);
-                    createBitmap.compress(Bitmap.CompressFormat.PNG,
-                            100, fileOutputStream);
-                    createBitmap.recycle();
-                    fileOutputStream.flush();
-                    fileOutputStream.close();
-
-
-                    MediaScannerConnection.scanFile(context, new String[]{file2.getAbsolutePath()},
-                            (String[]) null, (str, uri) -> {
-                                StringBuilder sb = new StringBuilder();
-                                sb.append("-> uri=");
-                                sb.append(uri);
-                                sb.append("-> FILE=");
-                                sb.append(file2.getAbsolutePath());
-                                Uri muri = Uri.fromFile(file2);
-                            });
-                    success = true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    success = false;
-                }
-
-            } catch (Exception e) {
-                Toast.makeText(context, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-
-            if (success) {
-                if (musicPath != null && !musicPath.isEmpty()) {
-                    downloadMp3(filePath, musicPath, save);
-                } else {
-                    if (save) {
-                        Util.showToast(context, getString(R.string.image_saved));
-                    } else {
-                        shareFileImageUri(getImageContentUri(new File(filePath)), "type");
-                    }
-                }
-            } else {
-                Util.showToast(context, getString(R.string.error));
-            }
-
+        if (bitmap == null || bitmap.isRecycled() || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
+            Util.showToast(context, getString(R.string.error));
+            return;
         }
 
+        String fileName = System.currentTimeMillis() + ".png";
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                getResources().getString(R.string.app_name));
+        if (!dir.exists() && !dir.mkdirs()) {
+            Toast.makeText(context, getResources().getString(R.string.create_dir_err), Toast.LENGTH_LONG).show();
+            return;
+        }
+        File file2 = new File(dir, fileName);
+        String filePath = file2.getAbsolutePath();
+
+        boolean success = false;
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file2);
+            Bitmap.Config config = bitmap.getConfig() != null
+                    ? bitmap.getConfig()
+                    : Bitmap.Config.ARGB_8888;
+            Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(),
+                    bitmap.getHeight(), config);
+            Canvas canvas = new Canvas(createBitmap);
+            canvas.drawColor(-1);
+            canvas.drawBitmap(bitmap, 0.0f, 0.0f, (Paint) null);
+            createBitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+            createBitmap.recycle();
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+            MediaScannerConnection.scanFile(context, new String[]{filePath},
+                    null, (str, uri) -> {
+                    });
+            success = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        if (success) {
+            if (musicPath != null && !musicPath.isEmpty()) {
+                downloadMp3(filePath, musicPath, save);
+            } else if (save) {
+                Util.showToast(context, getString(R.string.image_saved));
+            } else {
+                shareFileImageUri(getImageContentUri(file2), "type");
+            }
+        } else {
+            Util.showToast(context, getString(R.string.error));
+        }
     }
 
     ProgressDialog progressDialog;

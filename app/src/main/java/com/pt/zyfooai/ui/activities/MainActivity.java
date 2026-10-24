@@ -258,6 +258,12 @@ public class MainActivity extends AppCompatActivity {
         setUpRecyclerView();
         ensureAdapter();
         setupUserStories();
+        // Soft-refresh AI flag so feed AI button matches admin settings.
+        new com.pt.zyfooai.respository.AiRepository().fetchConfig(this).observe(this, cfg -> {
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+        });
 
         binding.getRoot().post(() -> {
             if (Build.VERSION.SDK_INT >= 33) {
@@ -497,6 +503,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpRecyclerView() {
         binding.allVideo.setLayoutManager(layoutManager);
+        // Keep next ~3–4 feed rows warm so frame fit runs on bind before user scrolls.
+        binding.allVideo.setItemViewCacheSize(6);
+        binding.allVideo.setHasFixedSize(true);
+        if (layoutManager != null) {
+            layoutManager.setInitialPrefetchItemCount(4);
+        }
         SnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(binding.allVideo);
 
@@ -513,7 +525,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
-                    if (dy != 0) {
+                    // Only react to vertical feed scroll — ignore noise while swiping frames.
+                    if (Math.abs(dy) > 2) {
                         playVisibleVideo(recyclerView);
                     }
                     if (idleRunnable != null) {
@@ -578,15 +591,17 @@ public class MainActivity extends AppCompatActivity {
             }
             String postKey = PostDownloadTracker.postKey(postItem);
             if (PostDownloadTracker.isDownloading(postKey)) {
-                getDownloadProgressDialog().showPercentOnly();
-                PostDownloadTracker.Job job = PostDownloadTracker.getCurrent();
-                getDownloadProgressDialog().updateProgress(job.progress, "");
-                Toast.makeText(context, getString(R.string.download_in_progress), Toast.LENGTH_SHORT).show();
+                PostDownloadTracker.Job job = PostDownloadTracker.getJob(postKey);
+                int pct = job != null ? job.progress : 0;
+                getDownloadProgressDialog().showPercentOnly(postKey);
+                getDownloadProgressDialog().updateProgress(pct, "");
+                Toast.makeText(context, getString(R.string.download_in_progress, pct), Toast.LENGTH_SHORT).show();
                 return;
             }
             if (PostDownloadTracker.isComplete(postKey)) {
-                String donePath = PostDownloadTracker.getCurrent().outputPath;
-                showDownloadSuccess(donePath);
+                PostDownloadTracker.Job job = PostDownloadTracker.getJob(postKey);
+                String donePath = job != null ? job.outputPath : null;
+                showDownloadSuccess(postKey, donePath);
                 return;
             }
             if (!preferenceManager.getBoolean(IS_SUBSCRIBE) && postItem.is_premium) {
@@ -607,6 +622,17 @@ public class MainActivity extends AppCompatActivity {
             if (clickDebouncer.shouldIgnore()) return;
             startActivity(new Intent(context, EditProfileActivity.class)
                     .putExtra("imageUrl", postItem.image_url));
+        } else if (view.getId() == R.id.aiBtn) {
+            if (!com.pt.zyfooai.utils.AiPrefs.isEnabled(context)) {
+                Toast.makeText(context, R.string.ai_coming_soon, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent aiIntent = new Intent(context, com.pt.zyfooai.ui.activities.AiHomeActivity.class);
+            if (postItem != null) {
+                aiIntent.putExtra(com.pt.zyfooai.ui.activities.AiHomeActivity.EXTRA_POST_ID, postItem.postId);
+                aiIntent.putExtra(com.pt.zyfooai.ui.activities.AiHomeActivity.EXTRA_IMAGE_URL, postItem.image_url);
+            }
+            startActivity(aiIntent);
         } else if (view.getId() == R.id.musicBtn) {
             musicFrameName = "status_" + postItem.postId + ".mp4";
             new SelectMusicFragment(new ClickListener<PostItem>() {
@@ -935,7 +961,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadUserStories() {
-        userStoryRepository.refreshFeed();
+        userStoryRepository.refreshFeed(this);
     }
 
     //load festival (legacy — unchanged; not used by user stories row)
@@ -1066,32 +1092,56 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        int firstVisible = lm.findFirstVisibleItemPosition();
-        if (firstVisible != RecyclerView.NO_POSITION) {
-            // While still on leading images, keep warming the next reel(s).
-            VideoPreloadHelper.preloadNextAfter(context, dailyPost, firstVisible);
+        int anchor = lm.findFirstVisibleItemPosition();
+        if (anchor == RecyclerView.NO_POSITION) {
+            anchor = lm.findFirstCompletelyVisibleItemPosition();
+        }
+        if (anchor != RecyclerView.NO_POSITION) {
+            // Warm next + previous videos so up/down scroll plays immediately.
+            VideoPreloadHelper.preloadAround(context, dailyPost, anchor);
         }
 
-        int targetPos = findMostVisibleVideoPosition(lm, recyclerView);
-        if (targetPos == RecyclerView.NO_POSITION) {
+        int primaryPos = findMostVisibleItemPosition(lm, recyclerView);
+        if (primaryPos == RecyclerView.NO_POSITION) {
+            adapter.silencePlaybackForNonVideo();
             return;
         }
 
-        PostItem targetItem = dailyPost.get(targetPos);
-        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(targetPos);
+        PostItem primary = dailyPost.get(primaryPos);
+        if (primary == null || !primary.is_video) {
+            // Image / ad is dominant — never keep previous reel audio.
+            adapter.silencePlaybackForNonVideo();
+            return;
+        }
+
+        // Require majority of the viewport so a half-off previous reel cannot keep playing.
+        View primaryChild = lm.findViewByPosition(primaryPos);
+        if (primaryChild != null) {
+            int visibleTop = Math.max(primaryChild.getTop(), 0);
+            int visibleBottom = Math.min(primaryChild.getBottom(), recyclerView.getHeight());
+            int visibleArea = Math.max(0, visibleBottom - visibleTop);
+            int minArea = (int) (recyclerView.getHeight() * 0.45f);
+            if (visibleArea < minArea) {
+                adapter.silencePlaybackForNonVideo();
+                return;
+            }
+        }
+
+        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(primaryPos);
         if (vh instanceof MainAdapter.ViewHolderVideo) {
             MainAdapter.ViewHolderVideo holder = (MainAdapter.ViewHolderVideo) vh;
             if (adapter.currentHolder == holder
-                    && targetItem.image_url != null
-                    && targetItem.image_url.equals(adapter.currentPlayingVideo)) {
+                    && primary.image_url != null
+                    && primary.image_url.equals(adapter.currentPlayingVideo)) {
                 adapter.onResumeVideo();
                 return;
             }
-            adapter.updatePlayer(holder, targetItem);
+            adapter.updatePlayer(holder, primary);
         }
     }
 
-    private int findMostVisibleVideoPosition(LinearLayoutManager lm, RecyclerView recyclerView) {
+    /** Most-visible feed row (image or video) — used to decide who owns audio. */
+    private int findMostVisibleItemPosition(LinearLayoutManager lm, RecyclerView recyclerView) {
         int first = lm.findFirstVisibleItemPosition();
         int last = lm.findLastVisibleItemPosition();
         if (first == RecyclerView.NO_POSITION) {
@@ -1102,10 +1152,6 @@ public class MainActivity extends AppCompatActivity {
         int bestVisibleArea = 0;
         for (int i = first; i <= last; i++) {
             if (i < 0 || i >= dailyPost.size()) {
-                continue;
-            }
-            PostItem item = dailyPost.get(i);
-            if (item == null || !item.is_video) {
                 continue;
             }
             View child = lm.findViewByPosition(i);
@@ -1242,9 +1288,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     ProgressDialog progressDialog;
-    private void downloadMp3(String framePath, String musicUrl, String type) {
+    private void downloadMp3(String framePath, String musicUrl, String type, String postKey) {
         getDownloadProgressDialog().show("Downloading");
-        getDownloadProgressDialog().updateProgress(5, "Preparing music download...");
+        notifyDownloadProgress(postKey, 5);
 
         String fileName = musicUrl.substring(musicUrl.lastIndexOf('/') + 1);
         ;
@@ -1262,25 +1308,28 @@ public class MainActivity extends AppCompatActivity {
                         public void onProgress(long bytesDownloaded, long totalBytes) {
                             if (totalBytes > 0) {
                                 int percent = (int) ((bytesDownloaded * 60) / totalBytes);
-                                runOnUiThread(() -> getDownloadProgressDialog()
-                                        .updateProgress(percent, "Downloading music..."));
+                                runOnUiThread(() -> notifyDownloadProgress(postKey, percent));
                             }
                         }
                     })
                     .startDownload(new DownloadListener() {
                         public void onDownloadComplete() {
-                            getDownloadProgressDialog().updateProgress(65, "Applying music...");
-                            applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type);
+                            notifyDownloadProgress(postKey, 65);
+                            applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type, postKey);
                         }
 
                         public void onError(ANError aNError) {
-                            getDownloadProgressDialog().dismiss();
-                            Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
+                            if ("download".equals(type)) {
+                                notifyDownloadFailed(postKey, aNError.getMessage());
+                            } else {
+                                getDownloadProgressDialog().dismiss();
+                                Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
         } else {
-            getDownloadProgressDialog().updateProgress(65, "Applying music...");
-            applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type);
+            notifyDownloadProgress(postKey, 65);
+            applyMp3OnFrame(framePath, finalCacheFile.getAbsolutePath(), type, postKey);
         }
     }
 
@@ -1305,8 +1354,13 @@ public class MainActivity extends AppCompatActivity {
                 CreatorAnalyticsHelper.trackDownload(context, postItem.postId, selectedCat);
             }
             stopMusic(true);
-            PostDownloadTracker.start(PostDownloadTracker.postKey(postItem), type);
-            getDownloadProgressDialog().showPercentOnly();
+            final String postKey = PostDownloadTracker.postKey(postItem);
+            if ("download".equals(type)) {
+                PostDownloadTracker.start(postKey, type);
+                getDownloadProgressDialog().showPercentOnly(postKey);
+            } else {
+                getDownloadProgressDialog().showPercentOnly(postKey);
+            }
 
             if (postItem.is_video) {
 
@@ -1339,11 +1393,16 @@ public class MainActivity extends AppCompatActivity {
 
 //                    showBitmapDialog(file2, context);
 
-                    downloadVideo(file2.getAbsolutePath(), postItem.image_url, type);
+                    downloadVideo(file2.getAbsolutePath(), postItem.image_url, type, postKey);
 
 
                 } catch (Exception e) {
-                    Toast.makeText(context, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if ("download".equals(type)) {
+                        notifyDownloadFailed(postKey, e.getMessage());
+                    } else {
+                        getDownloadProgressDialog().dismiss();
+                        Toast.makeText(context, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             } else {
                 String fileName = System.currentTimeMillis() + ".png";
@@ -1415,18 +1474,21 @@ public class MainActivity extends AppCompatActivity {
 
                     if (success) {
                         if (!musicPath.isEmpty()){
-                            downloadMp3(filePath, musicPath, type);
+                            downloadMp3(filePath, musicPath, type, postKey);
                         }else {
                             if (type.equals("download")) {
-                                PostDownloadTracker.complete(filePath);
-                                showDownloadSuccess(filePath);
+                                notifyDownloadComplete(postKey, filePath);
                             } else {
                                 getDownloadProgressDialog().dismiss();
                                 shareFileImageUri(getImageContentUri(new File(filePath)), type);
                             }
                         }
                     } else {
-                        Util.showToast(context, getString(R.string.error));
+                        if ("download".equals(type)) {
+                            notifyDownloadFailed(postKey, getString(R.string.error));
+                        } else {
+                            Util.showToast(context, getString(R.string.error));
+                        }
                     }
 
                 }
@@ -1471,7 +1533,7 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.notify(101, builder.build());
     }
     String musicFrameName = System.currentTimeMillis() + ".mp4";
-    private void applyMp3OnFrame(String framePath, String musicPath, String type) {
+    private void applyMp3OnFrame(String framePath, String musicPath, String type, String postKey) {
 
         runOnUiThread(new Runnable() {
             @Override
@@ -1521,9 +1583,13 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void apply(long executionId, int returnCode) {
                             if (returnCode == 1) {
-                                getDownloadProgressDialog().dismiss();
+                                if ("download".equals(type)) {
+                                    notifyDownloadFailed(postKey, "Try Again Later");
+                                } else {
+                                    getDownloadProgressDialog().dismiss();
+                                    Toast.makeText(MainActivity.this, "Try Again Later", Toast.LENGTH_SHORT).show();
+                                }
                                 FFmpeg.cancel(executionId);
-                                Toast.makeText(MainActivity.this, "Try Again Later", Toast.LENGTH_SHORT).show();
                                 return;
                             }
                             if (returnCode == 0) {
@@ -1538,17 +1604,20 @@ public class MainActivity extends AppCompatActivity {
                                         });
 
                                 if (type.equals("download")) {
-                                    PostDownloadTracker.complete(musicFramePath);
-                                    showDownloadSuccess(musicFramePath);
+                                    notifyDownloadComplete(postKey, musicFramePath);
                                 } else {
                                     getDownloadProgressDialog().dismiss();
                                     shareFileImageUri(getImageContentUri(new File(musicFramePath)), type);
                                 }
                             } else if (returnCode == 255) {
-                                getDownloadProgressDialog().dismiss();
+                                getDownloadProgressDialog().dismissIfMatching(postKey);
                                 Log.e("applyMp3__", "Command execution cancelled by user.");
                             } else {
-                                getDownloadProgressDialog().dismiss();
+                                if ("download".equals(type)) {
+                                    notifyDownloadFailed(postKey, getString(R.string.error));
+                                } else {
+                                    getDownloadProgressDialog().dismiss();
+                                }
                                 String str = String.format("Command execution failed with rc=%d and the output below.", Arrays.copyOf(new Object[]{Integer.valueOf(returnCode)}, 1));
                                 Log.i("applyMp3__", str);
                             }
@@ -1557,8 +1626,7 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
                     if (type.equals("download")) {
-                        PostDownloadTracker.complete(musicFramePath);
-                        showDownloadSuccess(musicFramePath);
+                        notifyDownloadComplete(postKey, musicFramePath);
                     } else {
                         getDownloadProgressDialog().dismiss();
                         shareFileImageUri(getImageContentUri(new File(musicFramePath)), type);
@@ -1582,17 +1650,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Thin green bar reaches 100% → "Download successful" + Open / Share on screen. */
-    private void showDownloadSuccess(String path) {
+    private void showDownloadSuccess(String postKey, String path) {
         if (path == null || path.isEmpty()) {
-            getDownloadProgressDialog().dismiss();
+            getDownloadProgressDialog().dismissIfMatching(postKey);
             return;
         }
-        getDownloadProgressDialog().updateProgress(100, "");
+        getDownloadProgressDialog().updateProgressIfMatching(postKey, 100);
         getDownloadProgressDialog().showSuccess(
+                postKey,
                 path,
                 () -> openDownloadResult(path),
                 () -> shareDownloadedFile(path)
         );
+    }
+
+    private void notifyDownloadProgress(String postKey, int percent) {
+        if (postKey != null && !postKey.isEmpty()) {
+            PostDownloadTracker.updateProgress(postKey, percent);
+        }
+        getDownloadProgressDialog().updateProgressIfMatching(postKey, percent);
+    }
+
+    private void notifyDownloadComplete(String postKey, String path) {
+        if (postKey != null && !postKey.isEmpty()) {
+            PostDownloadTracker.complete(postKey, path);
+        }
+        updateNotification("Download complete");
+        if (getDownloadProgressDialog().isShowingFor(postKey)) {
+            showDownloadSuccess(postKey, path);
+        } else {
+            Toast.makeText(context, R.string.download_complete_background, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void notifyDownloadFailed(String postKey, String message) {
+        if (postKey != null && !postKey.isEmpty()) {
+            PostDownloadTracker.fail(postKey);
+        }
+        getDownloadProgressDialog().dismissIfMatching(postKey);
+        if (message != null && !message.isEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        } else {
+            Util.showToast(context, getString(R.string.error));
+        }
     }
 
     private void shareDownloadedFile(String path) {
@@ -1615,20 +1715,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void downloadVideo(String framePath, String videoUrl, String type) {
+    private void downloadVideo(String framePath, String videoUrl, String type, String postKey) {
         createNotificationChannel();
-        getDownloadProgressDialog().showPercentOnly();
-        getDownloadProgressDialog().updateProgress(2, "");
-        PostDownloadTracker.updateProgress(2);
+        if ("download".equals(type)) {
+            getDownloadProgressDialog().showPercentOnly(postKey);
+        }
+        notifyDownloadProgress(postKey, 2);
         String fileName = videoUrl.substring(videoUrl.lastIndexOf('/') + 1);
         File cacheDir = context.getExternalCacheDir();
         if (cacheDir == null) {
             cacheDir = context.getCacheDir();
         }
 
-        File finalCacheFile = new File(cacheDir, fileName);
+        // Unique cache name per job so parallel downloads of different posts don't clash.
+        String cacheName = (postKey != null ? Math.abs(postKey.hashCode()) : 0) + "_" + fileName;
+        File finalCacheFile = new File(cacheDir, cacheName);
         if (!finalCacheFile.exists()) {
-            AndroidNetworking.download(videoUrl, cacheDir.getPath(), fileName)
+            AndroidNetworking.download(videoUrl, cacheDir.getPath(), cacheName)
                     .build()
                     .setDownloadProgressListener(new DownloadProgressListener() {
                         @Override
@@ -1636,44 +1739,47 @@ public class MainActivity extends AppCompatActivity {
                             if (totalBytes > 0) {
                                 int percent = (int) ((bytesDownloaded * 70) / totalBytes);
                                 int safePercent = Math.max(percent, 3);
-                                runOnUiThread(() -> {
-                                    getDownloadProgressDialog().updateProgress(safePercent, "");
-                                    PostDownloadTracker.updateProgress(safePercent);
-                                });
+                                runOnUiThread(() -> notifyDownloadProgress(postKey, safePercent));
                             }
                         }
                     })
                     .startDownload(new DownloadListener() {
                         public void onDownloadComplete() {
-                            getDownloadProgressDialog().updateProgress(72, "");
-                            PostDownloadTracker.updateProgress(72);
-                            applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type);
+                            notifyDownloadProgress(postKey, 72);
+                            applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type, postKey);
                         }
 
                         public void onError(ANError aNError) {
-                            PostDownloadTracker.fail();
-                            getDownloadProgressDialog().dismiss();
-                            Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
+                            if ("download".equals(type)) {
+                                notifyDownloadFailed(postKey, aNError.getMessage());
+                            } else {
+                                getDownloadProgressDialog().dismiss();
+                                Toast.makeText(context, "" + aNError.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
         } else {
-            getDownloadProgressDialog().updateProgress(72, "");
-            PostDownloadTracker.updateProgress(72);
-            applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type);
+            notifyDownloadProgress(postKey, 72);
+            applyFrameOnVideo(finalCacheFile.getAbsolutePath(), framePath, type, postKey);
         }
     }
 
-    private void applyFrameOnVideo(String videoath, String framePath, String type) {
-        getDownloadProgressDialog().updateProgress(78, "");
-        PostDownloadTracker.updateProgress(78);
+    private void applyFrameOnVideo(String videoath, String framePath, String type, String postKey) {
+        notifyDownloadProgress(postKey, 78);
         updateNotification("Making video...");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                String outputDir = Environment.getExternalStorageDirectory() + File.separator
-                        + Environment.DIRECTORY_PICTURES + File.separator + getResources().getString(R.string.app_name)
-                        + File.separator + System.currentTimeMillis() + ".mp4";
+                File picturesDir = new File(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                        getResources().getString(R.string.app_name)
+                );
+                if (!picturesDir.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    picturesDir.mkdirs();
+                }
+                String outputDir = new File(picturesDir, System.currentTimeMillis() + ".mp4").getAbsolutePath();
 
                 MediaMetadataRetriever retriever = new MediaMetadataRetriever();
                 retriever.setDataSource(videoath);
@@ -1686,23 +1792,35 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (widthMeta == null || heightMeta == null) {
-                    getDownloadProgressDialog().dismiss();
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    if ("download".equals(type)) {
+                        notifyDownloadFailed(postKey, getString(R.string.error));
+                    } else {
+                        getDownloadProgressDialog().dismiss();
+                        Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 }
 
                 int width = Integer.parseInt(widthMeta);
                 int height = Integer.parseInt(heightMeta);
                 if (width <= 0 || height <= 0) {
-                    getDownloadProgressDialog().dismiss();
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    if ("download".equals(type)) {
+                        notifyDownloadFailed(postKey, getString(R.string.error));
+                    } else {
+                        getDownloadProgressDialog().dismiss();
+                        Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 }
 
                 Bitmap b = BitmapFactory.decodeFile(framePath);
                 if (b == null) {
-                    getDownloadProgressDialog().dismiss();
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    if ("download".equals(type)) {
+                        notifyDownloadFailed(postKey, getString(R.string.error));
+                    } else {
+                        getDownloadProgressDialog().dismiss();
+                        Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 }
 
@@ -1733,8 +1851,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                getDownloadProgressDialog().updateProgress(88, "");
-                PostDownloadTracker.updateProgress(88);
+                notifyDownloadProgress(postKey, 88);
                 FFmpeg.executeAsync(new String[]{"-i", videoath, "-i", file.getAbsolutePath(),
                         "-filter_complex",
                         "overlay", "-r", "150",
@@ -1743,10 +1860,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void apply(long executionId, int returnCode) {
                         if (returnCode == 1) {
-                            PostDownloadTracker.fail();
-                            getDownloadProgressDialog().dismiss();
+                            if ("download".equals(type)) {
+                                notifyDownloadFailed(postKey, "Try Again");
+                            } else {
+                                getDownloadProgressDialog().dismiss();
+                                Toast.makeText(context, "Try Again", Toast.LENGTH_SHORT).show();
+                            }
                             FFmpeg.cancel(executionId);
-                            Toast.makeText(context, "Try Again", Toast.LENGTH_SHORT).show();
                             return;
                         }
                         if (returnCode == 0) {
@@ -1756,18 +1876,20 @@ public class MainActivity extends AppCompatActivity {
                                     });
 
                             if (type.equals("download")) {
-                                PostDownloadTracker.complete(outputDir);
-                                updateNotification("Download complete");
-                                showDownloadSuccess(outputDir);
+                                notifyDownloadComplete(postKey, outputDir);
                             } else {
                                 getDownloadProgressDialog().dismiss();
                                 shareFileImageUri(getImageContentUri(new File(outputDir)), type);
                             }
                         } else if (returnCode == 255) {
-                            getDownloadProgressDialog().dismiss();
+                            getDownloadProgressDialog().dismissIfMatching(postKey);
                             Log.e("finalProcess__", "Command execution cancelled by user.");
                         } else {
-                            getDownloadProgressDialog().dismiss();
+                            if ("download".equals(type)) {
+                                notifyDownloadFailed(postKey, getString(R.string.error));
+                            } else {
+                                getDownloadProgressDialog().dismiss();
+                            }
                             String str = String.format("Command execution failed with rc=%d and the output below.",
                                     Arrays.copyOf(new Object[]{Integer.valueOf(returnCode)}, 1));
                             Log.i("finalProcess__", str);

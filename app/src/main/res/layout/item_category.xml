@@ -13,7 +13,7 @@
         android:id="@+id/ll_category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginTop="@dimen/_2sdp"
         android:layout_marginLeft="@dimen/_5sdp"
         android:background="@drawable/select_cat">
 

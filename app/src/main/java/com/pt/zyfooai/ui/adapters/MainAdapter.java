@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -64,7 +65,9 @@ import com.pt.zyfooai.model.PostItem;
 import com.pt.zyfooai.ui.activities.MainActivity;
 import com.pt.zyfooai.ui.activities.SubscriptionActivity;
 import com.pt.zyfooai.ui.dialog.FrameCustomizeBottomSheet;
+import com.pt.zyfooai.utils.AiPrefs;
 import com.pt.zyfooai.utils.Constant;
+import com.pt.zyfooai.utils.ContentReportHelper;
 import com.pt.zyfooai.utils.BillingHelper;
 import com.pt.zyfooai.utils.DynamicFrameRenderer;
 import com.pt.zyfooai.utils.FrameBindHelper;
@@ -197,6 +200,23 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public void pauseAndDetachPlayer() {
         if (sharedPlayer != null) {
             sharedPlayer.setPlayWhenReady(false);
+            sharedPlayer.setVolume(0f);
+        }
+        if (currentHolder != null && currentHolder.videoLayoutBinding != null) {
+            currentHolder.videoLayoutBinding.playerview.setPlayer(null);
+        }
+    }
+
+    /**
+     * Call when the feed scrolls onto an image/ad so previous reel audio cannot leak.
+     */
+    public void silencePlaybackForNonVideo() {
+        if (sharedPlayer != null) {
+            sharedPlayer.setPlayWhenReady(false);
+            sharedPlayer.setVolume(0f);
+        } else if (currentPlayer != null) {
+            currentPlayer.setPlayWhenReady(false);
+            currentPlayer.setVolume(0f);
         }
         if (currentHolder != null && currentHolder.videoLayoutBinding != null) {
             currentHolder.videoLayoutBinding.playerview.setPlayer(null);
@@ -206,7 +226,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public void stopAndClearPlayer() {
         pauseAndDetachPlayer();
         if (sharedPlayer != null) {
-            sharedPlayer.stop();
+            sharedPlayer.stop(true);
         }
         currentHolder = null;
         currentPlayingVideo = "";
@@ -238,14 +258,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         if (recyclerView.getTag(R.id.frame_recycler_setup) == null) {
             recyclerView.setTag(R.id.frame_recycler_setup, Boolean.TRUE);
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
+            linearLayoutManager.setInitialPrefetchItemCount(4);
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setAdapter(frameAdapter);
             new SnapHelperOneByOne().attachToRecyclerView(recyclerView);
             FrameScrollHelper.bindSelectionPersistence(recyclerView, preferenceManager, contentArea, mediaType);
+            FrameScrollHelper.enableFramePrefetch(recyclerView);
+            // Horizontal frame swipe must not let the feed RV steal the touch (would pause reels).
+            FrameScrollHelper.blockParentInterceptWhileSwiping(recyclerView);
         } else {
             recyclerView.setAdapter(frameAdapter);
         }
-        recyclerView.post(() -> FrameMediaInsetHelper.apply(contentArea, recyclerView, preferenceManager));
+        // Eager fit after first layout (do not wait for user touch).
+        FrameScrollHelper.applyFitAfterScroll(contentArea, recyclerView, preferenceManager);
     }
 
     private void setupFooterControls(
@@ -281,11 +306,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder2, int position) {
         int itemViewType = holder2.getItemViewType();
-        if (getItemViewType(position) == VIEW_TYPE_CONTENT) {
-            if (currentPlayer != null && currentPlayer.isPlaying()) {
-                currentPlayer.setPlayWhenReady(false); // pause only
-            }
-        }
+        // Do NOT pause the shared reels player on every bind — prefetch / neighbor binds
+        // were stopping playback while the user only swiped frames left/right.
         if (itemViewType == VIEW_TYPE_AD) {
             final ViewHolder holder = (ViewHolder) holder2;
             holder.setIsRecyclable(false);
@@ -349,17 +371,12 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             );
             holder.videoLayoutBinding.indicator.attachToRecyclerView(holder.videoLayoutBinding.recyclerview);
 
-            FrameScrollHelper.scrollToSavedFrame(
+            FrameScrollHelper.scrollToSavedFrameAndApplyFit(
+                    holder.videoLayoutBinding.relativeLayout4,
                     holder.videoLayoutBinding.recyclerview,
                     preferenceManager,
                     FrameMediaType.REELS
             );
-            holder.videoLayoutBinding.relativeLayout4.post(() ->
-                    FrameMediaInsetHelper.apply(
-                            holder.videoLayoutBinding.relativeLayout4,
-                            holder.videoLayoutBinding.recyclerview,
-                            preferenceManager
-                    ));
 
             View.OnClickListener onClickListener = view -> {
                 holder.videoLayoutBinding.ivWatermark.setImageResource(R.drawable.watermark);
@@ -369,10 +386,17 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             holder.videoLayoutBinding.watermarkLayout.setOnClickListener(onClickListener);
             holder.videoLayoutBinding.downloadBtn.setOnClickListener(onClickListener);
             holder.videoLayoutBinding.shareBtn.setOnClickListener(onClickListener);
+            if (holder.videoLayoutBinding.aiBtn != null) {
+                holder.videoLayoutBinding.aiBtn.setVisibility(
+                        AiPrefs.isEnabled(context) ? View.VISIBLE : View.GONE);
+                holder.videoLayoutBinding.aiBtn.setOnClickListener(onClickListener);
+            }
 
             for (LinearLayout linearLayout : Arrays.asList(holder.videoLayoutBinding.shareBtn, holder.videoLayoutBinding.editBtn)) {
                 linearLayout.setOnClickListener(onClickListener);
             }
+
+            bindReportMenu(holder.videoLayoutBinding.btnReportMenu, list.get(position));
 
 //            holder.videoLayoutBinding.nextBtn.setOnClickListener(view -> next(holder, position, view));
 
@@ -431,7 +455,7 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                                     holder.binding.relativeLayout4,
                                     holder.binding.swipeFrames
                             );
-                            FrameMediaInsetHelper.apply(
+                            FrameScrollHelper.applyFitAfterScroll(
                                     holder.binding.relativeLayout4,
                                     holder.binding.recyclerview,
                                     preferenceManager
@@ -457,7 +481,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             );
             holder.binding.indicator.attachToRecyclerView(holder.binding.recyclerview);
 
-            FrameScrollHelper.scrollToSavedFrame(
+            FrameScrollHelper.scrollToSavedFrameAndApplyFit(
+                    holder.binding.relativeLayout4,
                     holder.binding.recyclerview,
                     preferenceManager,
                     FrameMediaType.IMAGE
@@ -483,13 +508,40 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             holder.binding.watermarkLayout.setOnClickListener(onClickListener);
             holder.binding.downloadBtn.setOnClickListener(onClickListener);
             holder.binding.shareBtn.setOnClickListener(onClickListener);
+            if (holder.binding.aiBtn != null) {
+                holder.binding.aiBtn.setVisibility(
+                        AiPrefs.isEnabled(context) ? View.VISIBLE : View.GONE);
+                holder.binding.aiBtn.setOnClickListener(onClickListener);
+            }
 
             for (LinearLayout linearLayout : Arrays.asList(holder.binding.shareBtn, holder.binding.editBtn)) {
                 linearLayout.setOnClickListener(onClickListener);
             }
 
+            bindReportMenu(holder.binding.btnReportMenu, list.get(position));
+
             holder.binding.musicBtn.setOnClickListener(view -> next(holder, position, view));
         }
+    }
+
+    /** Top-left ⋯ → Report. Does not touch download / footer / playback. */
+    private void bindReportMenu(ImageView btnReportMenu, PostItem postItem) {
+        if (btnReportMenu == null || postItem == null) {
+            return;
+        }
+        btnReportMenu.bringToFront();
+        btnReportMenu.setOnClickListener(v -> {
+            PopupMenu menu = new PopupMenu(context, v);
+            menu.getMenuInflater().inflate(R.menu.menu_post_report, menu.getMenu());
+            menu.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_report_content) {
+                    ContentReportHelper.open(context, postItem);
+                    return true;
+                }
+                return false;
+            });
+            menu.show();
+        });
     }
     private ExoPlayer currentPlayer;
     private ExoPlayer sharedPlayer;
@@ -502,7 +554,12 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         }
         String newUrl = item.image_url;
 
+        // Detach + mute previous cell immediately so old reel audio never continues.
         if (currentHolder != null && currentHolder != holder) {
+            if (sharedPlayer != null) {
+                sharedPlayer.setPlayWhenReady(false);
+                sharedPlayer.setVolume(0f);
+            }
             currentHolder.videoLayoutBinding.playerview.setPlayer(null);
         }
 
@@ -515,11 +572,14 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                     if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
                         currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
+                        if (sharedPlayer != null) {
+                            sharedPlayer.setVolume(1f);
+                        }
                         FooterSizeHelper.fitContentAboveFooter(
                                 currentHolder.videoLayoutBinding.relativeLayout4,
                                 currentHolder.videoLayoutBinding.swipeFrames
                         );
-                        FrameMediaInsetHelper.apply(
+                        FrameScrollHelper.applyFitAfterScroll(
                                 currentHolder.videoLayoutBinding.relativeLayout4,
                                 currentHolder.videoLayoutBinding.recyclerview,
                                 preferenceManager
@@ -529,7 +589,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             });
         }
 
-        holder.videoLayoutBinding.loader.setVisibility(View.VISIBLE);
+        boolean sameVideo = newUrl.equals(currentPlayingVideo) && currentHolder == holder;
+        if (!sameVideo) {
+            holder.videoLayoutBinding.loader.setVisibility(View.VISIBLE);
+        }
         holder.videoLayoutBinding.playerview.setUseController(false);
         holder.videoLayoutBinding.playerview.setShowBuffering(SHOW_BUFFERING_WHEN_PLAYING);
 
@@ -538,11 +601,16 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
             MediaSource mediaSource = new ProgressiveMediaSource.Factory(
                     VideoCacheHelper.buildCacheDataSourceFactory(context))
                     .createMediaSource(Uri.parse(newUrl));
-            sharedPlayer.stop();
+            sharedPlayer.setPlayWhenReady(false);
+            sharedPlayer.setVolume(0f);
+            sharedPlayer.stop(true);
             sharedPlayer.prepare(mediaSource);
         }
 
-        holder.videoLayoutBinding.playerview.setPlayer(sharedPlayer);
+        if (holder.videoLayoutBinding.playerview.getPlayer() != sharedPlayer) {
+            holder.videoLayoutBinding.playerview.setPlayer(sharedPlayer);
+        }
+        sharedPlayer.setVolume(1f);
         sharedPlayer.setPlayWhenReady(true);
         holder.exoplayer = sharedPlayer;
         currentPlayer = sharedPlayer;
@@ -572,15 +640,19 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     public void onPauseVideo() {
         if (sharedPlayer != null) {
             sharedPlayer.setPlayWhenReady(false);
+            sharedPlayer.setVolume(0f);
         } else if (currentPlayer != null) {
             currentPlayer.setPlayWhenReady(false);
+            currentPlayer.setVolume(0f);
         }
     }
 
     public void onResumeVideo() {
         if (sharedPlayer != null && currentHolder != null) {
+            sharedPlayer.setVolume(1f);
             sharedPlayer.setPlayWhenReady(true);
         } else if (currentPlayer != null && currentHolder != null) {
+            currentPlayer.setVolume(1f);
             currentPlayer.setPlayWhenReady(true);
         }
     }

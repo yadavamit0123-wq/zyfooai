@@ -166,8 +166,9 @@ public final class FrameMediaInsetHelper {
         }
         boolean serverFrame = dynamicConfig != null;
         boolean blurSides = dynamicConfig != null && dynamicConfig.usesBlurSides();
-        // Contain (FIT): blur_sides OR no server config. Cover (ZOOM): server fitMode=cover / null.
-        boolean useContain = dynamicConfig == null || blurSides;
+        // Cover/fill (ZOOM / CENTER_CROP) for all frames — same as reels catalog ~7th (server cover).
+        // Only blur_sides keeps contain (FIT) + letterbox blur. Existing blur_sides / customize undisturbed.
+        boolean useContain = blurSides;
         applyInset(
                 mediaView,
                 topInset,
@@ -267,6 +268,21 @@ public final class FrameMediaInsetHelper {
     }
 
     public static View getVisibleFrameRoot(RecyclerView frameRecyclerView) {
+        if (frameRecyclerView == null) {
+            return null;
+        }
+        // Prefer target index set by scrollToSavedFrame / idle selection (eager fit before touch).
+        Object targetTag = frameRecyclerView.getTag(R.id.frame_target_index);
+        if (targetTag instanceof Integer) {
+            int target = (Integer) targetTag;
+            if (target >= 0) {
+                RecyclerView.ViewHolder targetHolder =
+                        frameRecyclerView.findViewHolderForAdapterPosition(target);
+                if (targetHolder != null) {
+                    return targetHolder.itemView;
+                }
+            }
+        }
         RecyclerView.LayoutManager layoutManager = frameRecyclerView.getLayoutManager();
         if (!(layoutManager instanceof LinearLayoutManager)) {
             return null;
@@ -366,6 +382,10 @@ public final class FrameMediaInsetHelper {
         ViewGroup.LayoutParams params = mediaView.getLayoutParams();
         if (params instanceof RelativeLayout.LayoutParams) {
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) params;
+            boolean marginsChanged = layoutParams.topMargin != topInset
+                    || layoutParams.bottomMargin != bottomInset
+                    || layoutParams.leftMargin != leftInset
+                    || layoutParams.rightMargin != rightInset;
             layoutParams.topMargin = topInset;
             layoutParams.bottomMargin = bottomInset;
             layoutParams.leftMargin = leftInset;
@@ -380,36 +400,52 @@ public final class FrameMediaInsetHelper {
             }
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END);
-            mediaView.setLayoutParams(layoutParams);
+            // Avoid setLayoutParams when unchanged — re-layout of PlayerView pauses reels mid-swipe.
+            if (marginsChanged) {
+                mediaView.setLayoutParams(layoutParams);
+            }
         } else if (params instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) params;
-            layoutParams.topMargin = topInset;
-            layoutParams.bottomMargin = bottomInset;
-            layoutParams.leftMargin = leftInset;
-            layoutParams.rightMargin = rightInset;
-            mediaView.setLayoutParams(layoutParams);
+            if (layoutParams.topMargin != topInset
+                    || layoutParams.bottomMargin != bottomInset
+                    || layoutParams.leftMargin != leftInset
+                    || layoutParams.rightMargin != rightInset) {
+                layoutParams.topMargin = topInset;
+                layoutParams.bottomMargin = bottomInset;
+                layoutParams.leftMargin = leftInset;
+                layoutParams.rightMargin = rightInset;
+                mediaView.setLayoutParams(layoutParams);
+            }
         }
 
         if (mediaView instanceof ImageView) {
             ImageView imageView = (ImageView) mediaView;
             imageView.setAdjustViewBounds(false);
-            if (useContain) {
-                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            } else {
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            ImageView.ScaleType wanted = useContain
+                    ? ImageView.ScaleType.FIT_CENTER
+                    : ImageView.ScaleType.CENTER_CROP;
+            if (imageView.getScaleType() != wanted) {
+                imageView.setScaleType(wanted);
             }
         } else if (mediaView instanceof PlayerView) {
             PlayerView playerView = (PlayerView) mediaView;
-            if (useContain) {
-                // blur_sides / non-server: full video visible; transparent letterbox → blur.
-                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-                playerView.setShutterBackgroundColor(Color.TRANSPARENT);
-                playerView.setBackgroundColor(Color.TRANSPARENT);
-            } else {
-                // server cover: fill/crop (legacy Gold).
-                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
-                playerView.setShutterBackgroundColor(Color.BLACK);
-                playerView.setBackgroundColor(Color.BLACK);
+            int wantedMode = useContain
+                    ? AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    : AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
+            if (playerView.getResizeMode() != wantedMode) {
+                if (useContain) {
+                    playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+                    playerView.setShutterBackgroundColor(Color.TRANSPARENT);
+                    playerView.setBackgroundColor(Color.TRANSPARENT);
+                } else {
+                    playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+                    playerView.setShutterBackgroundColor(Color.BLACK);
+                    playerView.setBackgroundColor(Color.BLACK);
+                }
+            }
+            // Frame swipe re-applies insets — keep playback running.
+            if (playerView.getPlayer() != null) {
+                playerView.getPlayer().setPlayWhenReady(true);
             }
         }
     }

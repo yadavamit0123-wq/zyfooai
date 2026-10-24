@@ -55,6 +55,17 @@ public class AppInfo {
     @Expose
     public String razorpayEnable;
 
+    /** Soft-extend flat keys (if not nested under ReferEarn). */
+    @SerializedName("refer_earn_enabled")
+    public Object referEarnEnabled;
+    @SerializedName("signup_bonus")
+    public String signupBonus;
+    @SerializedName("invite_message_prefix")
+    public String inviteMessagePrefix;
+    @SerializedName("invite_message_suffix")
+    public String inviteMessageSuffix;
+    @SerializedName("invite_url")
+    public String inviteUrl;
 
     public String getOfferImage() {
         return offerImage;

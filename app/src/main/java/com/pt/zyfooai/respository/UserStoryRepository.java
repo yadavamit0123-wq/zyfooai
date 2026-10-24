@@ -12,9 +12,11 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.pt.zyfooai.api.ApiClient;
 import com.pt.zyfooai.api.ApiService;
+import com.pt.zyfooai.model.UserStoryDetail;
 import com.pt.zyfooai.model.UserStoryDetailResponse;
 import com.pt.zyfooai.model.UserStoryFeedItem;
 import com.pt.zyfooai.model.UserStoryListResponse;
+import com.pt.zyfooai.model.UserStoryMedia;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.PreferenceManager;
 
@@ -45,7 +47,8 @@ public final class UserStoryRepository {
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     private final ApiService apiService = ApiClient.getApiDataService();
-    private final MutableLiveData<List<UserStoryFeedItem>> feedLiveData = new MutableLiveData<>();
+    /** Shared across screens so post → home sees own story without losing feed. */
+    private static final MutableLiveData<List<UserStoryFeedItem>> feedLiveData = new MutableLiveData<>();
 
     /** Observe once from UI; call {@link #refreshFeed()} to reload. */
     public LiveData<List<UserStoryFeedItem>> observeFeed() {
@@ -53,23 +56,69 @@ public final class UserStoryRepository {
     }
 
     public void refreshFeed() {
-        apiService.getUserStories().enqueue(new Callback<UserStoryListResponse>() {
+        refreshFeed(null);
+    }
+
+    public void refreshFeed(Context context) {
+        String userId = "";
+        if (context != null) {
+            userId = new PreferenceManager(context.getApplicationContext()).getString(Constant.USER_ID);
+            if (userId == null) {
+                userId = "";
+            }
+        }
+        final String currentUserId = userId;
+        apiService.getUserStories(currentUserId).enqueue(new Callback<UserStoryListResponse>() {
             @Override
             public void onResponse(Call<UserStoryListResponse> call, Response<UserStoryListResponse> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().data != null) {
-                    feedLiveData.setValue(response.body().data);
+                    feedLiveData.setValue(mergeKeepOwnStory(response.body().data, currentUserId));
                 } else {
                     Log.d(TAG, "getFeed HTTP " + response.code());
-                    feedLiveData.setValue(new ArrayList<>());
+                    feedLiveData.setValue(mergeKeepOwnStory(new ArrayList<>(), currentUserId));
                 }
             }
 
             @Override
             public void onFailure(Call<UserStoryListResponse> call, Throwable t) {
                 Log.d(TAG, "getFeed failed: " + t.getMessage());
-                feedLiveData.setValue(new ArrayList<>());
+                feedLiveData.setValue(mergeKeepOwnStory(new ArrayList<>(), currentUserId));
             }
         });
+    }
+
+    /** If API omits current user, keep previously upserted own ring so poster can see it. */
+    private static List<UserStoryFeedItem> mergeKeepOwnStory(
+            List<UserStoryFeedItem> fromApi,
+            String currentUserId
+    ) {
+        ArrayList<UserStoryFeedItem> next = new ArrayList<>();
+        if (fromApi != null) {
+            next.addAll(fromApi);
+        }
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            return next;
+        }
+        for (UserStoryFeedItem item : next) {
+            if (item != null && currentUserId.equals(String.valueOf(item.userId))) {
+                return next;
+            }
+        }
+        List<UserStoryFeedItem> previous = feedLiveData.getValue();
+        if (previous == null) {
+            return next;
+        }
+        for (UserStoryFeedItem item : previous) {
+            if (item != null
+                    && !item.isAddButton
+                    && item.storyId != null
+                    && !item.storyId.isEmpty()
+                    && currentUserId.equals(String.valueOf(item.userId))) {
+                next.add(0, item);
+                break;
+            }
+        }
+        return next;
     }
 
     /** @deprecated use {@link #observeFeed()} + {@link #refreshFeed()} */
@@ -142,6 +191,7 @@ public final class UserStoryRepository {
                 @Override
                 public void onResponse(Call<UserStoryDetailResponse> call, Response<UserStoryDetailResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
+                        upsertOwnStoryInFeed(response.body().data, userId, appContext);
                         liveData.postValue(response.body());
                         return;
                     }
@@ -176,6 +226,55 @@ public final class UserStoryRepository {
             });
         });
         return liveData;
+    }
+
+    /**
+     * Ensure poster immediately sees their own ring even if list API is slow / omits self briefly.
+     */
+    private static void upsertOwnStoryInFeed(UserStoryDetail detail, String userId, Context context) {
+        if (detail == null && (userId == null || userId.isEmpty())) {
+            return;
+        }
+        UserStoryFeedItem mine = new UserStoryFeedItem();
+        if (detail != null) {
+            mine.storyId = detail.id;
+            mine.userId = detail.userId != null ? detail.userId : userId;
+            mine.userName = detail.userName != null ? detail.userName : "Your story";
+            mine.userAvatar = detail.userAvatar;
+            mine.createdAt = detail.createdAt;
+            mine.expiresAt = detail.expiresAt;
+            mine.seen = false;
+            if (detail.media != null && !detail.media.isEmpty()) {
+                mine.mediaCount = detail.media.size();
+                UserStoryMedia first = detail.media.get(0);
+                if (first != null) {
+                    mine.thumbnailUrl = first.url;
+                }
+            }
+        } else {
+            mine.userId = userId;
+            mine.userName = "Your story";
+            mine.userAvatar = new PreferenceManager(context).getString(Constant.USER_IMAGE);
+        }
+        if (mine.userId == null || mine.userId.isEmpty()) {
+            mine.userId = userId;
+        }
+
+        List<UserStoryFeedItem> current = feedLiveData.getValue();
+        ArrayList<UserStoryFeedItem> next = new ArrayList<>();
+        if (current != null) {
+            for (UserStoryFeedItem item : current) {
+                if (item == null) {
+                    continue;
+                }
+                if (mine.userId != null && mine.userId.equals(String.valueOf(item.userId))) {
+                    continue;
+                }
+                next.add(item);
+            }
+        }
+        next.add(0, mine);
+        feedLiveData.postValue(next);
     }
 
     public void markSeen(String storyId) {

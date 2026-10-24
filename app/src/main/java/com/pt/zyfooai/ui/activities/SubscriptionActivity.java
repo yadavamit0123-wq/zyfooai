@@ -28,6 +28,7 @@ import com.pt.zyfooai.utils.PreferenceManager;
 import com.razorpay.Checkout;
 import com.razorpay.PaymentResultListener;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -134,29 +135,49 @@ public class SubscriptionActivity extends AppCompatActivity implements PaymentRe
 
     private void manageRazorPay(int price) {
         try {
-
             String mobile = preferenceManager.getString(Constant.USER_PHONE);
             String email = preferenceManager.getString(Constant.USER_EMAIL);
 
+            // Warm SDK so UPI Intent app list resolves faster on Checkout.
+            Checkout.preload(getApplicationContext());
+
             JSONObject object = new JSONObject();
             object.put("name", getString(R.string.app_name));
-            object.put("description", price*100);
+            object.put("description", selected_name != null && !selected_name.isEmpty()
+                    ? selected_name
+                    : getString(R.string.app_name) + " Subscription");
             object.put("theme.color", "#FF8E0B");
-
             object.put("currency", "INR");
-            object.put("amount", price*100);
-            if (mobile != null && !mobile.trim().isEmpty()) object.put("prefill.contact", mobile);
+            object.put("amount", price * 100);
+            if (mobile != null && !mobile.trim().isEmpty()) {
+                object.put("prefill.contact", mobile);
+            }
+            if (email != null && !email.trim().isEmpty()) {
+                object.put("prefill.email", email);
+            }
 
-            if (email != null && !email.trim().isEmpty()) object.put("prefill.email", email);
+            // Prefer UPI Intent apps (GPay / PhonePe / Paytm / BHIM) in Checkout.
+            JSONArray preferredApps = new JSONArray();
+            preferredApps.put("com.google.android.apps.nbu.paisa.user");
+            preferredApps.put("com.phonepe.app");
+            preferredApps.put("net.one97.paytm");
+            preferredApps.put("in.org.npci.upiapp");
+            object.put("preferred_apps_order", preferredApps);
+
+            // Keep card / netbanking / UPI available; UPI uses Intent when apps installed.
+            JSONObject method = new JSONObject();
+            method.put("upi", true);
+            method.put("card", true);
+            method.put("netbanking", true);
+            object.put("method", method);
 
             Checkout checkout = new Checkout();
             checkout.setImage(R.drawable.logo);
-
             checkout.setKeyID(preferenceManager.getString(Constant.RAZORPAY_KEY_ID));
             checkout.open(this, object);
-
         } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(this, "Unable to start payment", Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -101,6 +101,23 @@ public class Constant {
     public static final String SELECTED_CATEGORY_NAME = "selected_category_name";
     public static final String SEASONAL_STICKER_JSON = "seasonal_sticker_json";
 
+    /** Refer & Earn — server config + pending apply (local code is NOT source of truth). */
+    public static final String REFER_EARN_ENABLED = "refer_earn_enabled";
+    public static final String REFER_SIGNUP_BONUS = "refer_signup_bonus";
+    public static final String REFER_REFERRER_AMOUNT = "refer_referrer_amount";
+    public static final String REFER_INVITE_PREFIX = "refer_invite_prefix";
+    public static final String REFER_INVITE_SUFFIX = "refer_invite_suffix";
+    public static final String REFER_INVITE_URL = "refer_invite_url";
+    public static final String REFER_SERVER_CODE = "refer_server_code";
+    public static final String REFER_WALLET_BALANCE = "refer_wallet_balance";
+    public static final String REFER_BANNER_TYPE = "refer_banner_type";
+    public static final String REFER_BANNER_URL = "refer_banner_url";
+    public static final String REFER_BANNER_POSTER_URL = "refer_banner_poster_url";
+    public static final String PENDING_REFERRAL_CODE = "pending_referral_code";
+
+    /** AI feature flag (also cached as JSON in AiPrefs). */
+    public static final String AI_ENABLED = "ai_enabled";
+
     public static final String PRF_TYPE = "prf_type";
     public static final String PRF_ID = "prf_id";
     public static final String PRF_NAME = "prf_name";

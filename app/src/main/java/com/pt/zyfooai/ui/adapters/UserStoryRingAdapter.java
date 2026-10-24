@@ -1,5 +1,6 @@
 package com.pt.zyfooai.ui.adapters;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,22 +35,49 @@ public class UserStoryRingAdapter extends RecyclerView.Adapter<UserStoryRingAdap
 
     public void submit(List<UserStoryFeedItem> feed, String currentUserId, String currentUserAvatar) {
         items.clear();
-        UserStoryFeedItem add = new UserStoryFeedItem();
-        add.isAddButton = true;
-        add.userName = "Your story";
-        add.userAvatar = currentUserAvatar;
-        add.userId = currentUserId;
-        items.add(add);
+        UserStoryFeedItem ownStory = null;
+        List<UserStoryFeedItem> others = new ArrayList<>();
         if (feed != null) {
             for (UserStoryFeedItem item : feed) {
                 if (item == null) {
                     continue;
                 }
-                // Own active story still shows in feed; tapping opens viewer (add stays first).
-                items.add(item);
+                if (isSameUser(currentUserId, item.userId)) {
+                    if (ownStory == null) {
+                        ownStory = item;
+                    }
+                } else {
+                    others.add(item);
+                }
             }
         }
+
+        if (ownStory != null) {
+            // Own posted story first — tap opens viewer; + badge adds more.
+            ownStory.isAddButton = false;
+            ownStory.showAddBadge = true;
+            if (TextUtils.isEmpty(ownStory.userName)) {
+                ownStory.userName = "Your story";
+            }
+            items.add(ownStory);
+        } else {
+            UserStoryFeedItem add = new UserStoryFeedItem();
+            add.isAddButton = true;
+            add.showAddBadge = true;
+            add.userName = "Your story";
+            add.userAvatar = currentUserAvatar;
+            add.userId = currentUserId;
+            items.add(add);
+        }
+        items.addAll(others);
         notifyDataSetChanged();
+    }
+
+    private static boolean isSameUser(String currentUserId, String storyUserId) {
+        if (TextUtils.isEmpty(currentUserId) || TextUtils.isEmpty(storyUserId)) {
+            return false;
+        }
+        return currentUserId.trim().equals(String.valueOf(storyUserId).trim());
     }
 
     @NonNull
@@ -63,15 +91,21 @@ public class UserStoryRingAdapter extends RecyclerView.Adapter<UserStoryRingAdap
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         UserStoryFeedItem item = items.get(position);
-        holder.nameTv.setText(item.isAddButton
+        boolean isAddOnly = item.isAddButton;
+        boolean isOwnWithStory = !isAddOnly && item.showAddBadge;
+
+        holder.nameTv.setText(isAddOnly || isOwnWithStory
                 ? "Your story"
                 : (item.userName != null && !item.userName.isEmpty() ? item.userName : "Story"));
 
-        String imageUrl = item.isAddButton
-                ? item.userAvatar
-                : (item.thumbnailUrl != null && !item.thumbnailUrl.isEmpty()
-                ? item.thumbnailUrl
-                : item.userAvatar);
+        String imageUrl;
+        if (isAddOnly) {
+            imageUrl = item.userAvatar;
+        } else {
+            imageUrl = item.thumbnailUrl != null && !item.thumbnailUrl.isEmpty()
+                    ? item.thumbnailUrl
+                    : item.userAvatar;
+        }
 
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(holder.avatar).load(imageUrl).placeholder(R.drawable.ic_profile).into(holder.avatar);
@@ -79,7 +113,7 @@ public class UserStoryRingAdapter extends RecyclerView.Adapter<UserStoryRingAdap
             holder.avatar.setImageResource(R.drawable.ic_profile);
         }
 
-        if (item.isAddButton) {
+        if (isAddOnly) {
             holder.addBadge.setVisibility(View.VISIBLE);
             holder.ringBorder.setBackgroundResource(R.drawable.bg_user_story_ring_unseen);
             holder.itemView.setOnClickListener(v -> {
@@ -87,13 +121,23 @@ public class UserStoryRingAdapter extends RecyclerView.Adapter<UserStoryRingAdap
                     listener.onAddStory();
                 }
             });
+            holder.addBadge.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onAddStory();
+                }
+            });
         } else {
-            holder.addBadge.setVisibility(View.GONE);
+            holder.addBadge.setVisibility(item.showAddBadge ? View.VISIBLE : View.GONE);
             holder.ringBorder.setBackgroundResource(
                     item.seen ? R.drawable.bg_user_story_ring_seen : R.drawable.bg_user_story_ring_unseen);
             holder.itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onOpenStory(item);
+                }
+            });
+            holder.addBadge.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onAddStory();
                 }
             });
         }

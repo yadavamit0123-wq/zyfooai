@@ -24,7 +24,7 @@ import com.pt.zyfooai.utils.BiometricHelper;
 import com.pt.zyfooai.utils.ClickDebouncer;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.PreferenceManager;
-import com.pt.zyfooai.utils.ReferralHelper;
+import com.pt.zyfooai.utils.ReferEarnPrefs;
 import com.pt.zyfooai.utils.ThemeHelper;
 import com.pt.zyfooai.viewmodel.HomeViewModel;
 
@@ -91,8 +91,16 @@ public class SettingActivity extends AppCompatActivity {
             BiometricHelper.setLockEnabled(context, isChecked);
         });
 
-        binding.tvReferralCode.setText(ReferralHelper.getOrCreateReferralCode(context));
-        binding.llReferral.setOnClickListener(v -> startActivity(ReferralHelper.buildShareIntent(context)));
+        // Feature flag from getAppInfo → ReferEarn; server code shown when cached.
+        if (ReferEarnPrefs.isEnabled(context)) {
+            binding.llReferral.setVisibility(View.VISIBLE);
+            String serverCode = preferenceManager.getString(Constant.REFER_SERVER_CODE);
+            binding.tvReferralCode.setText(serverCode != null && !serverCode.isEmpty() ? serverCode : "");
+            binding.llReferral.setOnClickListener(v ->
+                    startActivity(new Intent(this, ReferralProgramActivity.class)));
+        } else {
+            binding.llReferral.setVisibility(View.GONE);
+        }
         binding.llChatSupport.setOnClickListener(v -> startActivity(new Intent(this, ChatSupportActivity.class)));
         binding.llCreatorStats.setOnClickListener(v -> startActivity(new Intent(this, CreatorStatsActivity.class)));
 

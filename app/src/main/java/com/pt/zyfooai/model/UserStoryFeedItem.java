@@ -34,6 +34,9 @@ public class UserStoryFeedItem {
     @SerializedName(value = "thumbnailUrl", alternate = {"thumbnail_url", "thumbnail"})
     public String thumbnailUrl;
 
-    /** Local-only: first cell is "Add your story". */
+    /** Local-only: first cell is "Add your story" (no active story yet). */
     public transient boolean isAddButton;
+
+    /** Local-only: show + badge (own story → add more). */
+    public transient boolean showAddBadge;
 }

@@ -10,6 +10,7 @@ import com.pt.zyfooai.R;
 
 /**
  * Controls frame overlay scale, opacity, and content fill above the footer strip.
+ * Scale pivot is bottom-center so footers stay pinned visually (not lifted toward center).
  */
 public final class FrameOverlayHelper {
 
@@ -40,13 +41,36 @@ public final class FrameOverlayHelper {
                 && FrameCanvasHelper.isActiveServerFrame((RecyclerView) frameRecyclerView)) {
             frameRecyclerView.setScaleX(1f);
             frameRecyclerView.setScaleY(1f);
+            frameRecyclerView.setTranslationY(0f);
             frameRecyclerView.setAlpha(getFrameAlpha(preferenceManager));
             return;
         }
         float scale = getFrameScale(preferenceManager);
-        frameRecyclerView.setScaleX(scale);
-        frameRecyclerView.setScaleY(scale);
         frameRecyclerView.setAlpha(getFrameAlpha(preferenceManager));
+        applyScaleFromBottom(frameRecyclerView, scale);
+    }
+
+    /** Bottom-center pivot keeps footer chrome on the bottom when scale ≠ 1. */
+    private static void applyScaleFromBottom(View view, float scale) {
+        Runnable apply = () -> {
+            int w = view.getWidth();
+            int h = view.getHeight();
+            if (w <= 0 || h <= 0) {
+                view.setScaleX(scale);
+                view.setScaleY(scale);
+                return;
+            }
+            view.setPivotX(w / 2f);
+            view.setPivotY(h);
+            view.setScaleX(scale);
+            view.setScaleY(scale);
+            view.setTranslationY(0f);
+        };
+        if (view.getWidth() > 0 && view.getHeight() > 0) {
+            apply.run();
+        } else {
+            view.post(apply);
+        }
     }
 
     public static void bindSeekBar(

@@ -203,9 +203,9 @@
                         android:layout_below="@+id/rl_toolbar"
                         android:orientation="vertical"
                         android:visibility="visible"
-                        app:layout_scrollFlags="scroll|enterAlways">
+                        app:layout_scrollFlags="scroll|enterAlways|snap">
 
-                        <!-- User Stories (24h) — separate from festival getFestival -->
+                        <!-- User Stories (24h) — compact so feed Edit/Download/Share fit on screen -->
                         <LinearLayout
                             android:id="@+id/ll_story"
                             android:layout_width="match_parent"
@@ -213,12 +213,13 @@
                             android:layout_gravity="center"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="@dimen/_6sdp"
+                            android:paddingTop="@dimen/_2sdp"
+                            android:paddingBottom="@dimen/_1sdp"
                             android:visibility="visible">
 
                             <ImageView
                                 android:id="@+id/festivalSpecialIcon"
-                                android:layout_width="@dimen/_60sdp"
+                                android:layout_width="@dimen/_48sdp"
                                 android:layout_height="wrap_content"
                                 android:adjustViewBounds="true"
                                 android:src="@drawable/ic_todays_special"
@@ -230,7 +231,8 @@
                                 android:layout_height="wrap_content"
                                 android:clipToPadding="false"
                                 android:orientation="horizontal"
-                                android:paddingHorizontal="@dimen/_8sdp"
+                                android:overScrollMode="never"
+                                android:paddingHorizontal="@dimen/_4sdp"
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                                 tools:listitem="@layout/item_user_story_ring" />
 
@@ -244,7 +246,8 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/appbar"
                         android:orientation="vertical"
-                        android:visibility="visible">
+                        android:visibility="visible"
+                        app:layout_scrollFlags="scroll|enterAlways|snap">
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvCategory"
@@ -253,7 +256,8 @@
                             android:background="@color/bg_color"
                             android:clipToPadding="true"
                             android:orientation="horizontal"
-                            android:paddingBottom="@dimen/_5sdp"
+                            android:paddingTop="@dimen/_2sdp"
+                            android:paddingBottom="@dimen/_2sdp"
                             app:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
                             app:spanCount="3"
                             tools:listitem="@layout/item_category" />
@@ -264,7 +268,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/inter_regular"
                             android:gravity="center"
-                            android:paddingVertical="@dimen/_8sdp"
+                            android:paddingVertical="@dimen/_4sdp"
                             android:text="@string/search_no_categories"
                             android:textColor="@color/post_meta_text_secondary"
                             android:textSize="@dimen/_11sdp"

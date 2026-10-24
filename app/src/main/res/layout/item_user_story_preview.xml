@@ -10,4 +10,15 @@
         android:layout_height="match_parent"
         android:background="#EEEEEE"
         android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/btnRemove"
+        android:layout_width="@dimen/_22sdp"
+        android:layout_height="@dimen/_22sdp"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/_4sdp"
+        android:background="@drawable/bg_report_menu_btn"
+        android:contentDescription="@string/add_story_remove"
+        android:padding="@dimen/_4sdp"
+        android:src="@drawable/remove" />
 </FrameLayout>

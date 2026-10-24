@@ -24,10 +24,12 @@ import java.util.concurrent.Executors;
 public final class VideoPreloadHelper {
 
     private static final String TAG = "VideoPreloadHelper";
-    /** ~1.5MB first chunk — enough for quick start on most progressive MP4s. */
-    private static final long PRELOAD_BYTES = 1_500_000L;
+    /** ~2.5MB first chunk — enough for near-instant play when scrolled into view. */
+    private static final long PRELOAD_BYTES = 2_500_000L;
     /** Next 3–4 scrolls of reels. */
     public static final int MAX_VIDEO_PRELOAD = 4;
+    /** Previous scrolls (up) to warm for reverse scroll. */
+    public static final int MAX_VIDEO_PRELOAD_BEFORE = 2;
     /** Next 3–4 scrolls of images. */
     public static final int MAX_IMAGE_PRELOAD = 4;
 
@@ -41,7 +43,16 @@ public final class VideoPreloadHelper {
 
     /** Preload first upcoming videos + images in the feed list. */
     public static void preloadUpcoming(Context context, @Nullable List<PostItem> feed) {
-        preloadNextAfter(context, feed, 0);
+        preloadAround(context, feed, 0);
+    }
+
+    /**
+     * Warm media around the current feed index so up/down scroll plays immediately
+     * (next 3–4 videos/images + a couple previous videos).
+     */
+    public static void preloadAround(Context context, @Nullable List<PostItem> feed, int centerIndex) {
+        preloadNextAfter(context, feed, centerIndex);
+        preloadBefore(context, feed, centerIndex);
     }
 
     /** Preload the next media after {@code fromIndex} (inclusive search forward). */
@@ -77,6 +88,25 @@ public final class VideoPreloadHelper {
                 if (url != null && !url.trim().isEmpty() && enqueueImage(app, url.trim())) {
                     images++;
                 }
+            }
+        }
+    }
+
+    /** Preload previous videos (scroll up) so reverse scroll is also ready. */
+    public static void preloadBefore(Context context, @Nullable List<PostItem> feed, int fromIndex) {
+        if (context == null || feed == null || feed.isEmpty() || fromIndex <= 0) {
+            return;
+        }
+        Context app = context.getApplicationContext();
+        int videos = 0;
+        for (int i = fromIndex - 1; i >= 0 && videos < MAX_VIDEO_PRELOAD_BEFORE; i--) {
+            PostItem post = feed.get(i);
+            if (post == null || !post.is_video) {
+                continue;
+            }
+            String url = post.image_url;
+            if (url != null && !url.trim().isEmpty() && enqueueVideo(app, url.trim())) {
+                videos++;
             }
         }
     }
