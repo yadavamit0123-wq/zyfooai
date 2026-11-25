@@ -13,8 +13,8 @@ public final class FooterSizeHelper {
     public static final String FOOTER_SIZE_SCALE = "footer_size_scale";
     private static final float MIN_SCALE = 0.70f;
     private static final float MAX_SCALE = 1.20f;
-    /** Default ~0.86 scale — slimmer strip, more media visible. */
-    private static final int DEFAULT_PROGRESS = 32;
+    /** Default ~0.80 scale — slimmer strip so header/stories/categories/footer fit one screen. */
+    private static final int DEFAULT_PROGRESS = 20;
 
     private FooterSizeHelper() {
     }
@@ -44,6 +44,7 @@ public final class FooterSizeHelper {
         scaleViewHeight(swipeFrames.findViewById(R.id.btnLay), btnBaseDp, scale);
         scaleViewHeight(swipeFrames.findViewById(R.id.edit_Btn), btnBaseDp, scale);
         scaleViewHeight(swipeFrames.findViewById(R.id.downloadBtn), btnBaseDp, scale);
+        scaleViewHeight(swipeFrames.findViewById(R.id.aiBtn), btnBaseDp, scale);
         scaleViewHeight(swipeFrames.findViewById(R.id.shareBtn), btnBaseDp, scale);
     }
 

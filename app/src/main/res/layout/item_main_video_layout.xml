@@ -193,7 +193,7 @@
                 android:layout_gravity="start"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:minHeight="@dimen/_22sdp">
+                android:minHeight="@dimen/_18sdp">
 
                 <LinearLayout
                     android:id="@+id/customizeFrameBtn"
@@ -310,7 +310,7 @@
                     android:minWidth="@dimen/_22sdp"
                     android:text="0+"
                     android:textColor="@color/g3"
-                    android:textSize="@dimen/_9sdp" />
+                    android:textSize="@dimen/_8sdp" />
 
                 <LinearLayout
                     android:id="@+id/downloadBtn"
@@ -323,8 +323,8 @@
                     android:paddingHorizontal="@dimen/_6sdp">
 
                     <ImageView
-                        android:layout_width="@dimen/_16sdp"
-                        android:layout_height="@dimen/_16sdp"
+                        android:layout_width="@dimen/_14sdp"
+                        android:layout_height="@dimen/_14sdp"
                         android:padding="@dimen/_1sdp"
                         android:src="@drawable/ic_download_regular_color"
                         app:tint="@color/white" />
@@ -337,37 +337,37 @@
                         android:maxLines="1"
                         android:text="Download"
                         android:textColor="@color/white"
-                        android:textSize="@dimen/_9sdp" />
+                        android:textSize="@dimen/_8sdp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/aiBtn"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/_32sdp"
-                    android:layout_marginHorizontal="@dimen/_8sdp"
+                    android:layout_height="@dimen/feed_footer_btn_height"
+                    android:layout_marginHorizontal="@dimen/_4sdp"
                     android:layout_weight="1.15"
                     android:background="@drawable/bg_ai_btn_3d"
-                    android:elevation="@dimen/_6sdp"
+                    android:elevation="@dimen/_4sdp"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/_8sdp"
-                    android:translationZ="@dimen/_4sdp">
+                    android:paddingHorizontal="@dimen/_4sdp"
+                    android:translationZ="@dimen/_2sdp">
 
                     <ImageView
-                        android:layout_width="@dimen/_18sdp"
-                        android:layout_height="@dimen/_18sdp"
+                        android:layout_width="@dimen/_14sdp"
+                        android:layout_height="@dimen/_14sdp"
                         android:src="@drawable/ic_ai_spark"
                         app:tint="@color/white" />
 
                     <com.pt.zyfooai.View.AutoResizeTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_3sdp"
+                        android:layout_marginStart="@dimen/_2sdp"
                         android:fontFamily="@font/inter_bold"
                         android:maxLines="1"
                         android:text="@string/ai_button_label"
                         android:textColor="@color/white"
-                        android:textSize="@dimen/_11sdp" />
+                        android:textSize="@dimen/_9sdp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -381,8 +381,8 @@
                     android:paddingHorizontal="@dimen/_6sdp">
 
                     <ImageView
-                        android:layout_width="@dimen/_16sdp"
-                        android:layout_height="@dimen/_16sdp"
+                        android:layout_width="@dimen/_14sdp"
+                        android:layout_height="@dimen/_14sdp"
                         android:padding="@dimen/_1sdp"
                         android:src="@drawable/ic_whatsapp"
                         app:tint="@color/white" />
@@ -395,7 +395,7 @@
                         android:maxLines="1"
                         android:text="Share"
                         android:textColor="@color/white"
-                        android:textSize="@dimen/_9sdp" />
+                        android:textSize="@dimen/_8sdp" />
                 </LinearLayout>
 
                 <TextView
@@ -409,7 +409,7 @@
                     android:minWidth="@dimen/_22sdp"
                     android:text="0+"
                     android:textColor="@color/g3"
-                    android:textSize="@dimen/_9sdp" />
+                    android:textSize="@dimen/_8sdp" />
             </LinearLayout>
 
         </LinearLayout>

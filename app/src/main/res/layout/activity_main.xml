@@ -23,7 +23,7 @@
             <RelativeLayout
                 android:id="@+id/rl_toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_32sdp"
+                android:layout_height="@dimen/_28sdp"
                 android:layout_marginTop="0dp"
                 >
 
@@ -181,31 +181,28 @@
             </RelativeLayout>
 
 
-            <androidx.coordinatorlayout.widget.CoordinatorLayout
+            <!-- Fixed chrome: stories + categories never scroll away; feed fills remaining height. -->
+            <LinearLayout
                 android:id="@+id/coordinatorLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/rl_toolbar">
+                android:layout_below="@+id/rl_toolbar"
+                android:orientation="vertical">
 
-                <com.google.android.material.appbar.AppBarLayout
+                <LinearLayout
                     android:id="@+id/appbar"
                     android:layout_width="match_parent"
-
                     android:layout_height="wrap_content"
                     android:background="@color/transparent"
-                    android:elevation="0dp"
-                    app:elevation="0dp">
+                    android:orientation="vertical">
 
                     <LinearLayout
                         android:id="@+id/main_constraint"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/rl_toolbar"
                         android:orientation="vertical"
-                        android:visibility="visible"
-                        app:layout_scrollFlags="scroll|enterAlways|snap">
+                        android:visibility="visible">
 
-                        <!-- User Stories (24h) — compact so feed Edit/Download/Share fit on screen -->
                         <LinearLayout
                             android:id="@+id/ll_story"
                             android:layout_width="match_parent"
@@ -219,7 +216,7 @@
 
                             <ImageView
                                 android:id="@+id/festivalSpecialIcon"
-                                android:layout_width="@dimen/_40sdp"
+                                android:layout_width="@dimen/_32sdp"
                                 android:layout_height="wrap_content"
                                 android:adjustViewBounds="true"
                                 android:src="@drawable/ic_todays_special"
@@ -244,10 +241,8 @@
                         android:id="@+id/ll_stories"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/appbar"
                         android:orientation="vertical"
-                        android:visibility="visible"
-                        app:layout_scrollFlags="scroll|enterAlways|snap">
+                        android:visibility="visible">
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvCategory"
@@ -268,7 +263,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/inter_regular"
                             android:gravity="center"
-                            android:paddingVertical="@dimen/_4sdp"
+                            android:paddingVertical="@dimen/_2sdp"
                             android:text="@string/search_no_categories"
                             android:textColor="@color/post_meta_text_secondary"
                             android:textSize="@dimen/_11sdp"
@@ -276,15 +271,13 @@
 
                     </LinearLayout>
 
-                </com.google.android.material.appbar.AppBarLayout>
-
+                </LinearLayout>
 
                 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                     android:id="@+id/swipe_refresh"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_below="@+id/ll_stories"
-                    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -315,7 +308,7 @@
 
                 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            </LinearLayout>
 
             <com.airbnb.lottie.LottieAnimationView
                 android:visibility="gone"
