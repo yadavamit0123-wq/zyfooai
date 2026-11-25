@@ -17,6 +17,7 @@ import com.pt.zyfooai.utils.ThemeHelper;
 
 import com.pt.zyfooai.respository.FrameRepository;
 import com.pt.zyfooai.utils.FrameCatalogProvider;
+import com.pt.zyfooai.utils.BiometricHelper;
 import com.pt.zyfooai.utils.PreferenceManager;
 import com.pt.zyfooai.utils.Util;
 import com.google.android.gms.ads.MobileAds;
@@ -77,6 +78,7 @@ public class MyApplication extends Application {
 
         FirebaseApp.initializeApp(this);
         ThemeHelper.applySavedTheme(this);
+        BiometricHelper.initAppLifecycle();
         RemoteConfigHelper.fetchAndActivate(this, null);
         ReleaseVerifyHelper.logBuildInfo(this);
 

@@ -376,9 +376,13 @@ public class EditorActivity extends AppCompatActivity implements AutofitTextRel.
     private void playMusic(String path) {
         musicPath = path;
         binding.diskLay.setVisibility(VISIBLE);
-        if (musicPlayer != null && musicPlayer.isPlaying()) {
-            musicPlayer.setPlayWhenReady(false);
-            musicPlayer.release();
+        if (musicPlayer != null) {
+            try {
+                musicPlayer.setPlayWhenReady(false);
+                musicPlayer.release();
+            } catch (Exception ignored) {
+            }
+            musicPlayer = null;
         }
         TrackSelector trackSelectorDef = new DefaultTrackSelector();
         musicPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef);
@@ -414,7 +418,13 @@ public class EditorActivity extends AppCompatActivity implements AutofitTextRel.
     protected void onDestroy() {
         super.onDestroy();
         stopMusic();
-        musicPlayer.release();
+        if (musicPlayer != null) {
+            try {
+                musicPlayer.release();
+            } catch (Exception ignored) {
+            }
+            musicPlayer = null;
+        }
     }
 
     ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(

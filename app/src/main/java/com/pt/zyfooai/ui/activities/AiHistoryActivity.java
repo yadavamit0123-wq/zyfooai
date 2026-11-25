@@ -2,10 +2,14 @@ package com.pt.zyfooai.ui.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,14 +25,17 @@ import com.pt.zyfooai.model.AiConversation;
 import com.pt.zyfooai.respository.AiRepository;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class AiHistoryActivity extends AppCompatActivity {
 
     private final AiRepository repository = new AiRepository();
-    private final ArrayList<AiConversation> items = new ArrayList<>();
+    private final ArrayList<AiConversation> allItems = new ArrayList<>();
+    private final ArrayList<AiConversation> filtered = new ArrayList<>();
     private HistoryAdapter adapter;
     private ProgressBar progress;
     private TextView emptyTv;
+    private EditText etSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +45,31 @@ public class AiHistoryActivity extends AppCompatActivity {
         findViewById(R.id.backImg).setOnClickListener(v -> finish());
         progress = findViewById(R.id.progress);
         emptyTv = findViewById(R.id.emptyTv);
+        etSearch = findViewById(R.id.etHistorySearch);
         RecyclerView rv = findViewById(R.id.rvHistory);
         adapter = new HistoryAdapter();
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(adapter);
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                applyFilter(s != null ? s.toString() : "");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         reload();
     }
 
@@ -49,13 +77,33 @@ public class AiHistoryActivity extends AppCompatActivity {
         progress.setVisibility(View.VISIBLE);
         repository.listConversations(this).observe(this, response -> {
             progress.setVisibility(View.GONE);
-            items.clear();
+            allItems.clear();
             if (response != null && response.data != null) {
-                items.addAll(response.data);
+                allItems.addAll(response.data);
             }
-            emptyTv.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
-            adapter.notifyDataSetChanged();
+            applyFilter(etSearch.getText() != null ? etSearch.getText().toString() : "");
         });
+    }
+
+    private void applyFilter(String query) {
+        filtered.clear();
+        String q = query != null ? query.trim().toLowerCase(Locale.getDefault()) : "";
+        if (q.isEmpty()) {
+            filtered.addAll(allItems);
+        } else {
+            for (AiConversation c : allItems) {
+                if (c == null) {
+                    continue;
+                }
+                String title = c.title != null ? c.title.toLowerCase(Locale.getDefault()) : "";
+                String provider = c.provider != null ? c.provider.toLowerCase(Locale.getDefault()) : "";
+                if (title.contains(q) || provider.contains(q)) {
+                    filtered.add(c);
+                }
+            }
+        }
+        emptyTv.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+        adapter.notifyDataSetChanged();
     }
 
     private void openConversation(AiConversation c) {
@@ -70,14 +118,23 @@ public class AiHistoryActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    private void confirmDelete(AiConversation c) {
+    private void confirmDelete(AiConversation c, int adapterPosition) {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.ai_delete_title)
                 .setMessage(R.string.ai_delete_message)
                 .setPositiveButton(R.string.ai_delete, (d, w) ->
                         repository.deleteConversation(this, c.id).observe(this, ok -> {
                             if (Boolean.TRUE.equals(ok)) {
-                                reload();
+                                Toast.makeText(this, R.string.ai_deleted, Toast.LENGTH_SHORT).show();
+                                allItems.remove(c);
+                                if (adapterPosition >= 0 && adapterPosition < filtered.size()) {
+                                    filtered.remove(adapterPosition);
+                                    adapter.notifyItemRemoved(adapterPosition);
+                                } else {
+                                    applyFilter(etSearch.getText() != null
+                                            ? etSearch.getText().toString() : "");
+                                }
+                                emptyTv.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
                             } else {
                                 Toast.makeText(this, R.string.ai_failed, Toast.LENGTH_SHORT).show();
                             }
@@ -97,8 +154,10 @@ public class AiHistoryActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
-            AiConversation c = items.get(position);
-            holder.title.setText(!TextUtils.isEmpty(c.title) ? c.title : getString(R.string.ai_chat_title));
+            AiConversation c = filtered.get(position);
+            holder.title.setText(!TextUtils.isEmpty(c.title)
+                    ? c.title
+                    : getString(R.string.ai_chat_title));
             String meta = "";
             if (!TextUtils.isEmpty(c.provider)) {
                 meta = c.provider;
@@ -108,25 +167,29 @@ public class AiHistoryActivity extends AppCompatActivity {
             }
             holder.meta.setText(meta);
             holder.itemView.setOnClickListener(v -> openConversation(c));
+            holder.btnDelete.setOnClickListener(v ->
+                    confirmDelete(c, holder.getBindingAdapterPosition()));
             holder.itemView.setOnLongClickListener(v -> {
-                confirmDelete(c);
+                confirmDelete(c, holder.getBindingAdapterPosition());
                 return true;
             });
         }
 
         @Override
         public int getItemCount() {
-            return items.size();
+            return filtered.size();
         }
 
         class Holder extends RecyclerView.ViewHolder {
             final TextView title;
             final TextView meta;
+            final ImageView btnDelete;
 
             Holder(@NonNull View itemView) {
                 super(itemView);
                 title = itemView.findViewById(R.id.tvTitle);
                 meta = itemView.findViewById(R.id.tvMeta);
+                btnDelete = itemView.findViewById(R.id.btnDelete);
             }
         }
     }

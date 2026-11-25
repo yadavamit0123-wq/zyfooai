@@ -173,57 +173,116 @@ public final class UserStoryRepository {
                     parts.add(part);
                 }
             }
-            if (parts.isEmpty()) {
-                UserStoryDetailResponse error = new UserStoryDetailResponse();
-                error.success = false;
-                error.message = "Could not read images";
-                liveData.postValue(error);
-                return;
-            }
-
-            String rawUserId = new PreferenceManager(appContext).getString(Constant.USER_ID);
-            final String userId = rawUserId != null ? rawUserId : "";
-            RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
-
-            apiService.createUserStory(userIdBody, parts).enqueue(new Callback<UserStoryDetailResponse>() {
-                @Override
-                public void onResponse(Call<UserStoryDetailResponse> call, Response<UserStoryDetailResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        upsertOwnStoryInFeed(response.body().data, userId, appContext);
-                        liveData.postValue(response.body());
-                        return;
-                    }
-                    UserStoryDetailResponse error = new UserStoryDetailResponse();
-                    error.success = false;
-                    String bodyHint = "";
-                    try {
-                        if (response.errorBody() != null) {
-                            bodyHint = response.errorBody().string();
-                            if (bodyHint.length() > 180) {
-                                bodyHint = bodyHint.substring(0, 180);
-                            }
-                        }
-                    } catch (Exception ignored) {
-                    }
-                    Log.e(TAG, "createStory HTTP " + response.code() + " " + bodyHint);
-                    if (response.code() == 401) {
-                        error.message = "Auth failed (401). Backend ko same API key / Bearer allow karna hoga.";
-                    } else {
-                        error.message = "Upload failed (" + response.code() + ")";
-                    }
-                    liveData.postValue(error);
-                }
-
-                @Override
-                public void onFailure(Call<UserStoryDetailResponse> call, Throwable t) {
-                    UserStoryDetailResponse error = new UserStoryDetailResponse();
-                    error.success = false;
-                    error.message = t.getMessage();
-                    liveData.postValue(error);
-                }
-            });
+            uploadParts(appContext, parts, liveData);
         });
         return liveData;
+    }
+
+    /**
+     * Post framed feed media (image or reel still) to the current user's 24h story.
+     */
+    public LiveData<UserStoryDetailResponse> createStoryFromBitmap(Context context, Bitmap bitmap) {
+        MutableLiveData<UserStoryDetailResponse> liveData = new MutableLiveData<>();
+        if (context == null || bitmap == null || bitmap.isRecycled()) {
+            UserStoryDetailResponse error = new UserStoryDetailResponse();
+            error.success = false;
+            error.message = "No image";
+            liveData.setValue(error);
+            return liveData;
+        }
+
+        Context appContext = context.getApplicationContext();
+        final Bitmap source = bitmap;
+        EXECUTOR.execute(() -> {
+            MultipartBody.Part part = bitmapToCompressedPart(appContext, source, 0);
+            List<MultipartBody.Part> parts = new ArrayList<>();
+            if (part != null) {
+                parts.add(part);
+            }
+            uploadParts(appContext, parts, liveData);
+        });
+        return liveData;
+    }
+
+    /**
+     * Post a saved image (or first frame of an mp4) to the current user's story.
+     */
+    public LiveData<UserStoryDetailResponse> createStoryFromFile(Context context, File file) {
+        MutableLiveData<UserStoryDetailResponse> liveData = new MutableLiveData<>();
+        if (context == null || file == null || !file.exists()) {
+            UserStoryDetailResponse error = new UserStoryDetailResponse();
+            error.success = false;
+            error.message = "No file";
+            liveData.setValue(error);
+            return liveData;
+        }
+
+        Context appContext = context.getApplicationContext();
+        EXECUTOR.execute(() -> {
+            MultipartBody.Part part = fileToCompressedPart(appContext, file, 0);
+            List<MultipartBody.Part> parts = new ArrayList<>();
+            if (part != null) {
+                parts.add(part);
+            }
+            uploadParts(appContext, parts, liveData);
+        });
+        return liveData;
+    }
+
+    private void uploadParts(
+            Context appContext,
+            List<MultipartBody.Part> parts,
+            MutableLiveData<UserStoryDetailResponse> liveData
+    ) {
+        if (parts == null || parts.isEmpty()) {
+            UserStoryDetailResponse error = new UserStoryDetailResponse();
+            error.success = false;
+            error.message = "Could not read images";
+            liveData.postValue(error);
+            return;
+        }
+
+        String rawUserId = new PreferenceManager(appContext).getString(Constant.USER_ID);
+        final String userId = rawUserId != null ? rawUserId : "";
+        RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
+
+        apiService.createUserStory(userIdBody, parts).enqueue(new Callback<UserStoryDetailResponse>() {
+            @Override
+            public void onResponse(Call<UserStoryDetailResponse> call, Response<UserStoryDetailResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    upsertOwnStoryInFeed(response.body().data, userId, appContext);
+                    liveData.postValue(response.body());
+                    return;
+                }
+                UserStoryDetailResponse error = new UserStoryDetailResponse();
+                error.success = false;
+                String bodyHint = "";
+                try {
+                    if (response.errorBody() != null) {
+                        bodyHint = response.errorBody().string();
+                        if (bodyHint.length() > 180) {
+                            bodyHint = bodyHint.substring(0, 180);
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+                Log.e(TAG, "createStory HTTP " + response.code() + " " + bodyHint);
+                if (response.code() == 401) {
+                    error.message = "Auth failed (401). Backend ko same API key / Bearer allow karna hoga.";
+                } else {
+                    error.message = "Upload failed (" + response.code() + ")";
+                }
+                liveData.postValue(error);
+            }
+
+            @Override
+            public void onFailure(Call<UserStoryDetailResponse> call, Throwable t) {
+                UserStoryDetailResponse error = new UserStoryDetailResponse();
+                error.success = false;
+                error.message = t.getMessage();
+                liveData.postValue(error);
+            }
+        });
     }
 
     /**
@@ -304,7 +363,7 @@ public final class UserStoryRepository {
         try {
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
-            try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            try (InputStream in = openUriStream(context, uri)) {
                 if (in == null) {
                     return null;
                 }
@@ -320,19 +379,78 @@ public final class UserStoryRepository {
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inSampleSize = Math.max(1, sample);
             Bitmap bitmap;
-            try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            try (InputStream in = openUriStream(context, uri)) {
                 if (in == null) {
                     return null;
                 }
                 bitmap = BitmapFactory.decodeStream(in, null, opts);
             }
-            if (bitmap == null) {
+            return bitmapToCompressedPart(context, bitmap, index);
+        } catch (Exception e) {
+            Log.d(TAG, "uriToCompressedPart failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    @Nullable
+    private static InputStream openUriStream(Context context, Uri uri) throws Exception {
+        if (uri == null) {
+            return null;
+        }
+        if ("file".equalsIgnoreCase(uri.getScheme()) && uri.getPath() != null) {
+            return new java.io.FileInputStream(uri.getPath());
+        }
+        return context.getContentResolver().openInputStream(uri);
+    }
+
+    @Nullable
+    private static MultipartBody.Part fileToCompressedPart(Context context, File file, int index) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        String name = file.getName().toLowerCase();
+        if (name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".webm")) {
+            try {
+                android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever();
+                retriever.setDataSource(file.getAbsolutePath());
+                Bitmap frame = retriever.getFrameAtTime(0);
+                retriever.release();
+                return bitmapToCompressedPart(context, frame, index);
+            } catch (Exception e) {
+                Log.d(TAG, "fileToCompressedPart video frame failed: " + e.getMessage());
                 return null;
             }
+        }
+        try {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(file.getAbsolutePath(), bounds);
+            int sample = 1;
+            int maxDim = Math.max(bounds.outWidth, bounds.outHeight);
+            while (maxDim / sample > MAX_EDGE_PX * 2) {
+                sample *= 2;
+            }
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = Math.max(1, sample);
+            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+            return bitmapToCompressedPart(context, bitmap, index);
+        } catch (Exception e) {
+            Log.d(TAG, "fileToCompressedPart failed: " + e.getMessage());
+            return null;
+        }
+    }
 
+    @Nullable
+    private static MultipartBody.Part bitmapToCompressedPart(Context context, Bitmap bitmap, int index) {
+        if (bitmap == null || bitmap.isRecycled()) {
+            return null;
+        }
+        try {
             int w = bitmap.getWidth();
             int h = bitmap.getHeight();
             float scale = Math.min(1f, MAX_EDGE_PX / (float) Math.max(w, h));
+            Bitmap working = bitmap;
+            boolean recycleWorking = false;
             if (scale < 1f) {
                 Bitmap scaled = Bitmap.createScaledBitmap(
                         bitmap,
@@ -341,8 +459,8 @@ public final class UserStoryRepository {
                         true
                 );
                 if (scaled != bitmap) {
-                    bitmap.recycle();
-                    bitmap = scaled;
+                    working = scaled;
+                    recycleWorking = true;
                 }
             }
 
@@ -351,14 +469,16 @@ public final class UserStoryRepository {
                     "story_upload_" + index + "_" + System.currentTimeMillis() + ".jpg"
             );
             try (FileOutputStream out = new FileOutputStream(cacheFile)) {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out);
+                working.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out);
             }
-            bitmap.recycle();
+            if (recycleWorking) {
+                working.recycle();
+            }
 
             RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"), cacheFile);
             return MultipartBody.Part.createFormData("images[]", cacheFile.getName(), body);
         } catch (Exception e) {
-            Log.d(TAG, "uriToCompressedPart failed: " + e.getMessage());
+            Log.d(TAG, "bitmapToCompressedPart failed: " + e.getMessage());
             return null;
         }
     }

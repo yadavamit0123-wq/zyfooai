@@ -52,9 +52,15 @@ public class SelectMusicFragment extends BottomSheetDialogFragment {
     Context context;
 
     public ClickListener<PostItem> listener;
+    private Runnable onDismissExtra;
+    private String currentPreviewPath = "";
 
     public SelectMusicFragment(ClickListener<PostItem> listener) {
         this.listener = listener;
+    }
+
+    public void setOnDismissListener(Runnable onDismiss) {
+        this.onDismissExtra = onDismiss;
     }
 
     @Override
@@ -82,11 +88,21 @@ public class SelectMusicFragment extends BottomSheetDialogFragment {
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
         stopMusic();
+        if (onDismissExtra != null) {
+            onDismissExtra.run();
+            onDismissExtra = null;
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopMusic();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
         stopMusic();
     }
 
@@ -119,7 +135,9 @@ public class SelectMusicFragment extends BottomSheetDialogFragment {
                     @Override
                     public void onSelect(PostItem postItem) {
                         stopMusic();
-                        listener.onClick(postItem);
+                        if (listener != null) {
+                            listener.onClick(postItem);
+                        }
                         dismiss();
                     }
 
@@ -141,35 +159,45 @@ public class SelectMusicFragment extends BottomSheetDialogFragment {
     }
 
     private void stopMusic() {
-        if (musicPlayer != null){
-            musicPlayer.setPlayWhenReady(false);
-            musicPlayer.release();
+        currentPreviewPath = "";
+        if (musicPlayer != null) {
+            try {
+                musicPlayer.setPlayWhenReady(false);
+                musicPlayer.stop(true);
+                musicPlayer.release();
+            } catch (Exception ignored) {
+            }
+            musicPlayer = null;
         }
     }
 
     ExoPlayer musicPlayer;
     private void playMusic(String path) {
-        if (musicPlayer != null && musicPlayer.isPlaying()) {
-            musicPlayer.setPlayWhenReady(false);
-            musicPlayer.release();
+        // Always stop previous preview first — only one track at a time.
+        if (musicPlayer != null) {
+            try {
+                musicPlayer.setPlayWhenReady(false);
+                musicPlayer.stop(true);
+                musicPlayer.release();
+            } catch (Exception ignored) {
+            }
+            musicPlayer = null;
         }
+        if (path == null || path.isEmpty() || context == null) {
+            return;
+        }
+        currentPreviewPath = path;
         TrackSelector trackSelectorDef = new DefaultTrackSelector();
         musicPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef);
 
-        int appNameStringRes = R.string.app_name;
-        String userAgent = Util.getUserAgent(context, context.getString(appNameStringRes));
+        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
         DefaultDataSourceFactory defdataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
         Uri uriOfContentUrl = Uri.parse(path);
-        MediaSource mediaSource = new ProgressiveMediaSource.Factory(defdataSourceFactory).createMediaSource(uriOfContentUrl);  // creating a media source
+        MediaSource mediaSource = new ProgressiveMediaSource.Factory(defdataSourceFactory)
+                .createMediaSource(uriOfContentUrl);
 
         musicPlayer.prepare(mediaSource);
         musicPlayer.setPlayWhenReady(true);
         musicPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
-        musicPlayer.addListener(new Player.EventListener() {
-            @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-
-            }
-        });
     }
 }

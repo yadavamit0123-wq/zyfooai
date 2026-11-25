@@ -80,16 +80,9 @@ public class SettingActivity extends AppCompatActivity {
         binding.switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) ->
                 ThemeHelper.setDarkMode(context, isChecked));
 
-        binding.switchBiometric.setEnabled(BiometricHelper.isBiometricAvailable(context));
+        binding.switchBiometric.setEnabled(true);
         binding.switchBiometric.setChecked(BiometricHelper.isLockEnabled(context));
-        binding.switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked && !BiometricHelper.isBiometricAvailable(context)) {
-                binding.switchBiometric.setChecked(false);
-                Toast.makeText(context, "Biometric not available on this device", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            BiometricHelper.setLockEnabled(context, isChecked);
-        });
+        bindBiometricSwitchListener();
 
         // Feature flag from getAppInfo → ReferEarn; server code shown when cached.
         if (ReferEarnPrefs.isEnabled(context)) {
@@ -98,8 +91,17 @@ public class SettingActivity extends AppCompatActivity {
             binding.tvReferralCode.setText(serverCode != null && !serverCode.isEmpty() ? serverCode : "");
             binding.llReferral.setOnClickListener(v ->
                     startActivity(new Intent(this, ReferralProgramActivity.class)));
+
+            binding.llWallet.setVisibility(View.VISIBLE);
+            String walletBal = preferenceManager.getString(Constant.REFER_WALLET_BALANCE);
+            binding.tvWalletBalanceSetting.setText(
+                    getString(R.string.wallet_balance_amount,
+                            walletBal != null && !walletBal.isEmpty() ? walletBal : "0"));
+            binding.llWallet.setOnClickListener(v ->
+                    startActivity(new Intent(this, WalletActivity.class)));
         } else {
             binding.llReferral.setVisibility(View.GONE);
+            binding.llWallet.setVisibility(View.GONE);
         }
         binding.llChatSupport.setOnClickListener(v -> startActivity(new Intent(this, ChatSupportActivity.class)));
         binding.llCreatorStats.setOnClickListener(v -> startActivity(new Intent(this, CreatorStatsActivity.class)));
@@ -217,6 +219,32 @@ public class SettingActivity extends AppCompatActivity {
 
     }
 
+    private void bindBiometricSwitchListener() {
+        binding.switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) {
+                return;
+            }
+            if (isChecked) {
+                // Keep switch OFF until biometric confirms.
+                setBiometricSwitchChecked(false);
+                BiometricHelper.enableWithVerification(
+                        SettingActivity.this,
+                        () -> setBiometricSwitchChecked(true),
+                        () -> setBiometricSwitchChecked(false)
+                );
+            } else {
+                BiometricHelper.setLockEnabled(context, false);
+                Toast.makeText(context, R.string.biometric_disabled, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setBiometricSwitchChecked(boolean checked) {
+        binding.switchBiometric.setOnCheckedChangeListener(null);
+        binding.switchBiometric.setChecked(checked);
+        bindBiometricSwitchListener();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -224,6 +252,12 @@ public class SettingActivity extends AppCompatActivity {
             GlideDataBinding.bindImage(binding.circularImageView, preferenceManager.getString(Constant.USER_IMAGE));
         }
         binding.nameTv.setText(preferenceManager.getString(Constant.USER_NAME));
+        if (ReferEarnPrefs.isEnabled(context) && binding.llWallet.getVisibility() == View.VISIBLE) {
+            String walletBal = preferenceManager.getString(Constant.REFER_WALLET_BALANCE);
+            binding.tvWalletBalanceSetting.setText(
+                    getString(R.string.wallet_balance_amount,
+                            walletBal != null && !walletBal.isEmpty() ? walletBal : "0"));
+        }
     }
 
     public static int getSubsIntervel(Date startDate, Date endDate) {

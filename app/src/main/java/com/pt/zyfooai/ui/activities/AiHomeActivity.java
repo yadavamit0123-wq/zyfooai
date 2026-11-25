@@ -1,9 +1,13 @@
 package com.pt.zyfooai.ui.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -35,12 +39,15 @@ public class AiHomeActivity extends AppCompatActivity {
     private TextView btnOpenai;
     private TextView btnGemini;
     private TextView btnChat;
+    private TextView btnTemporaryChat;
     private TextView btnCreateImage;
     private TextView btnEnhance;
     private TextView btnBgRemove;
     private TextView tvQuota;
+    private TextView tvTempHint;
     private ProgressBar progress;
     private ImageView ivResult;
+    private EditText etHomeAsk;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,24 +61,58 @@ public class AiHomeActivity extends AppCompatActivity {
         btnOpenai = findViewById(R.id.btnProviderOpenai);
         btnGemini = findViewById(R.id.btnProviderGemini);
         btnChat = findViewById(R.id.btnChat);
+        btnTemporaryChat = findViewById(R.id.btnTemporaryChat);
         btnCreateImage = findViewById(R.id.btnCreateImage);
         btnEnhance = findViewById(R.id.btnEnhance);
         btnBgRemove = findViewById(R.id.btnBgRemove);
         tvQuota = findViewById(R.id.tvQuota);
+        tvTempHint = findViewById(R.id.tvTempHint);
         progress = findViewById(R.id.progress);
         ivResult = findViewById(R.id.ivResult);
+        etHomeAsk = findViewById(R.id.etHomeAsk);
 
         findViewById(R.id.btnHistory).setOnClickListener(v ->
                 startActivity(new Intent(this, AiHistoryActivity.class)));
 
         btnOpenai.setOnClickListener(v -> selectProvider("openai"));
         btnGemini.setOnClickListener(v -> selectProvider("gemini"));
-        btnChat.setOnClickListener(v -> openChat(false));
-        btnCreateImage.setOnClickListener(v -> openChat(true));
+        btnChat.setOnClickListener(v -> openChat(false, false, null));
+        btnTemporaryChat.setOnClickListener(v -> openChat(false, true, null));
+        btnCreateImage.setOnClickListener(v -> openChat(true, false, null));
         btnEnhance.setOnClickListener(v -> runProcess("enhance"));
         btnBgRemove.setOnClickListener(v -> runProcess("bg_remove"));
 
+        findViewById(R.id.btnHomeSend).setOnClickListener(v -> sendFromHomeComposer());
+        etHomeAsk.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEND
+                    || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                sendFromHomeComposer();
+                return true;
+            }
+            return false;
+        });
+
+        bindSuggestion(R.id.chipSuggestion1, getString(R.string.ai_suggestion_1));
+        bindSuggestion(R.id.chipSuggestion2, getString(R.string.ai_suggestion_2));
+        bindSuggestion(R.id.chipSuggestion3, getString(R.string.ai_suggestion_3));
+
         loadConfig();
+    }
+
+    private void bindSuggestion(int id, String text) {
+        TextView chip = findViewById(id);
+        chip.setOnClickListener(v -> openChat(false, false, text));
+    }
+
+    private void sendFromHomeComposer() {
+        String text = etHomeAsk.getText() != null ? etHomeAsk.getText().toString().trim() : "";
+        if (TextUtils.isEmpty(text)) {
+            openChat(false, false, null);
+            return;
+        }
+        etHomeAsk.setText("");
+        openChat(false, false, text);
     }
 
     private void loadConfig() {
@@ -105,6 +146,8 @@ public class AiHomeActivity extends AppCompatActivity {
         boolean bg = config.hasTool("bg_remove") || config.hasTool("bgremove");
 
         btnChat.setVisibility(chat ? View.VISIBLE : View.GONE);
+        btnTemporaryChat.setVisibility(chat ? View.VISIBLE : View.GONE);
+        tvTempHint.setVisibility(chat ? View.VISIBLE : View.GONE);
         btnCreateImage.setVisibility(createImage ? View.VISIBLE : View.GONE);
 
         boolean hasPostImage = !TextUtils.isEmpty(imageUrl);
@@ -135,13 +178,24 @@ public class AiHomeActivity extends AppCompatActivity {
     }
 
     private void highlightProvider() {
-        float openaiAlpha = "openai".equals(selectedProvider) ? 1f : 0.45f;
-        float geminiAlpha = "gemini".equals(selectedProvider) ? 1f : 0.45f;
-        btnOpenai.setAlpha(openaiAlpha);
-        btnGemini.setAlpha(geminiAlpha);
+        styleProviderChip(btnOpenai, "openai".equals(selectedProvider));
+        styleProviderChip(btnGemini, "gemini".equals(selectedProvider));
     }
 
-    private void openChat(boolean createImageMode) {
+    private void styleProviderChip(TextView chip, boolean selected) {
+        if (chip == null) {
+            return;
+        }
+        if (selected) {
+            chip.setBackgroundResource(R.drawable.bg_ai_btn_3d);
+            chip.setTextColor(Color.WHITE);
+        } else {
+            chip.setBackgroundResource(R.drawable.bg_ai_chip);
+            chip.setTextColor(Color.parseColor("#111827"));
+        }
+    }
+
+    private void openChat(boolean createImageMode, boolean temporary, String initialMessage) {
         if (TextUtils.isEmpty(selectedProvider)) {
             Toast.makeText(this, R.string.ai_pick_provider, Toast.LENGTH_SHORT).show();
             return;
@@ -149,6 +203,10 @@ public class AiHomeActivity extends AppCompatActivity {
         Intent i = new Intent(this, AiChatActivity.class);
         i.putExtra(EXTRA_PROVIDER, selectedProvider);
         i.putExtra(AiChatActivity.EXTRA_CREATE_IMAGE_MODE, createImageMode);
+        i.putExtra(AiChatActivity.EXTRA_TEMPORARY, temporary);
+        if (!TextUtils.isEmpty(initialMessage)) {
+            i.putExtra(AiChatActivity.EXTRA_INITIAL_MESSAGE, initialMessage);
+        }
         startActivity(i);
     }
 

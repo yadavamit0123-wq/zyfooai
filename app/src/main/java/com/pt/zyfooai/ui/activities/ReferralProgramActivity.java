@@ -171,6 +171,8 @@ public class ReferralProgramActivity extends AppCompatActivity {
         if (balance != null && !balance.isEmpty()) {
             tvWallet.setVisibility(View.VISIBLE);
             tvWallet.setText(getString(R.string.referral_wallet_label, balance));
+            tvWallet.setOnClickListener(v ->
+                    startActivity(new Intent(this, WalletActivity.class)));
         }
     }
 
@@ -193,6 +195,8 @@ public class ReferralProgramActivity extends AppCompatActivity {
             if (me.walletBalance != null && !me.walletBalance.isEmpty()) {
                 tvWallet.setVisibility(View.VISIBLE);
                 tvWallet.setText(getString(R.string.referral_wallet_label, me.walletBalance));
+                tvWallet.setOnClickListener(v ->
+                        startActivity(new Intent(this, WalletActivity.class)));
             }
             applyBannerMedia(me.bannerType, me.bannerUrl, me.bannerPosterUrl);
         });

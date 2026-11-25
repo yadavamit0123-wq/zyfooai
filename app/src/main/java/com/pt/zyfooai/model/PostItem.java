@@ -41,6 +41,18 @@ public class PostItem implements Serializable {
     @SerializedName("is_video")
     public boolean is_video;
 
+    /** Global download count from API (how many users downloaded). */
+    @SerializedName(value = "download_count", alternate = {
+            "downloadCount", "downloads", "total_downloads", "download", "dl_count"
+    })
+    public long downloadCount;
+
+    /** Global share count from API (how many users shared). */
+    @SerializedName(value = "share_count", alternate = {
+            "shareCount", "shares", "total_shares", "share", "sh_count"
+    })
+    public long shareCount;
+
     public PostItem(@NonNull String postId, String fest_id, String type, String image_url, String language, boolean is_premium, boolean is_trending, boolean is_video) {
         this.postId = postId;
         this.fest_id = fest_id;
@@ -50,6 +62,14 @@ public class PostItem implements Serializable {
         this.is_premium = is_premium;
         this.is_trending = is_trending;
         this.is_video = is_video;
+    }
+
+    public long resolveDownloadCount() {
+        return Math.max(0L, downloadCount);
+    }
+
+    public long resolveShareCount() {
+        return Math.max(0L, shareCount);
     }
 
 }

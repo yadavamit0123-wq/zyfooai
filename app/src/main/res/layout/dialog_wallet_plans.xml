@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background_06"
+    android:backgroundTint="@android:color/white"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/_12sdp">
+
+    <View
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_4sdp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:background="@drawable/background_02"
+        android:backgroundTint="#CDCFD0" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_16sdp"
+        android:layout_marginTop="@dimen/_12sdp"
+        android:fontFamily="@font/inter_semi_bold"
+        android:text="@string/wallet_choose_plan"
+        android:textColor="#1A1A1A"
+        android:textSize="@dimen/_14sdp" />
+
+    <TextView
+        android:id="@+id/tvPlansWalletHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/_16sdp"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:fontFamily="@font/inter_regular"
+        android:textColor="#888888"
+        android:textSize="@dimen/_11sdp"
+        tools:text="Wallet: ₹120" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvWalletPlans"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:maxHeight="@dimen/_280sdp"
+        tools:listitem="@layout/item_wallet_plan" />
+
+    <ProgressBar
+        android:id="@+id/progressPlans"
+        android:layout_width="@dimen/_28sdp"
+        android:layout_height="@dimen/_28sdp"
+        android:layout_gravity="center"
+        android:layout_marginVertical="@dimen/_16sdp"
+        android:visibility="gone" />
+</LinearLayout>

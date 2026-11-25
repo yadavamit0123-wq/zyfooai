@@ -1,13 +1,16 @@
 package com.pt.zyfooai.ui.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -33,13 +36,14 @@ import com.pt.zyfooai.utils.AiPrefs;
 import com.pt.zyfooai.utils.AiUiHelper;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class AiChatActivity extends AppCompatActivity {
 
     public static final String EXTRA_CREATE_IMAGE_MODE = "create_image_mode";
     public static final String EXTRA_CONVERSATION_ID = "conversation_id";
+    public static final String EXTRA_TEMPORARY = "temporary";
+    public static final String EXTRA_INITIAL_MESSAGE = "initial_message";
 
     private final AiRepository repository = new AiRepository();
     private final ArrayList<AiChatMessage> messages = new ArrayList<>();
@@ -48,12 +52,17 @@ public class AiChatActivity extends AppCompatActivity {
     private String provider;
     private String conversationId;
     private boolean createImageMode;
+    private boolean temporary;
     private Uri pendingImage;
+    private boolean initialSent;
 
     private EditText etMessage;
     private ProgressBar progress;
     private ImageView btnAttach;
     private ImageView btnMic;
+    private View emptyState;
+    private View tempBanner;
+    private RecyclerView rvMessages;
 
     private final ActivityResultLauncher<PickVisualMediaRequest> pickImage =
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
@@ -87,22 +96,36 @@ public class AiChatActivity extends AppCompatActivity {
         }
         conversationId = getIntent().getStringExtra(EXTRA_CONVERSATION_ID);
         createImageMode = getIntent().getBooleanExtra(EXTRA_CREATE_IMAGE_MODE, false);
+        temporary = getIntent().getBooleanExtra(EXTRA_TEMPORARY, false);
 
         TextView title = findViewById(R.id.tvTitle);
-        title.setText(createImageMode
-                ? getString(R.string.ai_create_image)
-                : getString(R.string.ai_chat_title_provider, displayProvider(provider)));
+        if (temporary) {
+            title.setText(R.string.ai_temporary_chat);
+        } else if (createImageMode) {
+            title.setText(R.string.ai_create_image);
+        } else {
+            title.setText(getString(R.string.ai_chat_title_provider, displayProvider(provider)));
+        }
 
         findViewById(R.id.backImg).setOnClickListener(v -> finish());
+        findViewById(R.id.btnOpenHistory).setOnClickListener(v ->
+                startActivity(new Intent(this, AiHistoryActivity.class)));
         etMessage = findViewById(R.id.etMessage);
         progress = findViewById(R.id.progress);
         btnAttach = findViewById(R.id.btnAttach);
         btnMic = findViewById(R.id.btnMic);
+        emptyState = findViewById(R.id.emptyState);
+        tempBanner = findViewById(R.id.tvTempBanner);
+        rvMessages = findViewById(R.id.rvMessages);
 
-        RecyclerView rv = findViewById(R.id.rvMessages);
+        tempBanner.setVisibility(temporary ? View.VISIBLE : View.GONE);
+        if (temporary) {
+            // History icon less relevant for temp sessions — keep for browsing saved chats.
+        }
+
         adapter = new MessageAdapter();
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(adapter);
+        rvMessages.setLayoutManager(new LinearLayoutManager(this));
+        rvMessages.setAdapter(adapter);
 
         AiConfig cfg = AiPrefs.get(this);
         boolean files = cfg != null && (cfg.hasTool("files") || cfg.hasTool("camera") || cfg.hasTool("image"));
@@ -116,10 +139,34 @@ public class AiChatActivity extends AppCompatActivity {
                         .build()));
         btnMic.setOnClickListener(v -> startSpeech());
         findViewById(R.id.btnSend).setOnClickListener(v -> send());
+        etMessage.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEND
+                    || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                send();
+                return true;
+            }
+            return false;
+        });
 
-        if (!TextUtils.isEmpty(conversationId)) {
+        updateEmptyState();
+
+        if (!TextUtils.isEmpty(conversationId) && !temporary) {
             loadConversation();
+        } else {
+            String initial = getIntent().getStringExtra(EXTRA_INITIAL_MESSAGE);
+            if (!TextUtils.isEmpty(initial) && !initialSent) {
+                initialSent = true;
+                etMessage.setText(initial);
+                send();
+            }
         }
+    }
+
+    private void updateEmptyState() {
+        boolean empty = messages.isEmpty();
+        emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        rvMessages.setVisibility(empty ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void loadConversation() {
@@ -139,6 +186,10 @@ public class AiChatActivity extends AppCompatActivity {
                 }
             }
             adapter.notifyDataSetChanged();
+            updateEmptyState();
+            if (!messages.isEmpty()) {
+                rvMessages.post(() -> rvMessages.scrollToPosition(messages.size() - 1));
+            }
         });
     }
 
@@ -161,15 +212,19 @@ public class AiChatActivity extends AppCompatActivity {
         }
         messages.add(AiChatMessage.user(text));
         adapter.notifyItemInserted(messages.size() - 1);
+        updateEmptyState();
         etMessage.setText("");
         progress.setVisibility(View.VISIBLE);
+        rvMessages.post(() -> rvMessages.scrollToPosition(messages.size() - 1));
 
         if (createImageMode) {
-            repository.createImage(this, provider, text, conversationId).observe(this, this::onImageResult);
+            repository.createImage(this, provider, text, conversationId, temporary)
+                    .observe(this, this::onImageResult);
         } else {
             Uri img = pendingImage;
             pendingImage = null;
-            repository.chat(this, provider, conversationId, text, img).observe(this, this::onChatResult);
+            repository.chat(this, provider, conversationId, text, img, temporary)
+                    .observe(this, this::onChatResult);
         }
     }
 
@@ -189,6 +244,7 @@ public class AiChatActivity extends AppCompatActivity {
                     Toast.LENGTH_LONG).show();
             return;
         }
+        // Keep id in-memory for multi-turn; temporary chats are not listed in history.
         if (!TextUtils.isEmpty(response.resolvedConversationId())) {
             conversationId = response.resolvedConversationId();
         }
@@ -196,8 +252,8 @@ public class AiChatActivity extends AppCompatActivity {
         messages.add(AiChatMessage.assistant(
                 !TextUtils.isEmpty(reply) ? reply : getString(R.string.ai_empty_reply)));
         adapter.notifyItemInserted(messages.size() - 1);
-        findViewById(R.id.rvMessages).post(() ->
-                ((RecyclerView) findViewById(R.id.rvMessages)).scrollToPosition(messages.size() - 1));
+        updateEmptyState();
+        rvMessages.post(() -> rvMessages.scrollToPosition(messages.size() - 1));
     }
 
     private void onImageResult(AiImageResponse response) {
@@ -223,6 +279,7 @@ public class AiChatActivity extends AppCompatActivity {
         m.imageUrl = response.resolvedImageUrl();
         messages.add(m);
         adapter.notifyItemInserted(messages.size() - 1);
+        updateEmptyState();
         startActivity(new Intent(this, EditProfileActivity.class)
                 .putExtra("imageUrl", response.resolvedImageUrl()));
     }
@@ -250,8 +307,10 @@ public class AiChatActivity extends AppCompatActivity {
             FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) holder.tv.getLayoutParams();
             lp.gravity = mine ? android.view.Gravity.END : android.view.Gravity.START;
             holder.tv.setLayoutParams(lp);
-            holder.tv.setBackgroundResource(mine ? R.drawable.gradintround_shape : R.drawable.edit_bg);
-            holder.tv.setTextColor(mine ? getResources().getColor(R.color.white) : getResources().getColor(R.color.black));
+            holder.tv.setBackgroundResource(mine
+                    ? R.drawable.bg_ai_bubble_user
+                    : R.drawable.bg_ai_bubble_assistant);
+            holder.tv.setTextColor(mine ? Color.WHITE : Color.parseColor("#111827"));
             String text = msg.content != null ? msg.content : "";
             if (!TextUtils.isEmpty(msg.imageUrl)) {
                 text = text + "\n" + msg.imageUrl;

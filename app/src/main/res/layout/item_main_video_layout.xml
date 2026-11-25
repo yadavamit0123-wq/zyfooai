@@ -187,233 +187,229 @@
             android:orientation="vertical">
 
             <LinearLayout
-                android:id="@+id/customizeFrameBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_ripple_round"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/_6sdp"
-                android:paddingVertical="@dimen/_1sdp">
-
-                <ImageView
-                    android:layout_width="@dimen/_14sdp"
-                    android:layout_height="@dimen/_14sdp"
-                    android:src="@drawable/ic_edit_"
-                    app:tint="@color/g3" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_4sdp"
-                    android:fontFamily="@font/inter_semi_bold"
-                    android:text="@string/customize_frame"
-                    android:textColor="@color/g3"
-                    android:textSize="@dimen/_9sdp" />
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/swipeFrame"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:minHeight="@dimen/_22sdp">
+
+                <LinearLayout
+                    android:id="@+id/customizeFrameBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ripple_round"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/_4sdp"
+                    android:paddingVertical="0dp">
+
+                    <ImageView
+                        android:layout_width="@dimen/_12sdp"
+                        android:layout_height="@dimen/_12sdp"
+                        android:src="@drawable/ic_edit_"
+                        app:tint="@color/g3" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_2sdp"
+                        android:fontFamily="@font/inter_semi_bold"
+                        android:text="@string/customize_frame"
+                        android:textColor="@color/g3"
+                        android:textSize="@dimen/_8sdp" />
+                </LinearLayout>
 
                 <ru.tinkoff.scrollingpagerindicator.ScrollingPagerIndicator
                     android:id="@+id/indicator"
                     android:layout_width="wrap_content"
-                    android:layout_marginEnd="@dimen/_30sdp"
+                    android:layout_marginStart="@dimen/_6sdp"
+                    android:layout_marginEnd="@dimen/_6sdp"
                     app:spi_dotColor="#AFB1B5"
                     app:spi_dotSelectedColor="@color/g3"
                     android:layout_height="wrap_content" />
 
                 <ImageView
-                    android:layout_width="@dimen/_22sdp"
-                    android:layout_height="@dimen/_22sdp"
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
                     android:layout_gravity="center"
-                    android:padding="@dimen/_5sdp"
+                    android:padding="@dimen/_2sdp"
                     android:src="@drawable/ic_swipframe_icon"
                     app:tint="@color/black" />
 
                 <TextView
                     android:layout_weight="1"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginStart="@dimen/_3sdp"
+                    android:layout_marginStart="@dimen/_2sdp"
                     android:fontFamily="@font/inter_semi_bold"
                     android:gravity="left"
                     android:text="Swipe frames"
                     android:textColor="@color/post_meta_text_secondary"
-                    android:textSize="@dimen/_10sdp" />
+                    android:textSize="@dimen/_8sdp" />
 
                 <LinearLayout
-                    android:visibility="invisible"
                     android:id="@+id/musicBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
                     android:background="@drawable/gradintround_shape"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/_7sdp"
-                    android:paddingVertical="@dimen/_2sdp">
-
+                    android:paddingHorizontal="@dimen/_5sdp"
+                    android:paddingVertical="@dimen/_1sdp"
+                    android:visibility="visible">
 
                     <ImageView
-                        android:layout_width="@dimen/_20sdp"
-                        android:layout_height="@dimen/_20sdp"
+                        android:layout_width="@dimen/_14sdp"
+                        android:layout_height="@dimen/_14sdp"
                         android:layout_gravity="center"
-                        android:padding="@dimen/_3sdp"
+                        android:padding="@dimen/_2sdp"
                         android:src="@drawable/ic_music"
                         app:tint="@color/white" />
 
                     <TextView
-                        android:layout_marginEnd="@dimen/_5sdp"
+                        android:layout_marginEnd="@dimen/_3sdp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:fontFamily="@font/inter_regular"
                         android:gravity="center"
-                        android:text="Add Music"
+                        android:text="Music"
                         android:textColor="@color/white"
-                        android:textSize="@dimen/_8sdp" />
-
+                        android:textSize="@dimen/_7sdp" />
                 </LinearLayout>
-
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnLay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_1sdp"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingTop="0dp">
 
+                <!-- Kept for binding compatibility; hidden from UI -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:id="@+id/edit_Btn"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvDownloadCount"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/_4sdp"
+                    android:fontFamily="@font/inter_bold"
                     android:gravity="center"
-                    android:orientation="horizontal">
+                    android:maxLines="1"
+                    android:minWidth="@dimen/_22sdp"
+                    android:text="0+"
+                    android:textColor="@color/g3"
+                    android:textSize="@dimen/_9sdp" />
 
-                    <LinearLayout
-                        android:paddingHorizontal="@dimen/_6sdp"
-                        android:background="@drawable/gradintround_shape_three"
-                        android:id="@+id/edit_Btn"
-                        android:layout_weight="1"
-                        android:layout_width="0dp"
-                        android:layout_height="@dimen/feed_footer_btn_height"
-                        android:gravity="center"
-                        android:orientation="horizontal">
+                <LinearLayout
+                    android:id="@+id/downloadBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/feed_footer_btn_height"
+                    android:layout_weight="1"
+                    android:background="@drawable/gradintround_shape"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/_6sdp">
 
-                        <ImageView
-                            android:layout_width="@dimen/_16sdp"
-                            android:layout_height="@dimen/_16sdp"
-                            android:padding="@dimen/_1sdp"
-                            android:src="@drawable/ic_pen_regular"
-                            app:tint="@color/white" />
+                    <ImageView
+                        android:layout_width="@dimen/_16sdp"
+                        android:layout_height="@dimen/_16sdp"
+                        android:padding="@dimen/_1sdp"
+                        android:src="@drawable/ic_download_regular_color"
+                        app:tint="@color/white" />
 
-                        <com.pt.zyfooai.View.AutoResizeTextView
-                            android:maxLines="1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/_2sdp"
-                            android:fontFamily="@font/inter_bold"
-                            android:text="Edit"
-                            android:textColor="@color/white"
-                            android:textSize="@dimen/_9sdp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/aiBtn"
-                        android:layout_width="0dp"
-                        android:layout_height="@dimen/feed_footer_btn_height"
-                        android:layout_marginStart="@dimen/_4sdp"
-                        android:layout_weight="0.7"
-                        android:background="@drawable/gradintround_shape_two"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="@dimen/_4sdp">
-
-                        <ImageView
-                            android:layout_width="@dimen/_14sdp"
-                            android:layout_height="@dimen/_14sdp"
-                            android:src="@drawable/ic_ai_spark"
-                            app:tint="@color/white" />
-
-                        <com.pt.zyfooai.View.AutoResizeTextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/_2sdp"
-                            android:fontFamily="@font/inter_bold"
-                            android:maxLines="1"
-                            android:text="@string/ai_button_label"
-                            android:textColor="@color/white"
-                            android:textSize="@dimen/_9sdp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:paddingHorizontal="@dimen/_6sdp"
-                        android:background="@drawable/gradintround_shape"
-                        android:id="@+id/downloadBtn"
-                        android:layout_weight="0.9"
-                        android:layout_width="0dp"
-                        android:layout_height="@dimen/feed_footer_btn_height"
-                        android:layout_marginHorizontal="@dimen/_4sdp"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="@dimen/_18sdp"
-                            android:layout_height="@dimen/_18sdp"
-                            android:padding="@dimen/_2sdp"
-                            android:src="@drawable/ic_download_regular_color"
-                            app:tint="@color/white" />
-
-                        <com.pt.zyfooai.View.AutoResizeTextView
-                            android:maxLines="1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/_2sdp"
-                            android:fontFamily="@font/inter_bold"
-                            android:text="Download"
-                            android:textColor="@color/white"
-                            android:textSize="@dimen/_9sdp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:paddingHorizontal="@dimen/_6sdp"
-                        android:background="@drawable/gradintround_shape_two"
-                        android:id="@+id/shareBtn"
-                        android:layout_weight="1"
-                        android:layout_width="0dp"
-                        android:layout_height="@dimen/feed_footer_btn_height"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="@dimen/_18sdp"
-                            android:layout_height="@dimen/_18sdp"
-                            android:padding="@dimen/_2sdp"
-                            android:src="@drawable/ic_whatsapp"
-                            app:tint="@color/white" />
-
-                        <com.pt.zyfooai.View.AutoResizeTextView
-                            android:maxLines="1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/_2sdp"
-                            android:fontFamily="@font/inter_bold"
-                            android:text="Share"
-                            android:textColor="@color/white"
-                            android:textSize="@dimen/_9sdp" />
-
-                    </LinearLayout>
-
+                    <com.pt.zyfooai.View.AutoResizeTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_2sdp"
+                        android:fontFamily="@font/inter_bold"
+                        android:maxLines="1"
+                        android:text="Download"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_9sdp" />
                 </LinearLayout>
 
+                <LinearLayout
+                    android:id="@+id/aiBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_32sdp"
+                    android:layout_marginHorizontal="@dimen/_8sdp"
+                    android:layout_weight="1.15"
+                    android:background="@drawable/bg_ai_btn_3d"
+                    android:elevation="@dimen/_6sdp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/_8sdp"
+                    android:translationZ="@dimen/_4sdp">
+
+                    <ImageView
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
+                        android:src="@drawable/ic_ai_spark"
+                        app:tint="@color/white" />
+
+                    <com.pt.zyfooai.View.AutoResizeTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_3sdp"
+                        android:fontFamily="@font/inter_bold"
+                        android:maxLines="1"
+                        android:text="@string/ai_button_label"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_11sdp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/shareBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/feed_footer_btn_height"
+                    android:layout_weight="1"
+                    android:background="@drawable/gradintround_shape_two"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/_6sdp">
+
+                    <ImageView
+                        android:layout_width="@dimen/_16sdp"
+                        android:layout_height="@dimen/_16sdp"
+                        android:padding="@dimen/_1sdp"
+                        android:src="@drawable/ic_whatsapp"
+                        app:tint="@color/white" />
+
+                    <com.pt.zyfooai.View.AutoResizeTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_2sdp"
+                        android:fontFamily="@font/inter_bold"
+                        android:maxLines="1"
+                        android:text="Share"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_9sdp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvShareCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:fontFamily="@font/inter_bold"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:minWidth="@dimen/_22sdp"
+                    android:text="0+"
+                    android:textColor="@color/g3"
+                    android:textSize="@dimen/_9sdp" />
             </LinearLayout>
 
         </LinearLayout>

@@ -425,6 +425,40 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/ll_wallet"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:gravity="center"
+                            android:paddingVertical="@dimen/_5sdp"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:layout_width="@dimen/_32sdp"
+                                android:layout_height="@dimen/_32sdp"
+                                android:layout_marginStart="@dimen/_12sdp"
+                                android:src="@drawable/setting_4_img" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/inter_regular"
+                                android:text="@string/wallet_title"
+                                android:textColor="@color/sub_text_color"
+                                android:textSize="@dimen/_13ssp" />
+
+                            <TextView
+                                android:id="@+id/tvWalletBalanceSetting"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/_10sdp"
+                                android:textColor="@color/active_color"
+                                android:textSize="@dimen/_11ssp" />
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:id="@+id/ll_creator_stats"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

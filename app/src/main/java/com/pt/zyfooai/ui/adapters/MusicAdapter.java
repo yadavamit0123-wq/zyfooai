@@ -69,13 +69,15 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
                     selectedPosition = 500;
                     listener.onStop();
                     holder.binding.playBtn.setIcon(context.getDrawable(com.google.android.exoplayer2.R.drawable.exo_controls_play));
-                }else{
-                    listener.onPlay(model.image_url);
-                    MusicAdapter recyclerOverLayAdapter = MusicAdapter.this;
-                    recyclerOverLayAdapter.notifyItemChanged(recyclerOverLayAdapter.selectedPosition);
-                    MusicAdapter recyclerOverLayAdapter2 = MusicAdapter.this;
+                } else {
+                    int previous = selectedPosition;
                     selectedPosition = position;
-                    recyclerOverLayAdapter2.notifyItemChanged(recyclerOverLayAdapter2.selectedPosition);
+                    // Stop previous UI + audio, then play only this track.
+                    if (previous != 500 && previous != position) {
+                        notifyItemChanged(previous);
+                    }
+                    listener.onPlay(model.image_url);
+                    notifyItemChanged(selectedPosition);
                 }
             }
         });

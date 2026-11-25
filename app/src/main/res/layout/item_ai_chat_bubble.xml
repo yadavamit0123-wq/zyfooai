@@ -2,17 +2,19 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="@dimen/_4sdp">
+    android:paddingVertical="@dimen/_5sdp">
 
     <TextView
         android:id="@+id/tvBubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        android:background="@drawable/edit_bg"
-        android:maxWidth="280dp"
-        android:paddingHorizontal="@dimen/_10sdp"
-        android:paddingVertical="@dimen/_8sdp"
-        android:textColor="@color/black"
+        android:background="@drawable/bg_ai_bubble_assistant"
+        android:fontFamily="@font/inter_regular"
+        android:lineSpacingExtra="2dp"
+        android:maxWidth="300dp"
+        android:paddingHorizontal="@dimen/_12sdp"
+        android:paddingVertical="@dimen/_9sdp"
+        android:textColor="#111827"
         android:textSize="@dimen/_12sdp" />
 </FrameLayout>

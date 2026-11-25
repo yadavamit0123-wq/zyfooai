@@ -70,12 +70,27 @@ public final class AiRepository {
             String message,
             Uri imageUri
     ) {
+        return chat(context, provider, conversationId, message, imageUri, false);
+    }
+
+    public LiveData<AiChatResponse> chat(
+            Context context,
+            String provider,
+            String conversationId,
+            String message,
+            Uri imageUri,
+            boolean temporary
+    ) {
         MutableLiveData<AiChatResponse> live = new MutableLiveData<>();
         String userId = userId(context);
         Map<String, RequestBody> fields = new HashMap<>();
         fields.put("user_id", textBody(userId));
         fields.put("provider", textBody(provider != null ? provider : ""));
         fields.put("message", textBody(message != null ? message : ""));
+        if (temporary) {
+            // Backend: do not list this conversation in history (auto ephemeral).
+            fields.put("temporary", textBody("1"));
+        }
         if (conversationId != null && !conversationId.isEmpty()) {
             fields.put("conversation_id", textBody(conversationId));
         }
@@ -113,11 +128,24 @@ public final class AiRepository {
             String prompt,
             String conversationId
     ) {
+        return createImage(context, provider, prompt, conversationId, false);
+    }
+
+    public LiveData<AiImageResponse> createImage(
+            Context context,
+            String provider,
+            String prompt,
+            String conversationId,
+            boolean temporary
+    ) {
         MutableLiveData<AiImageResponse> live = new MutableLiveData<>();
         Map<String, String> fields = new HashMap<>();
         fields.put("user_id", userId(context));
         fields.put("provider", provider != null ? provider : "");
         fields.put("prompt", prompt != null ? prompt : "");
+        if (temporary) {
+            fields.put("temporary", "1");
+        }
         if (conversationId != null && !conversationId.isEmpty()) {
             fields.put("conversation_id", conversationId);
         }

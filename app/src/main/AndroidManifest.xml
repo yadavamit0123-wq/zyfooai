@@ -92,6 +92,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".ui.activities.WalletActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ui.activities.ReportContentActivity"
             android:exported="false"
             android:screenOrientation="portrait"

@@ -87,6 +87,7 @@ public class DailyPostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityPersonalPostBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         context = this;
         topIconBar(this);
 

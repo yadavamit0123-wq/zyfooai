@@ -174,21 +174,27 @@ public class CustomSplashActivity extends AppCompatActivity {
     }
 
     private void gotoMainActivity() {
-        Intent intent;
-        if (getIntent().getBooleanExtra(Constant.INTENT_IS_FROM_NOTIFICATION, false)) {
-            intent = new Intent(CustomSplashActivity.this, MainActivity.class);
-            intent.putExtra(Constant.INTENT_TYPE, preferenceManager.getString(Constant.PRF_TYPE));
-            intent.putExtra(Constant.INTENT_FEST_ID, preferenceManager.getString(Constant.PRF_ID));
-            intent.putExtra(Constant.INTENT_FEST_NAME, preferenceManager.getString(Constant.PRF_NAME));
-            intent.putExtra(Constant.INTENT_POST_IMAGE, "");
-            intent.putExtra(Constant.INTENT_VIDEO, false);
+        Runnable openMain = () -> {
+            Intent intent = new Intent(CustomSplashActivity.this, MainActivity.class);
+            if (getIntent().getBooleanExtra(Constant.INTENT_IS_FROM_NOTIFICATION, false)) {
+                intent.putExtra(Constant.INTENT_TYPE, preferenceManager.getString(Constant.PRF_TYPE));
+                intent.putExtra(Constant.INTENT_FEST_ID, preferenceManager.getString(Constant.PRF_ID));
+                intent.putExtra(Constant.INTENT_FEST_NAME, preferenceManager.getString(Constant.PRF_NAME));
+                intent.putExtra(Constant.INTENT_POST_IMAGE, "");
+                intent.putExtra(Constant.INTENT_VIDEO, false);
+            }
             startActivity(intent);
             finish();
-        } else {
-            intent = new Intent(CustomSplashActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
+        };
+
+        com.pt.zyfooai.utils.BiometricHelper.requireUnlockIfNeeded(
+                this,
+                openMain,
+                () -> {
+                    // User cancelled unlock — leave app
+                    finishAffinity();
+                }
+        );
     }
 
     private void storeDevice() {

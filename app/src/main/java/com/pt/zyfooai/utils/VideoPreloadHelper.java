@@ -18,22 +18,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Warms upcoming feed media for the next ~3–4 scrolls:
- * videos → ExoPlayer {@link VideoCacheHelper}; images → Glide disk cache.
+ * Warms upcoming feed media so the next ~4–5 reels play without buffering.
  */
 public final class VideoPreloadHelper {
 
     private static final String TAG = "VideoPreloadHelper";
-    /** ~2.5MB first chunk — enough for near-instant play when scrolled into view. */
-    private static final long PRELOAD_BYTES = 2_500_000L;
-    /** Next 3–4 scrolls of reels. */
-    public static final int MAX_VIDEO_PRELOAD = 4;
+    /** ~4MB first chunk — enough for near-instant play when scrolled into view. */
+    private static final long PRELOAD_BYTES = 4_000_000L;
+    /** Next 5 reels ready after open / current position. */
+    public static final int MAX_VIDEO_PRELOAD = 5;
     /** Previous scrolls (up) to warm for reverse scroll. */
     public static final int MAX_VIDEO_PRELOAD_BEFORE = 2;
-    /** Next 3–4 scrolls of images. */
-    public static final int MAX_IMAGE_PRELOAD = 4;
+    /** Next images. */
+    public static final int MAX_IMAGE_PRELOAD = 5;
 
-    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(3);
     private static final Set<String> IN_FLIGHT = new HashSet<>();
     private static final Set<String> DONE = new HashSet<>();
     private static final Set<String> IMAGE_DONE = new HashSet<>();
@@ -41,14 +40,14 @@ public final class VideoPreloadHelper {
     private VideoPreloadHelper() {
     }
 
-    /** Preload first upcoming videos + images in the feed list. */
+    /** Preload first upcoming videos + images in the feed list (app open). */
     public static void preloadUpcoming(Context context, @Nullable List<PostItem> feed) {
         preloadAround(context, feed, 0);
     }
 
     /**
      * Warm media around the current feed index so up/down scroll plays immediately
-     * (next 3–4 videos/images + a couple previous videos).
+     * (next 4–5 videos/images + a couple previous videos).
      */
     public static void preloadAround(Context context, @Nullable List<PostItem> feed, int centerIndex) {
         preloadNextAfter(context, feed, centerIndex);

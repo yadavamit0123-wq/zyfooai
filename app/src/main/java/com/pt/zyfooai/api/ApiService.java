@@ -25,6 +25,9 @@ import com.pt.zyfooai.model.SubscriptionModel;
 import com.pt.zyfooai.model.UserItem;
 import com.pt.zyfooai.model.UserStoryDetailResponse;
 import com.pt.zyfooai.model.UserStoryListResponse;
+import com.pt.zyfooai.model.WalletHistoryResponse;
+import com.pt.zyfooai.model.WalletPayRequest;
+import com.pt.zyfooai.model.WalletPayResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -227,6 +230,12 @@ public interface ApiService {
             @Query("user_id") String userId,
             @Query("page") int page
     );
+
+    @GET("api/wallet/history")
+    Call<WalletHistoryResponse> getWalletHistory(@Query("user_id") String userId);
+
+    @POST("api/wallet/pay")
+    Call<WalletPayResponse> payWithWallet(@Body WalletPayRequest body);
 
     @GET("api/faq/{category}")
     Call<FaqListResponse> getFaq(@Path("category") String category);

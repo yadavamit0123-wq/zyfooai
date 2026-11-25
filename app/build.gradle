@@ -148,6 +148,7 @@ dependencies {
     //DataBinding
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-process:2.5.1'
 
     //Lottie Animation
     implementation 'com.airbnb.android:lottie:6.0.0'

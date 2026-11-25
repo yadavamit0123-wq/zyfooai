@@ -57,9 +57,11 @@ public class DownloadActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (BiometricHelper.isLockEnabled(this) && !biometricVerified) {
+        // App-open lock covers Downloads once session is unlocked; still gate if locked.
+        if (BiometricHelper.needsAppUnlock(this) && !biometricVerified) {
             BiometricHelper.authenticate(this, () -> {
                 biometricVerified = true;
+                BiometricHelper.markSessionUnlocked();
                 loadData();
             }, this::finish);
             return;

@@ -38,6 +38,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.ads.mediation.admob.AdMobAdapter;
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -45,6 +46,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.ads.AdLoader;
@@ -69,6 +71,7 @@ import com.pt.zyfooai.utils.AiPrefs;
 import com.pt.zyfooai.utils.Constant;
 import com.pt.zyfooai.utils.ContentReportHelper;
 import com.pt.zyfooai.utils.BillingHelper;
+import com.pt.zyfooai.utils.CountFormatHelper;
 import com.pt.zyfooai.utils.ExoPlayerVolumeHelper;
 import com.pt.zyfooai.utils.DynamicFrameRenderer;
 import com.pt.zyfooai.utils.FrameBindHelper;
@@ -393,11 +396,23 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.videoLayoutBinding.aiBtn.setOnClickListener(onClickListener);
             }
 
-            for (LinearLayout linearLayout : Arrays.asList(holder.videoLayoutBinding.shareBtn, holder.videoLayoutBinding.editBtn)) {
-                linearLayout.setOnClickListener(onClickListener);
+            if (holder.videoLayoutBinding.shareBtn != null) {
+                holder.videoLayoutBinding.shareBtn.setOnClickListener(onClickListener);
             }
+            if (holder.videoLayoutBinding.editBtn != null) {
+                holder.videoLayoutBinding.editBtn.setVisibility(View.GONE);
+            }
+            bindEngagementCounts(
+                    holder.videoLayoutBinding.tvDownloadCount,
+                    holder.videoLayoutBinding.tvShareCount,
+                    list.get(position));
 
             bindReportMenu(holder.videoLayoutBinding.btnReportMenu, list.get(position));
+
+            if (holder.videoLayoutBinding.musicBtn != null) {
+                holder.videoLayoutBinding.musicBtn.setVisibility(View.VISIBLE);
+                holder.videoLayoutBinding.musicBtn.setOnClickListener(onClickListener);
+            }
 
 //            holder.videoLayoutBinding.nextBtn.setOnClickListener(view -> next(holder, position, view));
 
@@ -515,13 +530,55 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
                 holder.binding.aiBtn.setOnClickListener(onClickListener);
             }
 
-            for (LinearLayout linearLayout : Arrays.asList(holder.binding.shareBtn, holder.binding.editBtn)) {
-                linearLayout.setOnClickListener(onClickListener);
+            if (holder.binding.shareBtn != null) {
+                holder.binding.shareBtn.setOnClickListener(onClickListener);
             }
+            if (holder.binding.editBtn != null) {
+                holder.binding.editBtn.setVisibility(View.GONE);
+            }
+            bindEngagementCounts(
+                    holder.binding.tvDownloadCount,
+                    holder.binding.tvShareCount,
+                    list.get(position));
 
             bindReportMenu(holder.binding.btnReportMenu, list.get(position));
 
-            holder.binding.musicBtn.setOnClickListener(view -> next(holder, position, view));
+            if (holder.binding.musicBtn != null) {
+                holder.binding.musicBtn.setVisibility(View.VISIBLE);
+                holder.binding.musicBtn.setOnClickListener(onClickListener);
+            }
+        }
+    }
+
+    private void bindEngagementCounts(TextView downloadCountTv, TextView shareCountTv, PostItem post) {
+        if (post == null) {
+            return;
+        }
+        if (downloadCountTv != null) {
+            downloadCountTv.setText(CountFormatHelper.formatPlus(post.resolveDownloadCount()));
+        }
+        if (shareCountTv != null) {
+            shareCountTv.setText(CountFormatHelper.formatPlus(post.resolveShareCount()));
+        }
+    }
+
+    /** Bump local count after this user downloads/shares; UI updates immediately. */
+    public void incrementEngagementCount(String postId, boolean download) {
+        if (postId == null || postId.isEmpty() || list == null) {
+            return;
+        }
+        for (int i = 0; i < list.size(); i++) {
+            PostItem item = list.get(i);
+            if (item == null || item.postId == null || !postId.equals(item.postId)) {
+                continue;
+            }
+            if (download) {
+                item.downloadCount = item.resolveDownloadCount() + 1;
+            } else {
+                item.shareCount = item.resolveShareCount() + 1;
+            }
+            notifyItemChanged(i);
+            break;
         }
     }
 
@@ -548,6 +605,25 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     private ExoPlayer sharedPlayer;
     public ViewHolderVideo currentHolder;
     public String currentPlayingVideo = "";
+    /** When true (music picker / overlay music / download), reel stays silent. */
+    private boolean feedAudioSuppressed;
+
+    public void setFeedAudioSuppressed(boolean suppressed) {
+        feedAudioSuppressed = suppressed;
+        if (sharedPlayer != null) {
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, suppressed ? 0f : 1f);
+            if (suppressed) {
+                sharedPlayer.setPlayWhenReady(false);
+            }
+        } else if (currentPlayer != null && suppressed) {
+            ExoPlayerVolumeHelper.setVolume(currentPlayer, 0f);
+            currentPlayer.setPlayWhenReady(false);
+        }
+    }
+
+    public boolean isFeedAudioSuppressed() {
+        return feedAudioSuppressed;
+    }
 
     public void updatePlayer(ViewHolderVideo holder, PostItem item) {
         if (item == null || item.image_url == null || item.image_url.isEmpty()) {
@@ -566,14 +642,24 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
         if (sharedPlayer == null) {
             TrackSelector trackSelectorDef = new DefaultTrackSelector();
-            sharedPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef);
+            // Faster start from cache — smaller playback buffer thresholds.
+            DefaultLoadControl loadControl = new DefaultLoadControl(
+                    new DefaultAllocator(true, 64 * 1024),
+                    1500,
+                    5000,
+                    500,
+                    1000,
+                    -1,
+                    true
+            );
+            sharedPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef, loadControl);
             sharedPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
             sharedPlayer.addListener(new Player.EventListener() {
                 @Override
                 public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                     if (currentHolder != null && playbackState == ExoPlayer.STATE_READY) {
                         currentHolder.videoLayoutBinding.loader.setVisibility(View.GONE);
-                        if (sharedPlayer != null) {
+                        if (sharedPlayer != null && !feedAudioSuppressed) {
                             ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
                         }
                         FooterSizeHelper.fitContentAboveFooter(
@@ -611,8 +697,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         if (holder.videoLayoutBinding.playerview.getPlayer() != sharedPlayer) {
             holder.videoLayoutBinding.playerview.setPlayer(sharedPlayer);
         }
-        ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
-        sharedPlayer.setPlayWhenReady(true);
+        if (feedAudioSuppressed) {
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
+            sharedPlayer.setPlayWhenReady(false);
+        } else {
+            ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
+            sharedPlayer.setPlayWhenReady(true);
+        }
         holder.exoplayer = sharedPlayer;
         currentPlayer = sharedPlayer;
         currentHolder = holder;
@@ -649,6 +740,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     }
 
     public void onResumeVideo() {
+        if (feedAudioSuppressed) {
+            if (sharedPlayer != null) {
+                ExoPlayerVolumeHelper.setVolume(sharedPlayer, 0f);
+                sharedPlayer.setPlayWhenReady(false);
+            }
+            return;
+        }
         if (sharedPlayer != null && currentHolder != null) {
             ExoPlayerVolumeHelper.setVolume(sharedPlayer, 1f);
             sharedPlayer.setPlayWhenReady(true);

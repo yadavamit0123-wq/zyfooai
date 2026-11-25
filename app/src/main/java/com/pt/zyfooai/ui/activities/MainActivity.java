@@ -435,6 +435,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         isVisible = true;
+        if (com.pt.zyfooai.utils.BiometricHelper.needsAppUnlock(this)) {
+            // Returning from background with lock ON — unlock before using home.
+            com.pt.zyfooai.utils.BiometricHelper.requireUnlockIfNeeded(
+                    this,
+                    this::continueOnResumeAfterUnlock,
+                    () -> moveTaskToBack(true)
+            );
+            return;
+        }
+        continueOnResumeAfterUnlock();
+    }
+
+    private void continueOnResumeAfterUnlock() {
+        // Keep screen awake while image/reel feed is visible.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         AppUpdateHelper.checkForUpdate(this);
         if (userStoryRingAdapter != null) {
             loadUserStories();
@@ -503,11 +518,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpRecyclerView() {
         binding.allVideo.setLayoutManager(layoutManager);
-        // Keep next ~3–4 feed rows warm so frame fit runs on bind before user scrolls.
-        binding.allVideo.setItemViewCacheSize(6);
+        // Keep next ~4–5 feed rows warm so reels are ready before user scrolls.
+        binding.allVideo.setItemViewCacheSize(8);
         binding.allVideo.setHasFixedSize(true);
         if (layoutManager != null) {
-            layoutManager.setInitialPrefetchItemCount(4);
+            layoutManager.setInitialPrefetchItemCount(5);
         }
         SnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(binding.allVideo);
@@ -516,6 +531,11 @@ public class MainActivity extends AppCompatActivity {
             binding.allVideo.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    if (newState == RecyclerView.SCROLL_STATE_DRAGGING && adapter != null) {
+                        // Mute immediately so previous reel audio never leaks while scrolling.
+                        adapter.onPauseVideo();
+                        stopMusic(true);
+                    }
                     if (newState == RecyclerView.SCROLL_STATE_IDLE
                             || newState == RecyclerView.SCROLL_STATE_SETTLING) {
                         playVisibleVideo(recyclerView);
@@ -589,6 +609,8 @@ public class MainActivity extends AppCompatActivity {
             if (remove != null) {
                 remove.setVisibility(GONE);
             }
+            // Stop reel play + sound as soon as download starts.
+            silenceCurrentStageAudio(true);
             String postKey = PostDownloadTracker.postKey(postItem);
             if (PostDownloadTracker.isDownloading(postKey)) {
                 PostDownloadTracker.Job job = PostDownloadTracker.getJob(postKey);
@@ -617,7 +639,7 @@ public class MainActivity extends AppCompatActivity {
                 setupDialogPremium(postItem, postItem, "Share");
                 return;
             }
-            saveImage(com.pt.zyfooai.utils.FrameCaptureHelper.capture(currentView), postItem, "Share");
+            showShareOptionsDialog(postItem, com.pt.zyfooai.utils.FrameCaptureHelper.capture(currentView));
         } else if (view.getId() == R.id.edit_Btn) {
             if (clickDebouncer.shouldIgnore()) return;
             startActivity(new Intent(context, EditProfileActivity.class)
@@ -635,12 +657,40 @@ public class MainActivity extends AppCompatActivity {
             startActivity(aiIntent);
         } else if (view.getId() == R.id.musicBtn) {
             musicFrameName = "status_" + postItem.postId + ".mp4";
-            new SelectMusicFragment(new ClickListener<PostItem>() {
+            // Only music-sheet audio while picker is open — pause reel.
+            silenceCurrentStageAudio(false);
+            if (adapter != null) {
+                adapter.setFeedAudioSuppressed(true);
+            }
+            SelectMusicFragment musicSheet = new SelectMusicFragment(new ClickListener<PostItem>() {
                 @Override
                 public void onClick(PostItem data) {
                     playMusic(data.image_url);
                 }
-            }).show(getSupportFragmentManager(), "");
+            });
+            musicSheet.setOnDismissListener(() -> {
+                // If user left without selecting overlay music, restore current reel audio.
+                if (musicPath == null || musicPath.isEmpty()) {
+                    if (adapter != null) {
+                        adapter.setFeedAudioSuppressed(false);
+                    }
+                    if (binding != null && binding.allVideo != null) {
+                        playVisibleVideo(binding.allVideo);
+                    }
+                }
+            });
+            musicSheet.show(getSupportFragmentManager(), "select_music");
+        }
+    }
+
+    /** Mute/stop reel (+ optional clear overlay music). */
+    private void silenceCurrentStageAudio(boolean stopOverlayMusic) {
+        if (adapter != null) {
+            adapter.onPauseVideo();
+            adapter.setFeedAudioSuppressed(true);
+        }
+        if (stopOverlayMusic) {
+            stopMusic(true);
         }
     }
 
@@ -678,6 +728,47 @@ public class MainActivity extends AppCompatActivity {
         preferenceManager.setString(Constant.SELECTED_CATEGORY_ID, selectedCat);
         preferenceManager.setString(Constant.SELECTED_CATEGORY_NAME,
                 categoryName != null && !categoryName.trim().isEmpty() ? categoryName : "All");
+    }
+
+    /**
+     * Keep "All" first; move the selected category to sit right beside it.
+     * Existing select / feed load flow is unchanged — only row order updates.
+     */
+    private void promoteSelectedCategoryBesideAll(String categoryId) {
+        if (categoryItemList == null || categoryItemList.isEmpty()) {
+            return;
+        }
+        if (categoryId == null || categoryId.isEmpty() || "-1".equals(categoryId)) {
+            return;
+        }
+
+        CategoryItem allItem = null;
+        CategoryItem selectedItem = null;
+        ArrayList<CategoryItem> rest = new ArrayList<>();
+        for (CategoryItem item : categoryItemList) {
+            if (item == null) {
+                continue;
+            }
+            if (allItem == null && "-1".equals(item.getId())) {
+                allItem = item;
+            } else if (selectedItem == null && categoryId.equals(item.getId())) {
+                selectedItem = item;
+            } else {
+                rest.add(item);
+            }
+        }
+        if (selectedItem == null) {
+            return;
+        }
+
+        categoryItemList.clear();
+        if (allItem != null) {
+            categoryItemList.add(allItem);
+        } else {
+            categoryItemList.add(new CategoryItem("-1", "All", R.drawable.logo, false));
+        }
+        categoryItemList.add(selectedItem);
+        categoryItemList.addAll(rest);
     }
 
     private void syncSelectedCategoryNameFromList() {
@@ -732,6 +823,7 @@ public class MainActivity extends AppCompatActivity {
             categoryItemList.add(politicalIndex, new CategoryItem("-4", "Political", R.drawable.flag_regular, true));
 
             syncSelectedCategoryNameFromList();
+            promoteSelectedCategoryBesideAll(selectedCat);
             bindCategoriesAdapter();
         });
 
@@ -1097,9 +1189,15 @@ public class MainActivity extends AppCompatActivity {
             anchor = lm.findFirstCompletelyVisibleItemPosition();
         }
         if (anchor != RecyclerView.NO_POSITION) {
-            // Warm next + previous videos so up/down scroll plays immediately.
+            // Warm next 4–5 + previous videos so scroll plays immediately.
             VideoPreloadHelper.preloadAround(context, dailyPost, anchor);
         }
+
+        // Overlay music owns audio; otherwise restore reel audio for current item.
+        boolean overlayMusic = musicPath != null && !musicPath.isEmpty()
+                && musicPlayer != null
+                && musicPlayer.getPlayWhenReady();
+        adapter.setFeedAudioSuppressed(overlayMusic);
 
         int primaryPos = findMostVisibleItemPosition(lm, recyclerView);
         if (primaryPos == RecyclerView.NO_POSITION) {
@@ -1174,53 +1272,70 @@ public class MainActivity extends AppCompatActivity {
     ExoPlayer musicPlayer;
     private void playMusic(String path) {
         hideHandAnimation();
-        musicPath = path;
-        if (musicPlayer != null && musicPlayer.isPlaying()) {
-            musicPlayer.setPlayWhenReady(false);
-            musicPlayer.release();
+        // Selected music owns audio — reel stays silent.
+        if (adapter != null) {
+            adapter.setFeedAudioSuppressed(true);
+            adapter.onPauseVideo();
+        }
+        musicPath = path != null ? path : "";
+        if (musicPlayer != null) {
+            try {
+                musicPlayer.setPlayWhenReady(false);
+                musicPlayer.release();
+            } catch (Exception ignored) {
+            }
+            musicPlayer = null;
+        }
+        if (musicPath.isEmpty()) {
+            return;
         }
         TrackSelector trackSelectorDef = new DefaultTrackSelector();
         musicPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelectorDef);
 
-        int appNameStringRes = R.string.app_name;
-        String userAgent = com.google.android.exoplayer2.util.Util.getUserAgent(context, context.getString(appNameStringRes));
+        String userAgent = com.google.android.exoplayer2.util.Util.getUserAgent(context, context.getString(R.string.app_name));
         DefaultDataSourceFactory defdataSourceFactory = new DefaultDataSourceFactory(context, userAgent);
-        Uri uriOfContentUrl = Uri.parse(path);
-        MediaSource mediaSource = new ProgressiveMediaSource.Factory(defdataSourceFactory).createMediaSource(uriOfContentUrl);  // creating a media source
+        Uri uriOfContentUrl = Uri.parse(musicPath);
+        MediaSource mediaSource = new ProgressiveMediaSource.Factory(defdataSourceFactory)
+                .createMediaSource(uriOfContentUrl);
 
         musicPlayer.prepare(mediaSource);
         musicPlayer.setPlayWhenReady(true);
         musicPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
-        musicPlayer.addListener(new Player.EventListener() {
-            @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-
-            }
-        });
     }
 
     private void stopMusic(boolean destroy) {
         if (musicPlayer != null) {
-            musicPlayer.setPlayWhenReady(false);
-            if (destroy) {
-                musicPath = "";
-                musicPlayer.release();
+            try {
+                musicPlayer.setPlayWhenReady(false);
+                if (destroy) {
+                    musicPlayer.release();
+                    musicPlayer = null;
+                }
+            } catch (Exception ignored) {
                 musicPlayer = null;
             }
+        }
+        if (destroy) {
+            musicPath = "";
         }
     }
 
     private void playMusic() {
-        if (musicPlayer != null){
+        if (musicPlayer != null && musicPath != null && !musicPath.isEmpty()) {
+            if (adapter != null) {
+                adapter.setFeedAudioSuppressed(true);
+                adapter.onPauseVideo();
+            }
             musicPlayer.setPlayWhenReady(true);
         }
     }
     protected void onPause() {
         super.onPause();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (adapter != null) {
             adapter.onPauseVideo();
         }
-
+        stopMusic(false);
     }
 
 
@@ -1349,9 +1464,15 @@ public class MainActivity extends AppCompatActivity {
         getInterstitialsAdsManager().showInterstitialAd(() -> {
             if ("Share".equals(type)) {
                 CreatorAnalyticsHelper.trackShare(context, postItem.postId, selectedCat);
+                if (adapter != null && postItem != null) {
+                    adapter.incrementEngagementCount(postItem.postId, false);
+                }
             } else {
                 AnalyticsHelper.logDownload(context, postItem.is_video ? "video" : "image");
                 CreatorAnalyticsHelper.trackDownload(context, postItem.postId, selectedCat);
+                if (adapter != null && postItem != null) {
+                    adapter.incrementEngagementCount(postItem.postId, true);
+                }
             }
             stopMusic(true);
             final String postKey = PostDownloadTracker.postKey(postItem);
@@ -1696,6 +1817,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void shareDownloadedFile(String path) {
+        showShareOptionsForSavedFile(path);
+    }
+
+    /**
+     * Share tab: keep existing external share, plus Add to My Story.
+     */
+    private void showShareOptionsDialog(PostItem postItem, Bitmap framedCapture) {
+        Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_share_options);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(android.view.Gravity.BOTTOM);
+        }
+
+        dialog.findViewById(R.id.optionShareExternal).setOnClickListener(v -> {
+            dialog.dismiss();
+            saveImage(framedCapture, postItem, "Share");
+        });
+        dialog.findViewById(R.id.optionAddToStory).setOnClickListener(v -> {
+            dialog.dismiss();
+            postFramedContentToMyStory(framedCapture);
+        });
+        dialog.show();
+    }
+
+    private void showShareOptionsForSavedFile(String path) {
+        if (path == null || path.isEmpty()) {
+            return;
+        }
+        Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_share_options);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(android.view.Gravity.BOTTOM);
+        }
+
+        dialog.findViewById(R.id.optionShareExternal).setOnClickListener(v -> {
+            dialog.dismiss();
+            launchExternalShare(path);
+        });
+        dialog.findViewById(R.id.optionAddToStory).setOnClickListener(v -> {
+            dialog.dismiss();
+            postSavedFileToMyStory(path);
+        });
+        dialog.show();
+    }
+
+    private void launchExternalShare(String path) {
         try {
             File file = new File(path);
             Uri uri = FileProvider.getUriForFile(
@@ -1713,6 +1886,45 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             shareFileImageUri(getImageContentUri(new File(path)), "Share");
         }
+    }
+
+    private void postFramedContentToMyStory(Bitmap framedCapture) {
+        if (framedCapture == null || framedCapture.isRecycled()) {
+            Toast.makeText(context, R.string.share_story_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Toast.makeText(context, R.string.share_story_uploading, Toast.LENGTH_SHORT).show();
+        userStoryRepository.createStoryFromBitmap(this, framedCapture).observe(this, response -> {
+            if (response != null && (response.data != null || response.success)) {
+                Toast.makeText(context, R.string.share_story_success, Toast.LENGTH_SHORT).show();
+                userStoryRepository.refreshFeed(this);
+            } else {
+                String msg = response != null && response.message != null
+                        ? response.message
+                        : getString(R.string.share_story_failed);
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void postSavedFileToMyStory(String path) {
+        File file = new File(path);
+        if (!file.exists()) {
+            Toast.makeText(context, R.string.share_story_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Toast.makeText(context, R.string.share_story_uploading, Toast.LENGTH_SHORT).show();
+        userStoryRepository.createStoryFromFile(this, file).observe(this, response -> {
+            if (response != null && (response.data != null || response.success)) {
+                Toast.makeText(context, R.string.share_story_success, Toast.LENGTH_SHORT).show();
+                userStoryRepository.refreshFeed(this);
+            } else {
+                String msg = response != null && response.message != null
+                        ? response.message
+                        : getString(R.string.share_story_failed);
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void downloadVideo(String framePath, String videoUrl, String type, String postKey) {
@@ -2005,6 +2217,14 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     updateSelectedCategory(item.getId(), item.getName());
+                    promoteSelectedCategoryBesideAll(item.getId());
+                    String filterQuery = inlineSearchExpanded
+                            ? binding.searchInputExpanded.getText().toString()
+                            : "";
+                    applyCategoryFilter(filterQuery);
+                    if (binding.rvCategory != null) {
+                        binding.rvCategory.post(() -> binding.rvCategory.scrollToPosition(0));
+                    }
                     AnalyticsHelper.logCategorySelect(context, selectedCat, item.getName());
                     CreatorAnalyticsHelper.trackCategoryView(context, selectedCat, item.getName());
                     if (adapter != null) {
@@ -2252,7 +2472,7 @@ public class MainActivity extends AppCompatActivity {
 
                 dialogPremium.findViewById(R.id.shareBtn).setOnClickListener(view -> {
                     dialogPremium.dismiss();
-                    saveImage(freeBit, postItem, "Share");
+                    showShareOptionsDialog(postItem, freeBit);
                 });
 
                 RecyclerView recyclerView = dialogPremium.findViewById(R.id.recycler);
