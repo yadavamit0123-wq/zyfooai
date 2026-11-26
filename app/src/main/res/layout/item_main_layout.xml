@@ -27,10 +27,9 @@
             android:layout_height="match_parent">
 
             <androidx.cardview.widget.CardView
-                android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="true"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="@dimen/feed_media_height"
                 android:layout_margin="@dimen/feed_card_margin"
                 app:cardCornerRadius="@dimen/_5sdp">
 
@@ -133,7 +132,7 @@
                 android:minHeight="@dimen/_18sdp">
 
                 <LinearLayout
-                    android:id="@+id/customizeFrameBtn">
+                    android:id="@+id/customizeFrameBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_ripple_round"

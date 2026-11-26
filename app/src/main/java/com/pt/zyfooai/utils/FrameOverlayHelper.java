@@ -127,26 +127,26 @@ public final class FrameOverlayHelper {
                 return;
             }
 
-            int footerHeight = footer.getHeight();
-            if (footerHeight <= 0) {
-                footerHeight = contentArea.getResources().getDimensionPixelSize(R.dimen.feed_footer_fallback_height);
-            }
             int available = contentArea.getHeight();
             if (available <= 0) {
                 mainLayout.setAlpha(1f);
                 return;
             }
 
+            int targetMedia = contentArea.getResources()
+                    .getDimensionPixelSize(R.dimen.feed_media_height);
+            int mediaHeight = Math.min(available, Math.max(targetMedia, 0));
+
             ViewGroup.LayoutParams layoutParams = mainLayout.getLayoutParams();
             if (layoutParams != null) {
-                layoutParams.height = Math.max(available, 0);
+                layoutParams.height = mediaHeight;
                 mainLayout.setLayoutParams(layoutParams);
             }
 
             if (mediaView != null) {
                 ViewGroup.LayoutParams mediaParams = mediaView.getLayoutParams();
                 if (mediaParams != null) {
-                    mediaParams.height = Math.max(available, 0);
+                    mediaParams.height = mediaHeight;
                     mediaView.setLayoutParams(mediaParams);
                 }
             }

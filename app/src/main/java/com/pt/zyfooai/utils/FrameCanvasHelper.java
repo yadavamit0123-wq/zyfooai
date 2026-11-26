@@ -72,6 +72,11 @@ public final class FrameCanvasHelper {
             if (areaWidth <= 0) {
                 return;
             }
+            int targetMedia = contentArea.getResources()
+                    .getDimensionPixelSize(R.dimen.feed_media_height);
+            if (targetMedia > 0 && areaHeight > targetMedia) {
+                areaHeight = targetMedia;
+            }
 
             int marginW = 0;
             int marginH = 0;
